@@ -1,6 +1,6 @@
 # Copyright (C) 1993-2004, Index Data ApS
 # All rights reserved.
-# $Id: makefile,v 1.2 2004-04-11 17:51:10 adam Exp $
+# $Id: makefile,v 1.3 2005-02-07 13:29:38 adam Exp $
 
 ###########################################################
 ############### Parameters 
@@ -18,14 +18,14 @@ ICONV_DIR = c:\iconv-1.9.1.win32
 
 # libxslt
 HAVE_LIBXSLT=1
-LIBXSLT_DIR=c:\libxslt-1.1.4.win32
+LIBXSLT_DIR=c:\libxslt-1.1.12.win32
 
 # libxml2 (used by libxslt)
 HAVE_LIBXML2=1
-LIBXML2_DIR=c:\libxml2-2.6.7.win32
+LIBXML2_DIR=c:\libxml2-2.6.15.win32
 
 # zlib compression (used by libxml2)
-ZLIB_DIR = c:\zlib-1.1.4.win32
+ZLIB_DIR = c:\zlib-1.2.1.win32
 
 # get WIN32 binaries for libxslt, libxml, iconv, zlib from here:
 # http://www.zlatkovic.com/libxml.en.html
@@ -102,7 +102,7 @@ ICONV_LIB= \
 iconv: $(BINDIR)\iconv.dll
 
 $(BINDIR)\iconv.dll:
-  copy "$(ICONV_DIR)\lib\iconv.dll" $(BINDIR)
+  copy "$(ICONV_DIR)\bin\iconv.dll" $(BINDIR)
 !else
 ICONV_DEF= \
   /D HAVE_ICONV_H=0
@@ -114,13 +114,13 @@ iconv:
 !if $(HAVE_LIBXML2)
 LIBXML2_LIB="$(LIBXML2_DIR)\lib\libxml2.lib"
 LIBXML2_DEF=/D HAVE_XML2=1 /I"$(LIBXML2_DIR)\include"
-libxml2: $(BINDIR)\libxml2.dll $(BINDIR)\zlib.dll
+libxml2: $(BINDIR)\libxml2.dll $(BINDIR)\zlib1.dll
 
 $(BINDIR)\libxml2.dll:
-  copy "$(LIBXML2_DIR)\lib\libxml2.dll" $(BINDIR)
+  copy "$(LIBXML2_DIR)\bin\libxml2.dll" $(BINDIR)
 
-$(BINDIR)\zlib.dll:
-  copy "$(ZLIB_DIR)\lib\zlib.dll" $(BINDIR)
+$(BINDIR)\zlib1.dll:
+  copy "$(ZLIB_DIR)\bin\zlib1.dll" $(BINDIR)
 
 !else
 LIBXML2_LIB=
@@ -130,12 +130,12 @@ libxml2:
 !endif
 
 !if $(HAVE_LIBXSLT)
-LIBXSLT_LIB="$(LIBXSLT_DIR)\lib\libxslt.lib"
+LIBXSLT_LIB="$(LIBXSLT_DIR)\bin\libxslt.lib"
 LIBXSLT_DEF=/D HAVE_XSLT=1 /I"$(LIBXSLT_DIR)\include"
-libxslt: $(BINDIR)\libxslt.dll $(BINDIR)\zlib.dll
+libxslt: $(BINDIR)\libxslt.dll $(BINDIR)\zlib1.dll
 
 $(BINDIR)\libxslt.dll:
-  copy "$(LIBXSLT_DIR)\lib\libxslt.dll" $(BINDIR)
+  copy "$(LIBXSLT_DIR)\bin\libxslt.dll" $(BINDIR)
 
 !else
 LIBXSLT_LIB=
@@ -237,6 +237,7 @@ YAZPROXY_OBJS= \
 YAZPROXY_DLL_OBJS = \
    "$(OBJDIR)\yaz-proxy.obj" \
    "$(OBJDIR)\yaz-proxy-config.obj" \
+   "$(OBJDIR)\yaz-usemarcon.obj" \
    "$(OBJDIR)\yaz-bw.obj"
 
 ###########################################################

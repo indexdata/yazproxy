@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.18 2005-01-18 10:49:45 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.19 2005-02-07 13:29:38 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -18,6 +18,11 @@ along with YAZ proxy; see the file LICENSE.  If not, write to the
 Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 02111-1307, USA.
  */
+
+#ifdef WIN32
+#define HAVE_SYS_STAT_H 1
+#define HAVE_SYS_TYPES_H 1
+#endif
 
 #if HAVE_UNISTD_H
 #include <unistd.h>
@@ -1889,10 +1894,10 @@ void Yaz_Proxy::srw_get_client(const char *db, const char **backend_db)
 
 int Yaz_Proxy::file_access(Z_HTTP_Request *hreq)
 {
+    struct stat sbuf;
     yaz_log(YLOG_LOG, "file_access");
     if (strcmp(hreq->method, "GET"))
 	return 0;
-    struct stat sbuf;
     if (hreq->path[0] != '/')
     {
 	yaz_log(YLOG_WARN, "Bad path: %s", hreq->path);
