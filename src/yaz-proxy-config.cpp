@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy-config.cpp,v 1.12 2004-12-13 20:52:33 adam Exp $
+/* $Id: yaz-proxy-config.cpp,v 1.13 2005-01-18 10:49:22 adam Exp $
    Copyright (c) 1998-2004, Index Data.
 
 This file is part of the yaz-proxy.
@@ -461,6 +461,10 @@ const char *Yaz_ProxyConfig::check_mime_type(const char *path)
 	{".xsl", "text/xml"},
 	{".tkl", "text/xml"},
 	{".xsd", "text/xml"},
+	{".html", "text/html"},
+	{".jpg", "image/jpeg"},
+	{".png", "image/png"},
+	{".gif", "image/gif"},
 	{0, "text/plain"},
 	{0, 0},
     };
