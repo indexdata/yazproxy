@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.7 2004-10-18 22:10:57 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.8 2004-10-19 18:34:15 adam Exp $
    Copyright (c) 1998-2004, Index Data.
 
 This file is part of the yaz-proxy.
@@ -2047,6 +2047,9 @@ void Yaz_Proxy::handle_incoming_HTTP(Z_HTTP_Request *hreq)
 	else if (srw_pdu->which == Z_SRW_explain_request)
 	{
 	    Z_SRW_explainRequest *srw_req = srw_pdu->u.explain_request;
+
+	    const char *backend_db = srw_req->database;
+	    srw_get_client(srw_req->database, &backend_db);
 
 	    m_s2z_database = odr_strdup(m_s2z_odr_init, srw_req->database);
 
