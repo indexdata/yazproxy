@@ -1,6 +1,6 @@
 # Copyright (C) 1993-2004, Index Data ApS
 # All rights reserved.
-# $Id: makefile,v 1.1 2004-04-11 17:49:53 adam Exp $
+# $Id: makefile,v 1.2 2004-04-11 17:51:10 adam Exp $
 
 ###########################################################
 ############### Parameters 
@@ -315,7 +315,6 @@ clean:
 	-del $(OBJDIR)\*.OBJ
 
 realclean: clean
-	-del $(ZOOMDIR)\zoom.h
 
 # Because DOS del will only accept one file name to delete,
 # the _H_ files work only on sets that have just one file.
