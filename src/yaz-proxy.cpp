@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.17 2005-01-11 20:58:04 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.18 2005-01-18 10:49:45 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -1895,26 +1895,35 @@ int Yaz_Proxy::file_access(Z_HTTP_Request *hreq)
     struct stat sbuf;
     if (hreq->path[0] != '/')
     {
-	yaz_log(YLOG_WARN, "Path != /");
+	yaz_log(YLOG_WARN, "Bad path: %s", hreq->path);
 	return 0;
     }
     const char *cp = hreq->path;
     while (*cp)
     {
 	if (*cp == '/' && strchr("/.", cp[1]))
+	{
+	    yaz_log(YLOG_WARN, "Bad path: %s", hreq->path);
 	    return 0;
+	}
 	cp++;
     }
     const char *fname = hreq->path+1;
     if (stat(fname, &sbuf))
     {
-	yaz_log(YLOG_WARN, "stat %s failed", fname);
+	yaz_log(YLOG_WARN|YLOG_ERRNO, "%s: stat failed", fname);
 	return 0;
     }
     if ((sbuf.st_mode & S_IFMT) != S_IFREG)
+    {
+	yaz_log(YLOG_WARN, "%s: not a regular file", fname);
 	return 0;
+    }
     if (sbuf.st_size > (off_t) 1000000)
+    {
+	yaz_log(YLOG_WARN, "%s: too large for transfer", fname);
 	return 0;
+    }
 
     ODR o = odr_encode();
     Yaz_ProxyConfig *cfg = check_reconfigure();
