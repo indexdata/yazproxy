@@ -1,0 +1,5 @@
+
+--- 0.8 not yet released
+
+Older versions of YAZ proxy was part of YAZ++. We've split the
+YAZ proxy into a separate project.
