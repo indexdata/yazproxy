@@ -1,4 +1,4 @@
-/* $Id: proxy.h,v 1.13 2005-02-21 14:27:32 adam Exp $
+/* $Id: proxy.h,v 1.14 2005-02-22 10:08:19 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -41,6 +41,11 @@ class Yaz_Proxy;
 class Yaz_usemarcon;
 class Yaz_ProxyConfig;
 class Yaz_ProxyClient;
+
+enum YAZ_Proxy_MARCXML_mode {
+    none,
+    marcxml,
+};
 
 /// Information Retrieval Proxy Server.
 class YAZ_EXPORT Yaz_Proxy : public Yaz_Z_Assoc {
@@ -103,7 +108,7 @@ class YAZ_EXPORT Yaz_Proxy : public Yaz_Z_Assoc {
     Yaz_ProxyConfig *check_reconfigure();
     int m_request_no;
     int m_invalid_session;
-    int m_marcxml_flag;
+    YAZ_Proxy_MARCXML_mode m_marcxml_mode;
     void *m_stylesheet_xsp;  // Really libxslt's xsltStylesheetPtr 
     int m_stylesheet_offset;
     Z_APDU *m_stylesheet_apdu;

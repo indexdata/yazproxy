@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.23 2005-02-21 14:27:32 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.24 2005-02-22 10:08:20 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -140,7 +140,7 @@ Yaz_Proxy::Yaz_Proxy(IYaz_PDU_Observable *the_PDU_Observable,
     m_referenceId = 0;
     m_referenceId_mem = nmem_create();
     m_config = 0;
-    m_marcxml_flag = 0;
+    m_marcxml_mode = none;
     m_stylesheet_xsp = 0;
     m_stylesheet_nprl = 0;
     m_s2z_stylesheet = 0;
@@ -853,7 +853,18 @@ void Yaz_Proxy::convert_to_marcxml(Z_NamePlusRecordList *p,
 	if (npr->which == Z_NamePlusRecord_databaseRecord)
 	{
 	    Z_External *r = npr->u.databaseRecord;
-	    if (r->which == Z_External_octet)
+	    if (r->which == Z_External_OPAC)
+	    {
+		WRBUF w = wrbuf_alloc();
+
+		yaz_display_OPAC(w, r->u.opac, 0);
+		npr->u.databaseRecord = z_ext_record(
+		    odr_encode(), VAL_TEXT_XML,
+		    wrbuf_buf(w), wrbuf_len(w)
+		    );
+		wrbuf_free(w, 1);
+	    }
+	    else if (r->which == Z_External_octet)
 	    {
 		int rlen;
 		char *result;
@@ -861,9 +872,8 @@ void Yaz_Proxy::convert_to_marcxml(Z_NamePlusRecordList *p,
 					r->u.octet_aligned->len,
 					&result, &rlen))
 		{
-		    npr->u.databaseRecord = z_ext_record(odr_encode(),
-							 VAL_TEXT_XML,
-							 result, rlen);
+		    npr->u.databaseRecord =
+			z_ext_record(odr_encode(), VAL_TEXT_XML, result, rlen);
 		}
 	    }
 	}
@@ -1182,7 +1192,7 @@ int Yaz_Proxy::send_to_client(Z_APDU *apdu)
 #endif
 		    )
 		    convert_to_frontend_type(p->u.databaseOrSurDiagnostics);
-		if (m_marcxml_flag)
+		if (m_marcxml_mode == marcxml)
 		    convert_to_marcxml(p->u.databaseOrSurDiagnostics,
 				       m_backend_charset);
 		if (convert_xsl(p->u.databaseOrSurDiagnostics, apdu))
@@ -1227,7 +1237,7 @@ int Yaz_Proxy::send_to_client(Z_APDU *apdu)
 #endif
 		)
 		convert_to_frontend_type(p->u.databaseOrSurDiagnostics);
-	    if (m_marcxml_flag)
+	    if (m_marcxml_mode == marcxml)
 		convert_to_marcxml(p->u.databaseOrSurDiagnostics,
 				   m_backend_charset);
 	    if (convert_xsl(p->u.databaseOrSurDiagnostics, apdu))
@@ -1859,7 +1869,7 @@ int Yaz_Proxy::handle_authentication(Z_APDU *apdu)
 
 Z_APDU *Yaz_Proxy::handle_syntax_validation(Z_APDU *apdu)
 {
-    m_marcxml_flag = 0;
+    m_marcxml_mode = none;
     if (apdu->which == Z_APDU_searchRequest)
     {
 	Z_SearchRequest *sr = apdu->u.searchRequest;
@@ -1912,6 +1922,7 @@ Z_APDU *Yaz_Proxy::handle_syntax_validation(Z_APDU *apdu)
 	{
 	    sr->smallSetElementSetNames = 0;
 	    sr->mediumSetElementSetNames = 0;
+	    m_marcxml_mode = marcxml;
 	    if (m_backend_type)
 	    {
 		
@@ -1923,7 +1934,6 @@ Z_APDU *Yaz_Proxy::handle_syntax_validation(Z_APDU *apdu)
 		sr->preferredRecordSyntax =
 		    yaz_oidval_to_z3950oid(odr_encode(), CLASS_RECSYN,
 					   VAL_USMARC);
-	    m_marcxml_flag = 1;
 	}
 	else if (err)
 	{
@@ -1988,6 +1998,7 @@ Z_APDU *Yaz_Proxy::handle_syntax_validation(Z_APDU *apdu)
 	if (err == -1)
 	{
 	    pr->recordComposition = 0;
+	    m_marcxml_mode = marcxml;
 	    if (m_backend_type)
 	    {
 		
@@ -1999,7 +2010,6 @@ Z_APDU *Yaz_Proxy::handle_syntax_validation(Z_APDU *apdu)
 		pr->preferredRecordSyntax =
 		    yaz_oidval_to_z3950oid(odr_encode(), CLASS_RECSYN,
 					   VAL_USMARC);
-	    m_marcxml_flag = 1;
 	}
 	else if (err)
 	{

@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
-<!-- $Id: voyager.xml,v 1.4 2004-08-10 11:45:00 adam Exp $ -->
-<proxy xmlns="http://indexdata.dk/yazproxy/schema/0.8/"
+<!-- $Id: voyager.xml,v 1.5 2005-02-22 10:08:19 adam Exp $ -->
+<proxy xmlns="http://indexdata.dk/yazproxy/schema/0.9/"
  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
- xsi:schemaLocation="http://indexdata.dk/yazproxy/schema/0.8/ yazproxy.xsd"
+ xsi:schemaLocation="http://indexdata.dk/yazproxy/schema/0.9/ yazproxy.xsd"
 >
   <!-- define default target and name it voyager -->
   <target default="1" name="voyager">
@@ -87,6 +87,13 @@
       <title>MODS v3</title>
       <name>mods3</name>
       <name>mods</name>
+    </syntax>
+    
+    <syntax type="xml" marcxml="1" backendtype="opac"
+      identifier="info:srw/schema/1/opacxml-v1.0"
+      >
+      <title>OPACXML</title>
+      <name>opacxml</name>
     </syntax>
 
     <syntax type="*" error="238"/>
