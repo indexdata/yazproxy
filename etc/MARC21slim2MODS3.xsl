@@ -1,12 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsl:stylesheet version="1.0" xmlns:xlink="http://www.w3.org/1999/xlink" 
-	xmlns:marc="http://www.loc.gov/MARC21/slim" 
+<xsl:stylesheet version="1.0" 
 	xmlns="http://www.loc.gov/mods/v3" 
+	xmlns:xlink="http://www.w3.org/1999/xlink" 
+	xmlns:marc="http://www.loc.gov/MARC21/slim" 
 	xmlns:xsl="http://www.w3.org/1999/XSL/Transform" exclude-result-prefixes="marc">
-	<xsl:include href="MARC21slimUtils.xsl"/>
-	<xsl:output method="xml" indent="yes"/>
+	<xsl:include href="http://www.loc.gov/marcxml/xslt/MARC21slimUtils.xsl"/>
+	<!--<xsl:include href="MARC21slimUtils.xsl"/>-->
+	<xsl:output method="xml" indent="yes" encoding="UTF-8"/>
 
 <!--
+Revision 2003/03/25 08:29 jrad
+
+Revision 1.6 various validation fixes 2004/02/20 ntra
 
 Revision 1.5  2003/10/02 16:18:58  ntra
 MODS2 to MODS3 updates, language unstacking and 
@@ -32,7 +37,7 @@ Added Log Comment
 				</modsCollection>
 			</xsl:when>
 			<xsl:otherwise>
-				<mods xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/v3/mods-3-0.xsd">
+				<mods version="3.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/v3/mods-3-0.xsd">
 					<xsl:for-each select="marc:record">
 						<xsl:call-template name="marcRecord"/>
 					</xsl:for-each>
@@ -126,11 +131,12 @@ Added Log Comment
 					<xsl:call-template name="chopPunctuation">
 						<xsl:with-param name="chopString">
 							<xsl:call-template name="subfieldSelect">
-								<xsl:with-param name="codes">ab</xsl:with-param>
+								<xsl:with-param name="codes">a</xsl:with-param>
 							</xsl:call-template>
 						</xsl:with-param>
 					</xsl:call-template>
 				</title>
+				<xsl:call-template name="subtitle"/>				
 			</titleInfo>
 		</xsl:for-each>
 
@@ -140,12 +146,14 @@ Added Log Comment
 					<xsl:call-template name="chopPunctuation">
 						<xsl:with-param name="chopString">
 							<xsl:call-template name="subfieldSelect">
-								<!-- 1/04 removed $h -->
-								<xsl:with-param name="codes">ab</xsl:with-param>
+								<!-- 1/04 removed $h, b -->
+								<xsl:with-param name="codes">a</xsl:with-param>
 							</xsl:call-template>
 						</xsl:with-param>
 					</xsl:call-template>
 				</title>
+				<!-- 1/04 fix -->
+				<xsl:call-template name="subtitle"/>
 				<xsl:call-template name="part"/>
 			</titleInfo>
 		</xsl:for-each>
@@ -161,12 +169,13 @@ Added Log Comment
 					<xsl:call-template name="chopPunctuation">
 						<xsl:with-param name="chopString">
 							<xsl:call-template name="subfieldSelect">
-								<!-- 1/04 removed $h -->
-								<xsl:with-param name="codes">abf</xsl:with-param>
+								<!-- 1/04 removed $h, $b -->
+								<xsl:with-param name="codes">af</xsl:with-param>
 							</xsl:call-template>
 						</xsl:with-param>
 					</xsl:call-template>
 				</title>
+				<xsl:call-template name="subtitle"/>
 				<xsl:call-template name="part"/>
 			</titleInfo>
 		</xsl:for-each>
@@ -624,7 +633,7 @@ Added Log Comment
 				<place>
 					<placeTerm>
 						<xsl:attribute name="type">text</xsl:attribute>
-							<xsl:call-template name="chopPunctuation">
+							<xsl:call-template name="chopPunctuationFront">
 							<xsl:with-param name="chopString">
 								<xsl:call-template name="chopPunctuation">
 									<xsl:with-param name="chopString" select="."/>
@@ -657,6 +666,7 @@ Added Log Comment
 						<publisher>
 							<xsl:call-template name="chopPunctuation">
 								<xsl:with-param name="chopString" select="."/>
+								<xsl:with-param name="punctuation"><xsl:text>:,;/ </xsl:text></xsl:with-param>
 							</xsl:call-template>
 						</publisher>
 					</xsl:when>
@@ -784,14 +794,16 @@ Added Log Comment
 		</xsl:if>
 		
 		<xsl:for-each select="marc:datafield[@tag=041]">			
-			<xsl:variable name="langCodes">
+			
+<!--			<xsl:variable name="langCodes">			
 				<xsl:copy-of select="marc:subfield[@code='a'or @code='d' or @code='e' or @code='2']"/>
 			</xsl:variable>
-			
+			-->
+				<xsl:variable name="langCodes" select="marc:subfield[@code='a'or @code='d' or @code='e' or @code='2']"/>
+
 			<xsl:choose>
-				<xsl:when test="$langCodes/child::*[@code='2']='rfc3066'">
-					<xsl:call-template name="rfcLanguages">					
-						<xsl:with-param name="langCodes"><xsl:copy-of select="$langCodes"/></xsl:with-param>
+				<xsl:when test="marc:subfield[@code='2']='rfc3066'"><!-- not stacked but could be repeated -->
+					<xsl:call-template name="rfcLanguages">									
 						<xsl:with-param name="nodeNum"><xsl:value-of select="1"/></xsl:with-param>						
 						<xsl:with-param name="usedLanguages">
 							<xsl:text></xsl:text>
@@ -801,9 +813,9 @@ Added Log Comment
 						</xsl:with-param>
 					</xsl:call-template>
 				</xsl:when>
-				<xsl:otherwise>
+				<xsl:otherwise><!-- iso -->
 					<xsl:variable name="allLanguages">
-						<xsl:value-of select="$langCodes"/>
+						<xsl:copy-of select="$langCodes"/>
 					</xsl:variable>
 					<xsl:variable name="currentLanguage">
 						<xsl:value-of select="substring($allLanguages,1,3)"/>
@@ -817,7 +829,7 @@ Added Log Comment
 						</xsl:with-param>
 						<xsl:with-param name="usedLanguages">
 							<xsl:if test="$controlField008-35-37">
-								<xsl:value-of select="substring($controlField008,36,3)"/>
+								<xsl:value-of select="$controlField008-35-37"/>
 							</xsl:if>					
 						</xsl:with-param>
 					</xsl:call-template>
@@ -890,6 +902,10 @@ Added Log Comment
 					</xsl:call-template>
 				</form>		
 			</xsl:if>
+			<xsl:for-each select="marc:datafield[@tag=256]/marc:subfield[@code='a']">
+				<form><xsl:value-of select="."/></form>
+			</xsl:for-each>
+
 			<xsl:for-each select="marc:controlfield[@tag=007][substring(text(),1,1)='c']">
 				<xsl:choose>
 					<xsl:when test="substring(text(),14,1)='a'">
@@ -909,11 +925,7 @@ Added Log Comment
 					<xsl:value-of select="."/>
 				</internetMediaType>
 			</xsl:for-each>
-
-			<xsl:for-each select="marc:datafield[@tag=256]/marc:subfield[@code='a']">
-				<form><xsl:value-of select="."/></form>
-			</xsl:for-each>
-
+			
 			<xsl:for-each select="marc:datafield[@tag=300]">
 				<extent>
 					<xsl:call-template name="subfieldSelect">
@@ -958,23 +970,24 @@ Added Log Comment
 		<xsl:if test="$typeOf008='BK' or $typeOf008='CF' or $typeOf008='MU' or $typeOf008='VM'">
 			<xsl:variable name="controlField008-22" select="substring($controlField008,23,1)"/>
 			<xsl:choose>
+				<!-- 01/04 fix -->
 				<xsl:when test="$controlField008-22='d'">
-					<targetAudience>adolescent</targetAudience>
+					<targetAudience authority='marctarget'>adolescent</targetAudience>
 				</xsl:when>
 				<xsl:when test="$controlField008-22='e'">
-					<targetAudience>adult</targetAudience>
+					<targetAudience authority='marctarget'>adult</targetAudience>
 				</xsl:when>
 				<xsl:when test="$controlField008-22='g'">
-					<targetAudience>general</targetAudience>
+					<targetAudience authority='marctarget'>general</targetAudience>
 				</xsl:when>
 				<xsl:when test="$controlField008-22='b' or $controlField008-22='c' or $controlField008-22='j'">
-					<targetAudience>juvenile</targetAudience>
+					<targetAudience authority='marctarget'>juvenile</targetAudience>
 				</xsl:when>
 				<xsl:when test="$controlField008-22='a'">
-					<targetAudience>preschool</targetAudience>
+					<targetAudience authority='marctarget'>preschool</targetAudience>
 				</xsl:when>
 				<xsl:when test="$controlField008-22='f'">
-					<targetAudience>specialized</targetAudience>
+					<targetAudience authority='marctarget'>specialized</targetAudience>
 				</xsl:when>
 			</xsl:choose>
 		</xsl:if>
@@ -1658,8 +1671,13 @@ Added Log Comment
 						<xsl:when test="@ind1=4">videorecording identifier</xsl:when>
 					</xsl:choose>
 				</xsl:attribute>
-				<xsl:call-template name="subfieldSelect">
-					<xsl:with-param name="codes">ab</xsl:with-param>
+				<xsl:call-template name="subfieldSelect">											
+					<xsl:with-param name="codes">
+						<xsl:choose>
+							<xsl:when test="@ind1=0">ba</xsl:when>		
+							<xsl:otherwise>ab</xsl:otherwise>
+						</xsl:choose>
+					</xsl:with-param>
 				</xsl:call-template>
 			</identifier>
 		</xsl:for-each>
@@ -1707,7 +1725,7 @@ Added Log Comment
 							</xsl:call-template>
 						</xsl:attribute>
 					</xsl:if>											
-					<xsl:value-of select="concat('hdl:',substring-after(marc:subfield[@code='u']),'http://hdl.loc.gov/')"/>
+					<xsl:value-of select="concat('hdl:',substring-after(marc:subfield[@code='u'],'http://hdl.loc.gov/'))"/>
 				</identifier>
 			</xsl:if>
 		</xsl:for-each>
@@ -1718,14 +1736,14 @@ Added Log Comment
 				<xsl:value-of select="marc:subfield[@code='a']"/>
 			</identifier>
 		</xsl:for-each>
-
+		<!-- 1/04 fix added $y -->
 		<xsl:for-each select="marc:datafield[@tag=856][marc:subfield[@code='u']]">
 			<location>
 				<url>				
-					<xsl:if test="marc:subfield[@code=3]">
+					<xsl:if test="marc:subfield[@code='y' or @code='3']">
 						<xsl:attribute name="displayLabel">
 							<xsl:call-template name="subfieldSelect">
-								<xsl:with-param name="codes">3</xsl:with-param>
+								<xsl:with-param name="codes">y3</xsl:with-param>
 							</xsl:call-template>
 						</xsl:attribute>
 					</xsl:if>								
@@ -2054,6 +2072,7 @@ Added Log Comment
 						<xsl:with-param name="codes">aq</xsl:with-param>
 					</xsl:call-template>
 				</xsl:with-param>
+				<xsl:with-param name="punctuation"><xsl:text>:,;/ </xsl:text></xsl:with-param>
 			</xsl:call-template>
 		</namePart>
 		<xsl:call-template name="termsOfAddress"/>
@@ -2411,6 +2430,22 @@ Added Log Comment
 		</xsl:if>
 	</xsl:template>
 
+	<xsl:template name="subtitle">
+		<xsl:if test="marc:subfield[@code='b']">
+			<subTitle>
+				<xsl:call-template name="chopPunctuation">
+					<xsl:with-param name="chopString">
+					<xsl:value-of select="marc:subfield[@code='b']"/>
+
+ 						<!--<xsl:call-template name="subfieldSelect">
+							<xsl:with-param name="codes">b</xsl:with-param>									
+						</xsl:call-template>-->
+					</xsl:with-param>
+				</xsl:call-template>
+			</subTitle>
+		</xsl:if>
+	</xsl:template>
+
 	<xsl:template name="script">
 		<xsl:param name="scriptCode"/>
 		<xsl:attribute name="script">
@@ -2579,12 +2614,13 @@ Added Log Comment
 		</xsl:if>
 	</xsl:template>
 
-	<xsl:template name="rfcLanguages">		
-		<xsl:param name="langCodes"/>
+	<xsl:template name="rfcLanguages">				
 		<xsl:param name="nodeNum"/>		
 		<xsl:param name="usedLanguages"/>
 		<xsl:param name="controlField008-35-37"/>
-		<xsl:variable name="currentLanguage" select="$langCodes/child::*[position()=$nodeNum]/text()"/>
+	<!-- ??? xalan -->
+	
+	<xsl:variable name="currentLanguage" select="marc:subfield[position()=$nodeNum]/text()"/>		
 		<xsl:choose>
 			<xsl:when test="not($currentLanguage)"/>							
 			<xsl:when test="$currentLanguage!=$controlField008-35-37 and $currentLanguage!='rfc3066'">
@@ -2596,15 +2632,14 @@ Added Log Comment
 					</language>
 				</xsl:if>
 				<xsl:call-template name="rfcLanguages">
-					<xsl:with-param name="langCodes"><xsl:copy-of select="$langCodes"/></xsl:with-param>
+					<!-- ??? xalan -->
 					<xsl:with-param name="nodeNum"><xsl:value-of select="$nodeNum+1"/></xsl:with-param>						
-					<xsl:with-param name="usedLanguages"><xsl:value-of select="concat($usedLanguages,$currentLanguage)"/></xsl:with-param>
+					<xsl:with-param name="usedLanguages"><xsl:value-of select="concat($usedLanguages,'|',$currentLanguage)"/></xsl:with-param>
 					<xsl:with-param name="controlField008-35-37"><xsl:value-of select="$controlField008-35-37"/></xsl:with-param>
 				</xsl:call-template>				
 			</xsl:when>
 			<xsl:otherwise>
-				<xsl:call-template name="rfcLanguages">
-					<xsl:with-param name="langCodes"><xsl:copy-of select="$langCodes"/></xsl:with-param>
+				<xsl:call-template name="rfcLanguages">					
 					<xsl:with-param name="nodeNum"><xsl:value-of select="$nodeNum+1"/></xsl:with-param>						
 					<xsl:with-param name="usedLanguages"><xsl:value-of select="concat($usedLanguages,$currentLanguage)"/></xsl:with-param>
 					<xsl:with-param name="controlField008-35-37"><xsl:value-of select="$controlField008-35-37"/></xsl:with-param>
@@ -2614,6 +2649,6 @@ Added Log Comment
 	</xsl:template>
 </xsl:stylesheet><!-- Stylus Studio meta-information - (c)1998-2003 Copyright Sonic Software Corporation. All rights reserved.
 <metaInformation>
-<scenarios ><scenario default="no" name="Scenario1" userelativepaths="yes" externalpreview="no" url="..\..\TESTSETS\marc\78x.xml" htmlbaseurl="" outputurl="..\..\TESTSETS\marc\78xmods.xml" processortype="internal" commandline="" additionalpath="" additionalclasspath="" postprocessortype="none" postprocesscommandline="" postprocessadditionalpath="" postprocessgeneratedext=""/><scenario default="no" name="v3Test" userelativepaths="yes" externalpreview="no" url="..\..\TESTSETS\marc\tempsubj.xml" htmlbaseurl="" outputurl="..\modsv3Test.xml" processortype="internal" commandline="" additionalpath="" additionalclasspath="" postprocessortype="none" postprocesscommandline="" postprocessadditionalpath="" postprocessgeneratedext=""/><scenario default="no" name="Apr 02 Test" userelativepaths="yes" externalpreview="no" url="..\..\TESTSETS\marc\MODStest.Apr.02.03.xml" htmlbaseurl="" outputurl="" processortype="internal" commandline="" additionalpath="" additionalclasspath="" postprocessortype="none" postprocesscommandline="" postprocessadditionalpath="" postprocessgeneratedext=""/><scenario default="yes" name="v3Test1" userelativepaths="yes" externalpreview="no" url="..\test_files\marcxml.xml" htmlbaseurl="" outputurl="..\test_files\modsv3Converted.xml" processortype="internal" commandline="" additionalpath="" additionalclasspath="" postprocessortype="none" postprocesscommandline="" postprocessadditionalpath="" postprocessgeneratedext=""/></scenarios><MapperInfo srcSchemaPath="" srcSchemaRoot="" srcSchemaPathIsRelative="yes" srcSchemaInterpretAsXML="no" destSchemaPath="" destSchemaRoot="" destSchemaPathIsRelative="yes" destSchemaInterpretAsXML="no"/>
+<scenarios ><scenario default="no" name="Apr 02 Test" userelativepaths="yes" externalpreview="no" url="..\test_files\v3.xml" htmlbaseurl="" outputurl="..\..\..\temp\x.xml" processortype="xalan" commandline="" additionalpath="" additionalclasspath="" postprocessortype="none" postprocesscommandline="" postprocessadditionalpath="" postprocessgeneratedext=""/><scenario default="no" name="v3Test1" userelativepaths="yes" externalpreview="no" url="..\test_files\v3.xml" htmlbaseurl="" outputurl="..\test_files\modsv3Converted.xml" processortype="internal" commandline="" additionalpath="" additionalclasspath="" postprocessortype="none" postprocesscommandline="" postprocessadditionalpath="" postprocessgeneratedext=""/><scenario default="yes" name="Scenario1" userelativepaths="yes" externalpreview="no" url="..\..\..\..\..\..\..\..\..\ckeith\DESKTOP\test.xml" htmlbaseurl="" outputurl="" processortype="xalan" commandline="" additionalpath="" additionalclasspath="" postprocessortype="none" postprocesscommandline="" postprocessadditionalpath="" postprocessgeneratedext=""/></scenarios><MapperInfo srcSchemaPath="" srcSchemaRoot="" srcSchemaPathIsRelative="yes" srcSchemaInterpretAsXML="no" destSchemaPath="" destSchemaRoot="" destSchemaPathIsRelative="yes" destSchemaInterpretAsXML="no"/>
 </metaInformation>
 -->
