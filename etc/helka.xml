@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- $Id: helka.xml,v 1.1 2004-08-10 09:02:16 adam Exp $ -->
+<!-- $Id: helka.xml,v 1.2 2004-10-12 19:19:42 adam Exp $ -->
 <proxy xmlns="http://indexdata.dk/yazproxy/schema/0.8/"
  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
  xsi:schemaLocation="http://indexdata.dk/yazproxy/schema/0.8/ yazproxy.xsd"
@@ -31,11 +31,11 @@
     </limit>
 
     <!-- use attributes -->
-    <attribute type="1" value="1-11,13-1010,1013-1023,1025-1030"/>
+    <attribute type="1" value="1-13,16,17,20,21,25,27,31,33,41,42,43,48,51,54,56,57,58,59,63,1002-1005,1007,1009,1016,1018,1027,1032,1056,1074,1078,1079,1209"/>
     <attribute type="1" value="*" error="114"/>
 
     <!-- relation attributes -->
-    <attribute type="2" value="1,2,3,4,5,6"/>
+    <attribute type="2" value="3"/>
     <attribute type="2" value="*" error="117"/>
     
     <!-- position attributes -->
@@ -43,7 +43,7 @@
     <attribute type="3" value="*" error="119"/>
 
     <!-- structure attributes -->
-    <attribute type="4" value="1,2,3,4,5,6"/>
+    <attribute type="4" value="1,2"/>
     <attribute type="4" value="*" error="118"/>
 
     <!-- truncation attributes -->
@@ -51,7 +51,7 @@
     <attribute type="5" value="*" error="120"/>
 
     <!-- completeness attributes -->
-    <attribute type="6" value="1,2,3"/>
+    <attribute type="6" value="1"/>
     <attribute type="6" value="*" error="122"/>
 
     <!-- other types -->
@@ -60,12 +60,13 @@
     <!-- list allowed record syntaxes and possible schemas (if any);
     reject all others at the end -->
     <syntax type="opac"/>
-    <syntax type="finmarc" backendtype="usmarc"/>
+    <syntax type="finmarc" backendtype="finmarc"/>
+    <zsyntax type="usmarc"/>
     <syntax type="usmarc" backendtype="canmarc"/>
-    <syntax type="none"/>
+    <syntax type="none" backendtype="usmarc"/>
     
     <syntax type="xml" marcxml="1"
-      identifier="info:srw/schema/1/marcxml-v1.1"
+      identifier="info:srw/schema/1/marcxml-v1.1" backendtype="canmarc"
       >
       <title>MARCXML</title>
       <name>marcxml</name>
@@ -103,7 +104,7 @@
       </serverInfo>
       
       <databaseInfo>
-	<title>LoC gateway</title>
+	<title>FENNICA</title>
 	<description lang="en" primary="true">
 	  SRW/SRU/Z39.50 Gateway to HELKA (The OPAC of the Helsinki University Libraries)
 	</description>
@@ -204,4 +205,87 @@
   <!-- what we log. Allowed tokens: client-apdu, server-apdu,
   client-requests, server-requests -->
   <log>client-requests server-requests</log>
+  <!-- commentary:
+Observerations on the Helsinki Voyager Server.  
+
+1. Observerations:
+
+1.1 A client must issue different OID than effective syntax OID.
+To get USMARC, CanMarc must be sent. To get FINMARC, USMARC must be sent.
+(OID for MARC21 and USMARC are equivalent). 
+
+Solution: This is fixed by the 'backend' attribute for 'syntax' sections
+in the proxy config.
+
+1.2 Attribute 1=12 seems to work - unlike the Voyager target at LoC.
+
+Solution: ensure that yazproxy accepts this attribute now that it seems
+to work.
+
+1.3 All attributes are accepted by the Server. The appropriate behavior is
+to return a diagnostic. 
+
+Solution: "attribute" sections in config is set to only accepts certain
+attributes. Others are rejected with a diagnostic.
+
+1.4 When no preferred Record syntax is provided by a client, the Voyager
+server returns SUTRS record: Failed to retrieve record #x. The correct
+behavior is to return a default record, say USMARC. The server could also
+return a diagnostic, but there do not seem to be an appropriate diagnostic
+for that one.
+
+Solution: This is fixed by the 'backend' attribute and type='none' for
+'syntax' sections in the proxy config.
+
+1.5 Speed of initialize phase. The speed of initilization
+(init-request/init-response) for the the Voyager target at Helsinki
+seem to be acceptable.
+
+Solution: No special precaution to limits/bandwidth needs to be taken.
+
+1.6 Present Requests out of range. The voyager target does not return
+a diagnostic when a client presents a record at a position out of the
+range of a result set.
+
+Solution: The yazproxy automatically deals with this fault.
+
+2. List of targets:
+
+|Database:   |HELKA  (The OPAC of the Helsinki University Libraries)     |
+|Domain name:|193.166.7.193                                              |
+|Port:       |7590                                                       |
+|Database    |voyager                                                    |
+|name:       |                                                           |
+|Availability|24 hours a day, 7 days per week. The system is unavailable |
+|:           |for about 15minutes daily at 1.00am GMT for routine        |
+|            |maintenance.                                               |
+                                                                                
+|Database:   |FENNICA (the Finnish National Bibliography)                |
+|Domain name:|193.166.7.194                                              |
+|Port:       |11390                                                      |
+|Database    |voyager                                                    |
+|name:       |                                                           |
+|Availability|24 hours a day, 7 days per week. The system is unavailable |
+|:           |for about 15minutes daily at 1.00am GMT for routine        |
+|            |maintenance.                                               |
+                                                                                
+|Database:   |LINDA (The Database of Finnish University Libraries)       |
+|Domain name:|193.166.7.194                                              |
+|Port:       |11190                                                      |
+|Database    |Voyager                                                    |
+|name:       |                                                           |
+|Availability|24 hours a day, 7 days per week. The system is unavailable |
+|:           |for about 15minutes daily at 1.00am GMT for routine        |
+|            |maintenance.                                               |
+                                                                                
+|Database:   |MANDA  (Database of Major Public Libraries)                |
+|Domain name:|193.166.7.194                                              |
+|Port:       |11290                                                      |
+|Database    |Voyager                                                    |
+|name:       |                                                           |
+|Availability|24 hours a day, 7 days per week. The system is unavailable |
+|:           |for about 15minutes daily at 1.00am GMT for routine        |
+|            |maintenance.                                               |
+                                                                                
+-->
 </proxy>
