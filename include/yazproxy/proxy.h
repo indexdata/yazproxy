@@ -1,14 +1,14 @@
-/* $Id: proxy.h,v 1.3 2004-04-11 12:25:01 adam Exp $
+/* $Id: proxy.h,v 1.4 2004-04-22 07:46:21 adam Exp $
    Copyright (c) 1998-2004, Index Data.
 
 This file is part of the yaz-proxy.
 
-Zebra is free software; you can redistribute it and/or modify it under
+YAZ proxy is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free
 Software Foundation; either version 2, or (at your option) any later
 version.
 
-Zebra is distributed in the hope that it will be useful, but WITHOUT ANY
+YAZ proxy is distributed in the hope that it will be useful, but WITHOUT ANY
 WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 for more details.
@@ -19,21 +19,12 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 02111-1307, USA.
  */
 
-#if HAVE_GETTIMEOFDAY
-#include <sys/time.h>
-#endif
 #include <yaz++/z-assoc.h>
 #include <yaz++/z-query.h>
 #include <yaz++/z-databases.h>
 #include <yaz++/cql2rpn.h>
 #include <yaz/cql.h>
 #include <yazproxy/bw.h>
-#if HAVE_XSLT
-#include <libxml/parser.h>
-#include <libxml/tree.h>
-#include <libxslt/xsltutils.h>
-#include <libxslt/transform.h>
-#endif
 
 class Yaz_Proxy;
 
@@ -45,6 +36,7 @@ class Yaz_Proxy;
 #define PROXY_LOG_REQ_SERVER 8
 
 struct Yaz_RecordCache_Entry;
+class Yaz_ProxyConfigP;
 
 class YAZ_EXPORT Yaz_ProxyConfig {
 public:
@@ -84,33 +76,7 @@ public:
 		      int *len);
 private:
     void operator=(const Yaz_ProxyConfig &conf);
-    int mycmp(const char *hay, const char *item, size_t len);
-#if HAVE_XSLT
-    int check_schema(xmlNodePtr ptr, Z_RecordComposition *comp,
-		     const char *schema_identifier);
-    xmlDocPtr m_docPtr;
-    xmlNodePtr m_proxyPtr;
-    void return_target_info(xmlNodePtr ptr, const char **url,
-			    int *limit_bw, int *limit_pdu, int *limit_req,
-			    int *target_idletime, int *client_idletime,
-			    int *keepalive_limit_bw, int *keepalive_limit_pdu,
-			    int *pre_init, const char **cql2rpn);
-    void return_limit(xmlNodePtr ptr,
-		      int *limit_bw, int *limit_pdu, int *limit_req);
-    int check_type_1(ODR odr, xmlNodePtr ptr, Z_RPNQuery *query,
-		     char **addinfo);
-    xmlNodePtr find_target_node(const char *name, const char *db);
-    xmlNodePtr find_target_db(xmlNodePtr ptr, const char *db);
-    const char *get_text(xmlNodePtr ptr);
-    int check_type_1_attributes(ODR odr, xmlNodePtr ptr,
-				Z_AttributeList *attrs,
-				char **addinfo);
-    int check_type_1_structure(ODR odr, xmlNodePtr ptr, Z_RPNStructure *q,
-			       char **addinfo);
-#endif
-    int m_copy;
-    int match_list(int v, const char *m);
-    int atoi_l(const char **cp);
+    class Yaz_ProxyConfigP *m_cp;
 };
 
 class YAZ_EXPORT Yaz_RecordCache {
@@ -237,11 +203,7 @@ class YAZ_EXPORT Yaz_Proxy : public Yaz_Z_Assoc {
     int m_request_no;
     int m_invalid_session;
     int m_marcxml_flag;
-#if HAVE_XSLT
-    xsltStylesheetPtr m_stylesheet_xsp;
-#else
-    void *m_stylesheet_xsp;
-#endif
+    void *m_stylesheet_xsp;  // Really libxslt's xsltStylesheetPtr 
     int m_stylesheet_offset;
     Z_APDU *m_stylesheet_apdu;
     Z_NamePlusRecordList *m_stylesheet_nprl;
@@ -279,9 +241,7 @@ class YAZ_EXPORT Yaz_Proxy : public Yaz_Z_Assoc {
     int m_http_keepalive;
     const char *m_http_version;
     Yaz_cql2rpn m_cql2rpn;
-#if HAVE_GETTIMEOFDAY
-    struct timeval m_time_tv;
-#endif
+    void *m_time_tv;
     void logtime();
     Z_ElementSetNames *mk_esn_from_schema(ODR o, const char *schema);
     Z_ReferenceId *m_referenceId;

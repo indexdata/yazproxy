@@ -1,14 +1,14 @@
-/* $Id: yaz-proxy-main.cpp,v 1.3 2004-04-11 12:25:01 adam Exp $
+/* $Id: yaz-proxy-main.cpp,v 1.4 2004-04-22 07:46:21 adam Exp $
    Copyright (c) 1998-2004, Index Data.
 
 This file is part of the yaz-proxy.
 
-Zebra is free software; you can redistribute it and/or modify it under
+YAZ proxy is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free
 Software Foundation; either version 2, or (at your option) any later
 version.
 
-Zebra is distributed in the hope that it will be useful, but WITHOUT ANY
+YAZ proxy is distributed in the hope that it will be useful, but WITHOUT ANY
 WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 for more details.
@@ -40,6 +40,13 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include <yaz++/socket-manager.h>
 #include <yaz++/pdu-assoc.h>
 #include <yazproxy/proxy.h>
+
+#if HAVE_XSLT
+#include <libxml/parser.h>
+#include <libxml/tree.h>
+#include <libxslt/xsltutils.h>
+#include <libxslt/transform.h>
+#endif
 
 void usage(char *prog)
 {

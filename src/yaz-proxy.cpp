@@ -1,14 +1,14 @@
-/* $Id: yaz-proxy.cpp,v 1.3 2004-04-11 12:25:01 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.4 2004-04-22 07:46:21 adam Exp $
    Copyright (c) 1998-2004, Index Data.
 
 This file is part of the yaz-proxy.
 
-Zebra is free software; you can redistribute it and/or modify it under
+YAZ proxy is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free
 Software Foundation; either version 2, or (at your option) any later
 version.
 
-Zebra is distributed in the hope that it will be useful, but WITHOUT ANY
+YAZ proxy is distributed in the hope that it will be useful, but WITHOUT ANY
 WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 for more details.
@@ -24,6 +24,10 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include <unistd.h>
 #endif
 
+#if HAVE_GETTIMEOFDAY
+#include <sys/time.h>
+#endif
+
 #include <assert.h>
 #include <time.h>
 #include <sys/types.h>
@@ -36,6 +40,13 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include <yaz/diagbib1.h>
 #include <yazproxy/proxy.h>
 #include <yaz/pquery.h>
+
+#if HAVE_XSLT
+#include <libxml/parser.h>
+#include <libxml/tree.h>
+#include <libxslt/xsltutils.h>
+#include <libxslt/transform.h>
+#endif
 
 static const char *apdu_name(Z_APDU *apdu)
 {
@@ -148,8 +159,12 @@ Yaz_Proxy::Yaz_Proxy(IYaz_PDU_Observable *the_PDU_Observable,
     m_soap_ns = 0;
     m_s2z_packing = Z_SRW_recordPacking_string;
 #if HAVE_GETTIMEOFDAY
-    m_time_tv.tv_sec = 0;
-    m_time_tv.tv_usec = 0;
+    m_time_tv = xmalloc(sizeof(struct timeval));
+    struct timeval *tv = (struct timeval *) m_time_tv;
+    tv->tv_sec = 0;
+    tv->tv_usec = 0;
+#else
+    m_time_tv = 0;
 #endif
     if (!m_parent)
 	low_socket_open();
@@ -170,8 +185,10 @@ Yaz_Proxy::~Yaz_Proxy()
 
 #if HAVE_XSLT
     if (m_stylesheet_xsp)
-	xsltFreeStylesheet(m_stylesheet_xsp);
+	xsltFreeStylesheet((xsltStylesheetPtr) m_stylesheet_xsp);
 #endif
+    xfree (m_time_tv);
+
     xfree (m_schema);
     if (m_s2z_odr_init)
 	odr_destroy(m_s2z_odr_init);
@@ -671,7 +688,8 @@ void Yaz_Proxy::convert_xsl_delay()
 	    
 	    yaz_log(LOG_LOG, "%sXSLT convert %d",
 		    m_session_str, m_stylesheet_offset);
-	    res = xsltApplyStylesheet(m_stylesheet_xsp, doc, 0);
+	    res = xsltApplyStylesheet((xsltStylesheetPtr) m_stylesheet_xsp,
+				      doc, 0);
 
 	    if (res)
 	    {
@@ -697,7 +715,7 @@ void Yaz_Proxy::convert_xsl_delay()
 	m_stylesheet_nprl = 0;
 #if HAVE_XSLT
 	if (m_stylesheet_xsp)
-	    xsltFreeStylesheet(m_stylesheet_xsp);
+	    xsltFreeStylesheet((xsltStylesheetPtr) m_stylesheet_xsp);
 #endif
 	m_stylesheet_xsp = 0;
 	timeout(m_client_idletime);
@@ -744,18 +762,19 @@ void Yaz_Proxy::convert_to_marcxml(Z_NamePlusRecordList *p)
 void Yaz_Proxy::logtime()
 {
 #if HAVE_GETTIMEOFDAY
-    if (m_time_tv.tv_sec)
+    struct timeval *tv = (struct timeval*) m_time_tv;
+    if (tv->tv_sec)
     {
-	struct timeval tv;
-	gettimeofday(&tv, 0);
-	long diff = (tv.tv_sec - m_time_tv.tv_sec)*1000000 +
-	    (tv.tv_usec - m_time_tv.tv_usec);
+	struct timeval tv1;
+	gettimeofday(&tv1, 0);
+	long diff = (tv1.tv_sec - tv->tv_sec)*1000000 +
+	    (tv1.tv_usec - tv->tv_usec);
 	if (diff >= 0)
 	    yaz_log(LOG_LOG, "%sElapsed %ld.%03ld", m_session_str,
 		    diff/1000000, (diff/1000)%1000);
     }
-    m_time_tv.tv_sec = 0;
-    m_time_tv.tv_usec = 0;
+    tv->tv_sec = 0;
+    tv->tv_usec = 0;
 #endif
 }
 
@@ -1408,7 +1427,7 @@ void Yaz_Proxy::recv_GDU(Z_GDU *apdu, int len)
     m_pdu_stat.add_bytes(1);
 
 #if HAVE_GETTIMEOFDAY
-    gettimeofday(&m_time_tv, 0);
+    gettimeofday((struct timeval *) m_time_tv, 0);
 #endif
 
     int bw_total = m_bw_stat.get_total();
@@ -1586,7 +1605,7 @@ Z_APDU *Yaz_Proxy::handle_syntax_validation(Z_APDU *apdu)
 
 #if HAVE_XSLT
 	    if (m_stylesheet_xsp)
-		xsltFreeStylesheet(m_stylesheet_xsp);
+		xsltFreeStylesheet((xsltStylesheetPtr) m_stylesheet_xsp);
 	    m_stylesheet_xsp = xsltParseStylesheetFile((const xmlChar*)
 						       stylesheet_name);
 #endif
@@ -1634,8 +1653,7 @@ Z_APDU *Yaz_Proxy::handle_syntax_validation(Z_APDU *apdu)
 
 #if HAVE_XSLT
 	    if (m_stylesheet_xsp)
-		xsltFreeStylesheet(m_stylesheet_xsp);
-
+		xsltFreeStylesheet((xsltStylesheetPtr) m_stylesheet_xsp);
 	    m_stylesheet_xsp = xsltParseStylesheetFile((const xmlChar*)
 						       stylesheet_name);
 #endif

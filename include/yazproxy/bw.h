@@ -1,14 +1,14 @@
-/* $Id: bw.h,v 1.2 2004-04-11 12:25:01 adam Exp $
+/* $Id: bw.h,v 1.3 2004-04-22 07:46:21 adam Exp $
    Copyright (c) 1998-2004, Index Data.
 
 This file is part of the yaz-proxy.
 
-Zebra is free software; you can redistribute it and/or modify it under
+YAZ proxy is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free
 Software Foundation; either version 2, or (at your option) any later
 version.
 
-Zebra is distributed in the hope that it will be useful, but WITHOUT ANY
+YAZ proxy is distributed in the hope that it will be useful, but WITHOUT ANY
 WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 for more details.
