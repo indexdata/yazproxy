@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy-main.cpp,v 1.9 2005-01-16 21:50:25 adam Exp $
+/* $Id: yaz-proxy-main.cpp,v 1.10 2005-01-17 18:44:39 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -40,6 +40,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #endif
 
 #include <stdarg.h>
+#include <stdlib.h>
 
 #include <yaz/log.h>
 #include <yaz/options.h>
