@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.20 2005-02-10 08:09:42 oleg Exp $
+/* $Id: yaz-proxy.cpp,v 1.21 2005-02-10 19:17:44 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -251,9 +251,9 @@ void Yaz_Proxy::set_proxy_authentication (const char *auth)
 }
 void Yaz_Proxy::set_proxy_negotiation (const char *charset, const char *lang)
 {
-    yaz_log(YLOG_LOG, "%sSet the proxy negotiation: charset to '%s',
-	language to '%s'", m_session_str, (charset)?charset:"none",
-	(lang)?lang:"none");
+    yaz_log(YLOG_LOG, "%sSet the proxy negotiation: charset to '%s', "
+	"language to '%s'", m_session_str, charset?charset:"none",
+	lang?lang:"none");
     xfree (m_proxy_negotiation_charset);
     xfree (m_proxy_negotiation_lang);
     m_proxy_negotiation_charset = m_proxy_negotiation_lang = 0;
@@ -1667,7 +1667,6 @@ void Yaz_Proxy::handle_charset_lang_negotiation(Z_APDU *apdu)
     {
 	Z_InitResponse *initResponse = apdu->u.initResponse;	
 	Z_OtherInformation **otherInfo;  
-	Z_OtherInformationUnit *oi;
 	
 	if (ODR_MASK_GET(initResponse->options, Z_Options_negotiationModel))
 	{
