@@ -1,3 +1,9 @@
+yazproxy (0.9-1) unstable; urgency=low
+
+  * Upstream.
+
+ -- Adam Dickmeiss <adam@indexdata.dk>  Fri, 13 Aug 2004 13:40:47 +0200
+
 yazproxy (0.8-2) unstable; urgency=low
 
   * Fix depends on libyaz++

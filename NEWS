@@ -1,4 +1,9 @@
 
+New attribute "backendcharset" for syntax section which specifies
+charset (encoding) for record that is returned by backend. If omitted
+the proxy assumes backend record encoding is MARC-8 (for backwards
+compatibility). 
+
 New attribute "backendtype" for syntax section which specifies
 record syntax to be transmitted to backend. This allows proxy to
 offer a record syntax different from that offered by backend.

@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy-config.cpp,v 1.5 2004-08-10 09:02:16 adam Exp $
+/* $Id: yaz-proxy-config.cpp,v 1.6 2004-08-29 13:01:43 adam Exp $
    Copyright (c) 1998-2004, Index Data.
 
 This file is part of the yaz-proxy.
@@ -447,7 +447,8 @@ int Yaz_ProxyConfig::check_syntax(ODR odr, const char *name,
 				  Odr_oid *syntax, Z_RecordComposition *comp,
 				  char **addinfo,
 				  char **stylesheet, char **schema,
-				  char **backend_type)
+				  char **backend_type,
+				  char **backend_charset)
 {
     if (stylesheet)
     {
@@ -463,6 +464,11 @@ int Yaz_ProxyConfig::check_syntax(ODR odr, const char *name,
     {
 	xfree (*backend_type);
 	*backend_type = 0;
+    }
+    if (backend_charset)
+    {
+	xfree (*backend_charset);
+	*backend_charset = 0;
     }
 #if HAVE_XSLT
     int syntax_has_matched = 0;
@@ -483,6 +489,7 @@ int Yaz_ProxyConfig::check_syntax(ODR odr, const char *name,
 	    const char *match_stylesheet = 0;
 	    const char *match_identifier = 0;
 	    const char *match_backend_type = 0;
+	    const char *match_backend_charset = 0;
 	    struct _xmlAttr *attr;
 	    for (attr = ptr->properties; attr; attr = attr->next)
 	    {
@@ -504,6 +511,10 @@ int Yaz_ProxyConfig::check_syntax(ODR odr, const char *name,
 		if (!strcmp((const char *) attr->name, "backendtype") &&
 		    attr->children && attr->children->type == XML_TEXT_NODE)
 		    match_backend_type = (const char *)
+			attr->children->content;
+		if (!strcmp((const char *) attr->name, "backendcharset") &&
+		    attr->children && attr->children->type == XML_TEXT_NODE)
+		    match_backend_charset = (const char *)
 			attr->children->content;
 	    }
 	    if (match_type)
@@ -546,6 +557,11 @@ int Yaz_ProxyConfig::check_syntax(ODR odr, const char *name,
 		{
 		    xfree(*backend_type);
 		    *backend_type = xstrdup(match_backend_type);
+		}
+		if (backend_charset && match_backend_charset)
+		{
+		    xfree(*backend_charset);
+		    *backend_charset = xstrdup(match_backend_charset);
 		}
 		if (match_marcxml)
 		{

@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.5 2004-08-10 09:02:16 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.6 2004-08-29 13:01:43 adam Exp $
    Copyright (c) 1998-2004, Index Data.
 
 This file is part of the yaz-proxy.
@@ -142,6 +142,7 @@ Yaz_Proxy::Yaz_Proxy(IYaz_PDU_Observable *the_PDU_Observable,
     m_s2z_database = 0;
     m_schema = 0;
     m_backend_type = 0;
+    m_backend_charset = 0;
     m_frontend_type = 0;
     m_initRequest_apdu = 0;
     m_initRequest_mem = 0;
@@ -193,6 +194,7 @@ Yaz_Proxy::~Yaz_Proxy()
 
     xfree (m_schema);
     xfree (m_backend_type);
+    xfree (m_backend_charset);
     if (m_s2z_odr_init)
 	odr_destroy(m_s2z_odr_init);
     if (m_s2z_odr_search)
@@ -752,10 +754,13 @@ void Yaz_Proxy::convert_to_frontend_type(Z_NamePlusRecordList *p)
     }
 }
 
-void Yaz_Proxy::convert_to_marcxml(Z_NamePlusRecordList *p)
+void Yaz_Proxy::convert_to_marcxml(Z_NamePlusRecordList *p,
+				   const char *backend_charset)
 {
     int i;
 
+    if (!backend_charset)
+	backend_charset = "MARC-8";
     yaz_iconv_t cd = yaz_iconv_open("UTF-8", "MARC-8");
     yaz_marc_t mt = yaz_marc_create();
     yaz_marc_xml(mt, YAZ_MARC_MARCXML);
@@ -1092,7 +1097,8 @@ int Yaz_Proxy::send_to_client(Z_APDU *apdu)
 		if (m_backend_type)
 		    convert_to_frontend_type(p->u.databaseOrSurDiagnostics);
 		if (m_marcxml_flag)
-		    convert_to_marcxml(p->u.databaseOrSurDiagnostics);
+		    convert_to_marcxml(p->u.databaseOrSurDiagnostics,
+				       m_backend_charset);
 		if (convert_xsl(p->u.databaseOrSurDiagnostics, apdu))
 		    return 0;
 		    
@@ -1132,7 +1138,8 @@ int Yaz_Proxy::send_to_client(Z_APDU *apdu)
 	    if (m_backend_type)
 		convert_to_frontend_type(p->u.databaseOrSurDiagnostics);
 	    if (m_marcxml_flag)
-		convert_to_marcxml(p->u.databaseOrSurDiagnostics);
+		convert_to_marcxml(p->u.databaseOrSurDiagnostics,
+				   m_backend_charset);
 	    if (convert_xsl(p->u.databaseOrSurDiagnostics, apdu))
 		return 0;
 	}
@@ -1645,7 +1652,7 @@ Z_APDU *Yaz_Proxy::handle_syntax_validation(Z_APDU *apdu)
 				    m_default_target,
 				    sr->preferredRecordSyntax, rc,
 				    &addinfo, &stylesheet_name, &m_schema,
-				    &m_backend_type);
+				    &m_backend_type, &m_backend_charset);
 	if (stylesheet_name)
 	{
 	    m_parent->low_socket_close();
@@ -1719,7 +1726,7 @@ Z_APDU *Yaz_Proxy::handle_syntax_validation(Z_APDU *apdu)
 				    pr->preferredRecordSyntax,
 				    pr->recordComposition,
 				    &addinfo, &stylesheet_name, &m_schema,
-				    &m_backend_type);
+				    &m_backend_type, &m_backend_charset);
 	if (stylesheet_name)
 	{
 	    m_parent->low_socket_close();

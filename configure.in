@@ -1,5 +1,5 @@
 AC_INIT(configure.in)
-AM_INIT_AUTOMAKE(yazproxy,0.8)
+AM_INIT_AUTOMAKE(yazproxy,0.9)
 
 AC_PROG_CC
 AC_PROG_CPP
@@ -8,7 +8,7 @@ AC_HEADER_STDC
 AM_DISABLE_SHARED
 AM_PROG_LIBTOOL
 
-YAZPP_INIT(threads,0.8)
+YAZPP_INIT(threads,1.0)
 YAZ_DOC
 
 AC_CHECK_FUNCS(setrlimit getrlimit gettimeofday)
