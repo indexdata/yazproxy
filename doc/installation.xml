@@ -1,5 +1,5 @@
 <chapter id="installation">
-  <!-- $Id: installation.xml,v 1.4 2004-04-21 08:16:42 adam Exp $ -->
+  <!-- $Id: installation.xml,v 1.5 2004-04-22 07:52:51 adam Exp $ -->
   <title>Installation</title>
   <para>
    You need a C++ compiler to compile and use YAZ proxy.
@@ -47,7 +47,7 @@
        </para></listitem>
      </varlistentry>
      <varlistentry>
-      <term><literal>--with-yazppconfig </literal>directory</term>
+      <term><literal>--with-yazpp </literal>directory</term>
       <listitem><para>
         Specifies the location of <filename>yaz++-config</filename>.
         The <filename>yaz++-config</filename> program is generated in

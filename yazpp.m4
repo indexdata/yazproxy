@@ -1,4 +1,4 @@
-## $Id: yazpp.m4,v 1.2 2004-04-11 14:34:16 adam Exp $
+## $Id: yazpp.m4,v 1.3 2004-04-22 07:52:51 adam Exp $
 AC_DEFUN([YAZPP_INIT],
 [
         AC_SUBST(YAZPPLIB)
@@ -7,7 +7,7 @@ AC_DEFUN([YAZPP_INIT],
         AC_SUBST(YAZPPVERSION)
         yazppconfig=NONE
         yazpppath=NONE
-        AC_ARG_WITH(yazppconfig, [  --with-yazppconfig=DIR  yaz++-config in DIR (example /home/yaz++-0.5)], [yazpppath=$withval])
+        AC_ARG_WITH(yazpp, [  --with-yazpp=DIR        yaz++-config in DIR (example /home/yaz++-0.8)], [yazpppath=$withval])
         if test "x$yazpppath" != "xNONE"; then
                 yazppconfig=$yazpppath/yaz++-config
         else
