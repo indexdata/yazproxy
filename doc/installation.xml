@@ -1,5 +1,5 @@
 <chapter id="installation">
-  <!-- $Id: installation.xml,v 1.1 2004-04-11 11:36:52 adam Exp $ -->
+  <!-- $Id: installation.xml,v 1.1.1.1 2004-04-11 11:36:52 adam Exp $ -->
   <title>Installation</title>
   <para>
    You need a C++ compiler to compile and use YAZ++.

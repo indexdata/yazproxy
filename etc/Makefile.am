@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.1 2004-04-11 11:37:00 adam Exp $
+# $Id: Makefile.am,v 1.1.1.1 2004-04-11 11:37:00 adam Exp $
 
 proxydatadir=$(datadir)/yazproxy
 proxydata_DATA = \

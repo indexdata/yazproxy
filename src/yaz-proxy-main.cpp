@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy-main.cpp,v 1.1 2004-04-11 11:36:47 adam Exp $
+/* $Id: yaz-proxy-main.cpp,v 1.1.1.1 2004-04-11 11:36:47 adam Exp $
    Copyright (c) 1998-2004, Index Data.
 
 This file is part of the yaz-proxy.

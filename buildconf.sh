@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: buildconf.sh,v 1.1 2004-04-11 11:36:46 adam Exp $
+# $Id: buildconf.sh,v 1.1.1.1 2004-04-11 11:36:46 adam Exp $
 set -x
 dir=`aclocal --print-ac-dir`
 if [ -f $dir/yaz.m4 ]; then

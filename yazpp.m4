@@ -1,4 +1,4 @@
-## $Id: yazpp.m4,v 1.1 2004-04-11 11:36:46 adam Exp $
+## $Id: yazpp.m4,v 1.1.1.1 2004-04-11 11:36:46 adam Exp $
 AC_DEFUN([YAZPP_INIT],
 [
         AC_SUBST(YAZPPLIB)

@@ -1,4 +1,4 @@
-<!-- $Id: introduction.xml,v 1.1 2004-04-11 11:36:52 adam Exp $ -->
+<!-- $Id: introduction.xml,v 1.1.1.1 2004-04-11 11:36:52 adam Exp $ -->
  <chapter id="introduction"><title>Introduction</title>
   <para>
    <ulink url="http://www.indexdata.dk/yazplusplus/">YAZ++</ulink> 

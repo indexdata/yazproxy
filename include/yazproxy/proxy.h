@@ -1,4 +1,4 @@
-/* $Id: proxy.h,v 1.1 2004-04-11 11:37:01 adam Exp $
+/* $Id: proxy.h,v 1.1.1.1 2004-04-11 11:37:01 adam Exp $
    Copyright (c) 1998-2004, Index Data.
 
 This file is part of the yaz-proxy.

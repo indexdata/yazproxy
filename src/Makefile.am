@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.1 2004-04-11 11:36:46 adam Exp $
+## $Id: Makefile.am,v 1.1.1.1 2004-04-11 11:36:46 adam Exp $
 
 AM_CXXFLAGS = $(YAZINC) -I$(srcdir)/../include $(XSLT_CFLAGS)
 

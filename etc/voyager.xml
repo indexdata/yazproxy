@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- $Id: voyager.xml,v 1.1 2004-04-11 11:37:01 adam Exp $ -->
+<!-- $Id: voyager.xml,v 1.1.1.1 2004-04-11 11:37:01 adam Exp $ -->
 <proxy>
   <!-- define default target and name it voyager -->
   <target default="1" name="voyager">
