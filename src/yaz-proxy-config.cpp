@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy-config.cpp,v 1.8 2004-10-23 23:12:24 adam Exp $
+/* $Id: yaz-proxy-config.cpp,v 1.9 2004-11-09 14:24:22 adam Exp $
    Copyright (c) 1998-2004, Index Data.
 
 This file is part of the yaz-proxy.
@@ -26,6 +26,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #if HAVE_XSLT
 #include <libxml/parser.h>
 #include <libxml/tree.h>
+#include <libxml/xinclude.h>
 #include <libxslt/xsltutils.h>
 #include <libxslt/transform.h>
 #endif
@@ -95,6 +96,10 @@ int Yaz_ProxyConfig::read_xml(const char *fname)
 	yaz_log(LOG_WARN, "Config file %s not found or parse error", fname);
 	return -1;  // no good
     }
+    int noSubstitutions = xmlXIncludeProcess(ndoc);
+    if (noSubstitutions == -1)
+	yaz_log(LOG_WARN, "XInclude processing failed on config %s", fname);
+
     xmlNodePtr proxyPtr = xmlDocGetRootElement(ndoc);
     if (!proxyPtr || proxyPtr->type != XML_ELEMENT_NODE ||
 	strcmp((const char *) proxyPtr->name, "proxy"))

@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
-<!-- $Id: config.xml,v 1.6 2004-10-23 23:12:23 adam Exp $ -->
+<!-- $Id: config.xml,v 1.7 2004-11-09 14:24:22 adam Exp $ -->
 <proxy xmlns="http://indexdata.dk/yazproxy/schema/0.8/"
+ xmlns:xi="http://www.w3.org/2001/XInclude"
  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
  xsi:schemaLocation="http://indexdata.dk/yazproxy/schema/0.8/ yazproxy.xsd"
 >
@@ -26,13 +27,7 @@
     <syntax type="xml" marcxml="1"/>
     <syntax type="*" error="238"/>
     <preinit>0</preinit>
-    <explain xmlns="http://explain.z3950.org/dtd/2.0/">
-       <serverInfo>
-       <host>localhost</host>
-       <port>9000</port>
-       <database>gils</database>
-       </serverInfo>
-    </explain>
+    <xi:include href="explain.xml"/>
     <cql2rpn>pqf.properties</cql2rpn>
     <authentication>adam/x</authentication>
   </target>

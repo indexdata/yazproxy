@@ -1,3 +1,5 @@
+Implement XInclude for configuration file(s).
+
 Fixed bug #189: Bad authenticated session transfer.
 
 New config element "authentication" which specifies authentication
