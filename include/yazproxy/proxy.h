@@ -1,4 +1,4 @@
-/* $Id: proxy.h,v 1.6 2004-08-29 13:01:43 adam Exp $
+/* $Id: proxy.h,v 1.7 2004-10-18 22:10:57 adam Exp $
    Copyright (c) 1998-2004, Index Data.
 
 This file is part of the yaz-proxy.
@@ -73,9 +73,10 @@ public:
 		     Odr_oid *syntax, Z_RecordComposition *comp,
 		     char **addinfo, char **stylesheet, char **schema,
 		     char **backend_type, char **backend_charset);
-    char *get_explain(ODR odr, const char *name, const char *db,
-		      int *len);
-private:
+    char *get_explain_doc(ODR odr, const char *name, const char *db,
+			  int *len);
+    const char *get_explain_name(const char *db, const char **backend_db);
+ private:
     void operator=(const Yaz_ProxyConfig &conf);
     class Yaz_ProxyConfigP *m_cp;
 };
@@ -158,9 +159,10 @@ class YAZ_EXPORT Yaz_Proxy : public Yaz_Z_Assoc {
     char *get_proxy(Z_OtherInformation **otherInfo);
     Yaz_ProxyClient *get_client(Z_APDU *apdu, const char *cookie,
 				const char *proxy_host);
+    void srw_get_client(const char *db, const char **backend_db);
     Z_APDU *result_set_optimize(Z_APDU *apdu);
     void shutdown();
-    
+    void releaseClient();    
     Yaz_ProxyClient *m_client;
     IYaz_PDU_Observable *m_PDU_Observable;
     Yaz_ProxyClient *m_clientPool;

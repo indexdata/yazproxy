@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy-config.cpp,v 1.6 2004-08-29 13:01:43 adam Exp $
+/* $Id: yaz-proxy-config.cpp,v 1.7 2004-10-18 22:10:57 adam Exp $
    Copyright (c) 1998-2004, Index Data.
 
 This file is part of the yaz-proxy.
@@ -60,6 +60,8 @@ class Yaz_ProxyConfigP {
 				char **addinfo);
     int check_type_1_structure(ODR odr, xmlNodePtr ptr, Z_RPNStructure *q,
 			       char **addinfo);
+    int get_explain_ptr(const char *host, const char *db,
+			xmlNodePtr *ptr_target,	xmlNodePtr *ptr_explain);
 #endif
 };
 
@@ -773,57 +775,119 @@ void Yaz_ProxyConfig::get_generic_info(int *log_mask,
 #endif
 }
 
-char *Yaz_ProxyConfig::get_explain(ODR odr, const char *name, const char *db,
-				   int *len)
-{
 #if HAVE_XSLT
-    xmlNodePtr ptr = m_cp->find_target_node(name, db);
-    if (ptr)
+int Yaz_ProxyConfigP::get_explain_ptr(const char *host, const char *db,
+				      xmlNodePtr *ptr_target,
+				      xmlNodePtr *ptr_explain)
+{
+    xmlNodePtr ptr;
+    if (!m_proxyPtr)
+	return 0;
+    if (!db)
+	return 0;
+    for (ptr = m_proxyPtr->children; ptr; ptr = ptr->next)
     {
-	ptr = ptr->children;
-	for (; ptr; ptr = ptr->next)
-	    if (ptr->type == XML_ELEMENT_NODE &&
-		!strcmp((const char *) ptr->name, "explain"))
+	if (ptr->type == XML_ELEMENT_NODE &&
+	    !strcmp((const char *) ptr->name, "target"))
+	{
+	    *ptr_target = ptr;
+	    xmlNodePtr ptr = (*ptr_target)->children;
+	    for (; ptr; ptr = ptr->next)
 	    {
-		xmlNodePtr ptr1 = ptr->children;
-		if (db)
+		if (ptr->type == XML_ELEMENT_NODE &&
+		    !strcmp((const char *) ptr->name, "explain"))
 		{
-		    for (; ptr1; ptr1 = ptr1->next)
-			if (ptr1->type == XML_ELEMENT_NODE &&
-			    !strcmp((const char *) ptr1->name, "serverInfo"))
+		    *ptr_explain = ptr;
+		    xmlNodePtr ptr = (*ptr_explain)->children;
+
+		    for (; ptr; ptr = ptr->next)
+			if (ptr->type == XML_ELEMENT_NODE &&
+			    !strcmp((const char *) ptr->name, "serverInfo"))
 			    break;
-		    if (!ptr1)
+		    if (!ptr)
 			continue;
-		    for (ptr1 = ptr1->children; ptr1; ptr1 = ptr1->next)
-			if (ptr1->type == XML_ELEMENT_NODE &&
-			    !strcmp((const char *) ptr1->name, "database"))
+		    for (ptr = ptr->children; ptr; ptr = ptr->next)
+			if (ptr->type == XML_ELEMENT_NODE &&
+			    !strcmp((const char *) ptr->name, "database"))
 			    break;
 		    
-		    if (!ptr1)
+		    if (!ptr)
 			continue;
-		    for (ptr1 = ptr1->children; ptr1; ptr1 = ptr1->next)
-			if (ptr1->type == XML_TEXT_NODE &&
-			    ptr1->content &&
-			    !strcmp((const char *) ptr1->content, db))
+		    for (ptr = ptr->children; ptr; ptr = ptr->next)
+			if (ptr->type == XML_TEXT_NODE &&
+			    ptr->content &&
+			    !strcmp((const char *) ptr->content, db))
 			    break;
-		    if (!ptr1)
+		    if (!ptr)
 			continue;
+		    return 1;
 		}
-		xmlNodePtr ptr2 = xmlCopyNode(ptr, 1);
-
-		xmlDocPtr doc = xmlNewDoc((const xmlChar *) "1.0");
-		
-		xmlDocSetRootElement(doc, ptr2);
-		
-		xmlChar *buf_out;
-		xmlDocDumpMemory(doc, &buf_out, len);
-		char *content = (char*) odr_malloc(odr, *len);
-		memcpy(content, buf_out, *len);
-		
-		xmlFree(buf_out);
-		xmlFreeDoc(doc);
-		return content;
 	    }
+	}
+    }
+    return 0;
+}
+#endif
+
+const char *Yaz_ProxyConfig::get_explain_name(const char *db,
+					      const char **backend_db)
+{
+#if HAVE_XSLT
+    xmlNodePtr ptr_target, ptr_explain;
+    if (m_cp->get_explain_ptr(0, db, &ptr_target, &ptr_explain)
+	&& ptr_target)
+    {
+	struct _xmlAttr *attr;
+	const char *name = 0;
+	
+	for (attr = ptr_target->properties; attr; attr = attr->next)
+	    if (!strcmp((const char *) attr->name, "name")
+		&& attr->children
+		&& attr->children->type==XML_TEXT_NODE
+		&& attr->children->content 
+		&& attr->children->content[0])
+	    {
+		name = (const char *)attr->children->content;
+		break;
+	    }
+	if (name)
+	{
+	    for (attr = ptr_target->properties; attr; attr = attr->next)
+		if (!strcmp((const char *) attr->name, "database"))
+		{
+		    if (attr->children
+			&& attr->children->type==XML_TEXT_NODE
+			&& attr->children->content)
+			*backend_db = (const char *) attr->children->content;
+		}
+	    return name;
+	}
+    }
+#endif
+    return 0;
+}
+
+char *Yaz_ProxyConfig::get_explain_doc(ODR odr, const char *name,
+				       const char *db, int *len)
+{
+#if HAVE_XSLT
+    xmlNodePtr ptr_target, ptr_explain;
+    if (m_cp->get_explain_ptr(0 /* host */, db, &ptr_target, &ptr_explain))
+    {
+	xmlNodePtr ptr2 = xmlCopyNode(ptr_explain, 1);
+	
+	xmlDocPtr doc = xmlNewDoc((const xmlChar *) "1.0");
+	
+	xmlDocSetRootElement(doc, ptr2);
+	
+	xmlChar *buf_out;
+	xmlDocDumpMemory(doc, &buf_out, len);
+	char *content = (char*) odr_malloc(odr, *len);
+	memcpy(content, buf_out, *len);
+	
+	xmlFree(buf_out);
+	xmlFreeDoc(doc);
+	return content;
     }
 #endif
     return 0;

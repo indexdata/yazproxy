@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.6 2004-08-29 13:01:43 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.7 2004-10-18 22:10:57 adam Exp $
    Copyright (c) 1998-2004, Index Data.
 
 This file is part of the yaz-proxy.
@@ -40,6 +40,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include <yaz/diagbib1.h>
 #include <yazproxy/proxy.h>
 #include <yaz/pquery.h>
+#include <yaz/otherinfo.h>
 
 #if HAVE_XSLT
 #include <libxml/parser.h>
@@ -181,10 +182,10 @@ Yaz_Proxy::~Yaz_Proxy()
     nmem_destroy(m_mem_invalid_session);
     nmem_destroy(m_referenceId_mem);
 
-    xfree (m_proxyTarget);
-    xfree (m_default_target);
-    xfree (m_proxy_authentication);
-    xfree (m_optimize);
+    xfree(m_proxyTarget);
+    xfree(m_default_target);
+    xfree(m_proxy_authentication);
+    xfree(m_optimize);
 
 #if HAVE_XSLT
     if (m_stylesheet_xsp)
@@ -390,8 +391,8 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
 #endif
 	    xfree(m_default_target);
 	    m_default_target = xstrdup(proxy_host);
-	    proxy_host = m_default_target;
 	}
+	proxy_host = m_default_target;
 	int client_idletime = -1;
 	const char *cql2rpn_fname = 0;
 	url[0] = m_default_target;
@@ -975,8 +976,8 @@ int Yaz_Proxy::send_srw_explain_response(Z_SRW_diagnostic *diagnostics,
     if (cfg)
     {
 	int len;
-	char *b = cfg->get_explain(odr_encode(), 0 /* target */,
-				   m_s2z_database, &len);
+	char *b = cfg->get_explain_doc(odr_encode(), 0 /* target */,
+				       m_s2z_database, &len);
 	if (b)
 	{
 	    Z_SRW_PDU *res = yaz_srw_get(odr_encode(), Z_SRW_explain_response);
@@ -1246,7 +1247,6 @@ Z_APDU *Yaz_Proxy::result_set_optimize(Z_APDU *apdu)
 		return 0;
 	    }
 	    Z_NamePlusRecordList *npr;
-	    int oclass = 0;
 #if 0
 	    yaz_log(LOG_LOG, "%sCache lookup %d+%d syntax=%s",
 		    m_session_str, start, toget, yaz_z3950oid_to_str(
@@ -1792,6 +1792,25 @@ Z_ElementSetNames *Yaz_Proxy::mk_esn_from_schema(ODR o, const char *schema)
     return esn;
 }
 
+void Yaz_Proxy::srw_get_client(const char *db, const char **backend_db)
+{
+    const char *t = 0;
+    Yaz_ProxyConfig *cfg = check_reconfigure();
+    if (cfg)
+	t = cfg->get_explain_name(db, backend_db);
+
+    if (m_client && m_default_target && t && strcmp(m_default_target, t))
+    {
+	releaseClient();
+    }
+    
+    if (t)
+    {
+	xfree(m_default_target);
+	m_default_target = xstrdup(t);
+    }
+}
+	
 void Yaz_Proxy::handle_incoming_HTTP(Z_HTTP_Request *hreq)
 {
     if (m_s2z_odr_init)
@@ -1849,6 +1868,9 @@ void Yaz_Proxy::handle_incoming_HTTP(Z_HTTP_Request *hreq)
 	{
 	    Z_SRW_searchRetrieveRequest *srw_req = srw_pdu->u.request;
 
+	    const char *backend_db = srw_req->database;
+	    srw_get_client(srw_req->database, &backend_db);
+
 	    m_s2z_database = odr_strdup(m_s2z_odr_init, srw_req->database);
 	    // recordXPath unsupported.
 	    if (srw_req->recordXPath)
@@ -1899,7 +1921,7 @@ void Yaz_Proxy::handle_incoming_HTTP(Z_HTTP_Request *hreq)
 	    z_searchRequest->databaseNames = (char**)
 		odr_malloc(m_s2z_odr_search, sizeof(char *));
 	    z_searchRequest->databaseNames[0] = odr_strdup(m_s2z_odr_search,
-							   srw_req->database);
+							   backend_db);
 	    
 	    // query transformation
 	    Z_Query *query = (Z_Query *)
@@ -2245,8 +2267,10 @@ void Yaz_Proxy::connectNotify()
 {
 }
 
-void Yaz_Proxy::shutdown()
+void Yaz_Proxy::releaseClient()
 {
+    xfree(m_proxyTarget);
+    m_proxyTarget = 0;
     m_invalid_session = 0;
     // only keep if keep_alive flag is set...
     if (m_client && 
@@ -2265,6 +2289,7 @@ void Yaz_Proxy::shutdown()
 	// Tell client (if any) that no server connection is there..
 	m_client->m_server = 0;
 	m_invalid_session = 0;
+	m_client = 0;
     }
     else if (m_client)
     {
@@ -2273,6 +2298,7 @@ void Yaz_Proxy::shutdown()
                  m_client->get_hostname());
         assert (m_client->m_waiting != 2);
 	delete m_client;
+	m_client = 0;
     }
     else if (!m_parent)
     {
@@ -2287,6 +2313,11 @@ void Yaz_Proxy::shutdown()
     }
     if (m_parent)
 	m_parent->pre_init();
+}
+
+void Yaz_Proxy::shutdown()
+{
+    releaseClient();
     delete this;
 }
 
