@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy-config.cpp,v 1.15 2005-02-11 15:19:08 adam Exp $
+/* $Id: yaz-proxy-config.cpp,v 1.16 2005-02-20 21:59:08 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -68,7 +68,9 @@ Yaz_ProxyModule::~Yaz_ProxyModule()
 	if (int0->destroy)
 	    (*int0->destroy)(m_user_handle);
     }
+#if HAVE_DLFCN_H
     dlclose(m_dl_handle);
+#endif
 }
 
 int Yaz_ProxyModule::authenticate(const char *user, const char *group,
