@@ -12,7 +12,7 @@
     see <xref linkend="proxy-usage"/>.
    </para>
    <para>
-    As an option the proxy may change user identity to a less privileged
+    As an option, the proxy may change user identity to a less privileged
     user.
    </para>
   </section>
@@ -116,6 +116,81 @@
     </para>
   </section>
   
+  
+  <section id="query-cache">
+   <title>Query Caching</title>
+   <para>
+    Simple stateless clients often send identical Z39.50 searches
+    in a relatively short period of time (e.g. in order to produce a
+    results-list page, the next page,
+    a single full-record, etc). And for many targets, it's
+    much more expensive to produce a new result set than to
+    reuse an existing one.
+   </para>
+   <para>
+    The proxy tries to solve that by remembering the last query for each
+    backend target, so that if an identical query is received next, it
+    is turned into Present Requests rather than new Search Requests.
+   </para>
+   <note>
+    <para>
+     In a future we release will will probably allows for
+     an arbitrary-sized cache for targets supporting named result sets.
+    </para>
+   </note>
+   <para>
+    You can enable/disable query caching using option -o.
+   </para>
+  </section>
+  
+  <section id="record-cache">
+   <title>Record Caching</title>
+   <para>
+    As an option, the proxy may also cache result set records for the
+    last search.
+    The proxy takes into account the Record Syntax and CompSpec.
+    The CompSpec includes simple element set names as well.
+    By default the cache is 200000 bytes per session.
+   </para>
+  </section>
+  
+  <section id="query-validation">
+   <title>Query Validation</title>
+   <para>
+    The Proxy may also be configured to trap particular attributes in
+    Type-1 queries and send Bib-1 diagnostics back to the client without
+    even consulting the backend target. This facility may be useful if
+    a target does not properly issue diagnostics when unsupported attributes
+    are send to it.
+   </para>
+  </section>
+  
+   <section id="record-validation">
+   <title>Record Syntax Validation</title>
+   <para>
+    The proxy may be configured to accept, reject or convert records.
+    When accepted, the target passes search/present requests to the
+    backend target under the assumption that the target can honor the
+    request (In fact it may not do that). When a record is rejected because
+    the record syntax is "unsupported" the proxy returns a diagnostic to the
+    client. Finally, the proxy may convert records.
+   </para>
+   <para>
+    The proxy can convert from MARC to MARCXML and thereby offer an
+    XML version of any MARC record as long as it is ISO2709 encoded.
+    If the proxy is compiled with libXSLT support it can also
+    perform XSLT on XML.
+   </para>
+  </section>
+  
+  <section id="other-optimizations">
+   <title>Other Optimizations</title>
+   <para>
+    We've had some plans to support global caching of result set records,
+    but this has not yet been implemented.
+   </para>
+  </section>
+   
   <section id="proxy-config-file">
    <title>Proxy Configuration File</title>
    <para>
@@ -207,7 +282,7 @@
     </para>
     <para>
      This can also be specified on the command line by using option
-     <literal>-T</literal>. Refer to OPTIONS.
+     <literal>-T</literal>. Refer to OPTIONS in <xref linkend="proxy-usage"/>.
     </para>
    </section>
 
@@ -220,7 +295,7 @@
      </para>
     <para>
      This can also be specified on the command line by using option
-     <literal>-i</literal>. Refer to OPTIONS.
+     <literal>-i</literal>.  Refer to OPTIONS in <xref linkend="proxy-usage"/>.
     </para>
    </section>
 
@@ -567,81 +642,6 @@
     </para>
    </section>
   </section>
-  
-  <section id="query-cache">
-   <title>Query Caching</title>
-   <para>
-    Simple stateless clients often send identical Z39.50 searches
-    in a relatively short period of time (e.g. in order to produce a
-    results-list page, the next page,
-    a single full-record, etc). And for many targets, it's
-    much more expensive to produce a new result set than to
-    reuse an existing one.
-   </para>
-   <para>
-    The proxy tries to solve that by remembering the last query for each
-    backend target, so that if an identical query is received next, it
-    is turned into Present Requests rather than new Search Requests.
-   </para>
-   <note>
-    <para>
-     In a future we release will will probably allows for
-     an arbitrary-sized cache for targets supporting named result sets.
-    </para>
-   </note>
-   <para>
-    You can enable/disable query caching using option -o.
-   </para>
-  </section>
-  
-  <section id="record-cache">
-   <title>Record Caching</title>
-   <para>
-    As an option, the proxy may also cache result set records for the
-    last search.
-    The proxy takes into account the Record Syntax and CompSpec.
-    The CompSpec includes simple element set names as well.
-    By default the cache is 200000 bytes per session.
-   </para>
-  </section>
-  
-  <section id="query-validation">
-   <title>Query Validation</title>
-   <para>
-    The Proxy may also be configured to trap particular attributes in
-    Type-1 queries and send Bib-1 diagnostics back to the client without
-    even consulting the backend target. This facility may be useful if
-    a target does not properly issue diagnostics when unsupported attributes
-    are send to it.
-   </para>
-  </section>
-  
-   <section id="record-validation">
-   <title>Record Syntax Validation</title>
-   <para>
-    The proxy may be configured to accept, reject or convert records.
-    When accepted, the target passes search/present requests to the
-    backend target under the assumption that the target can honor the
-    request (In fact it may not do that). When a record is rejected because
-    the record syntax is "unsupported" the proxy returns a diagnostic to the
-    client. Finally, the proxy may convert records.
-   </para>
-   <para>
-    The proxy can convert from MARC to MARCXML and thereby offer an
-    XML version of any MARC record as long as it is ISO2709 encoded.
-    If the proxy is compiled with libXSLT support it can also
-    perform XSLT on XML.
-   </para>
-  </section>
-  
-  <section id="other-optimizations">
-   <title>Other Optimizations</title>
-   <para>
-    We've had some plans to support global caching of result set records,
-    but this has not yet been implemented.
-   </para>
-  </section>
-   
   <section id="proxy-usage">
    <title>Proxy Usage (man page)</title>
    <refentry id="yazproxy-man">
@@ -688,7 +688,7 @@
    <screen><![CDATA[
     <?xml version="1.0"?>
 <!-- XML Schema for YAZ proxy config file.
-    $Id: reference.xml,v 1.4 2004-04-21 08:16:42 adam Exp $
+    $Id: reference.xml,v 1.5 2004-04-21 13:08:21 adam Exp $
 -->
 <xs:schema
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
