@@ -1,4 +1,4 @@
-/* $Id: proxy.h,v 1.10 2004-12-13 20:52:33 adam Exp $
+/* $Id: proxy.h,v 1.11 2005-02-10 08:09:42 oleg Exp $
    Copyright (c) 1998-2004, Index Data.
 
 This file is part of the yaz-proxy.
@@ -61,7 +61,9 @@ public:
 		      int *keepalive_limit_pdu,
 		      int *pre_init,
 		      const char **cql2rpn,
-		      const char **authentication);
+		      const char **authentication,
+		      const char **negotiation_charset,
+		      const char **negotiation_lang);
     
     void get_generic_info(int *log_mask, int *max_clients);
 
@@ -72,7 +74,9 @@ public:
 			 int *keepalive_limit_bw, int *keepalive_limit_pdu,
 			 int *pre_init,
 			 const char **cql2rpn,
-			 const char **authentication);
+			 const char **authentication,
+			 const char **negotiation_charset,
+			 const char **negotiation_lang);
 
     const char *check_mime_type(const char *path);
     int check_query(ODR odr, const char *name, Z_Query *query, char **addinfo);
@@ -166,6 +170,8 @@ class YAZ_EXPORT Yaz_Proxy : public Yaz_Z_Assoc {
  private:
     char *get_cookie(Z_OtherInformation **otherInfo);
     char *get_proxy(Z_OtherInformation **otherInfo);
+    void get_charset_and_lang_negotiation(Z_OtherInformation **otherInfo,
+	char **charstes, char **langs, int *selected);
     Yaz_ProxyClient *get_client(Z_APDU *apdu, const char *cookie,
 				const char *proxy_host);
     void srw_get_client(const char *db, const char **backend_db);
@@ -186,6 +192,8 @@ class YAZ_EXPORT Yaz_Proxy : public Yaz_Z_Assoc {
     char *m_proxyTarget;
     char *m_default_target;
     char *m_proxy_authentication;
+    char *m_proxy_negotiation_charset;
+    char *m_proxy_negotiation_lang;
     long m_seed;
     char *m_optimize;
     int m_session_no;         // sequence for each client session
@@ -209,6 +217,9 @@ class YAZ_EXPORT Yaz_Proxy : public Yaz_Z_Assoc {
     Z_APDU *handle_query_transformation(Z_APDU *apdu);
 
     Z_APDU *handle_syntax_validation(Z_APDU *apdu);
+
+    void handle_charset_lang_negotiation(Z_APDU *apdu);
+
     const char *load_balance(const char **url);
     int m_reconfig_flag;
     Yaz_ProxyConfig *check_reconfigure();
@@ -232,6 +243,11 @@ class YAZ_EXPORT Yaz_Proxy : public Yaz_Z_Assoc {
     int m_initRequest_maximumRecordSize;
     Z_Options *m_initRequest_options;
     Z_ProtocolVersion *m_initRequest_version;
+    char **m_initRequest_oi_negotiation_charsets;
+    int m_initRequest_oi_negotiation_num_charsets;
+    char **m_initRequest_oi_negotiation_langs;
+    int m_initRequest_oi_negotiation_num_langs;
+    int m_initRequest_oi_negotiation_selected;
     NMEM m_initRequest_mem;
     Z_APDU *m_apdu_invalid_session;
     NMEM m_mem_invalid_session;
@@ -287,6 +303,7 @@ class YAZ_EXPORT Yaz_Proxy : public Yaz_Z_Assoc {
     const char *option(const char *name, const char *value);
     void set_default_target(const char *target);
     void set_proxy_authentication (const char *auth);
+    void set_proxy_negotiation (const char *charset, const char *lang);
     char *get_proxy_target() { return m_proxyTarget; };
     char *get_session_str() { return m_session_str; };
     void set_max_clients(int m) { m_max_clients = m; };

@@ -1,3 +1,8 @@
+<<YAZ Proxy involved in Character Set and Language Negotiation. Added
+support for client's side negotiation record (high priority). Added
+support for new elements of YAZ Proxy config file - negotiation-charset,
+negotiation-lang for parent element target.>>
+ 
 --- 0.9 2005/02/07
 
 YAZ Proxy may use USEMARCON to convert between various MARC

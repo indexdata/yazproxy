@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.19 2005-02-07 13:29:38 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.20 2005-02-10 08:09:42 oleg Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -49,6 +49,8 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include "proxyp.h"
 #include <yaz/pquery.h>
 #include <yaz/otherinfo.h>
+#include <yaz/charneg.h>
+
 
 static const char *apdu_name(Z_APDU *apdu)
 {
@@ -101,7 +103,6 @@ static const char *gdu_name(Z_GDU *gdu)
     }
     return "Unknown request/response";
 }
-
 Yaz_Proxy::Yaz_Proxy(IYaz_PDU_Observable *the_PDU_Observable,
 		     Yaz_Proxy *parent) :
     Yaz_Z_Assoc(the_PDU_Observable), m_bw_stat(60), m_pdu_stat(60)
@@ -116,6 +117,8 @@ Yaz_Proxy::Yaz_Proxy(IYaz_PDU_Observable *the_PDU_Observable,
     m_proxyTarget = 0;
     m_default_target = 0;
     m_proxy_authentication = 0;
+    m_proxy_negotiation_charset = 0;
+    m_proxy_negotiation_lang = 0;
     m_max_clients = 150;
     m_log_mask = 0;
     m_seed = time(0);
@@ -152,6 +155,11 @@ Yaz_Proxy::Yaz_Proxy(IYaz_PDU_Observable *the_PDU_Observable,
     m_initRequest_maximumRecordSize = 0;
     m_initRequest_options = 0;
     m_initRequest_version = 0;
+    m_initRequest_oi_negotiation_charsets = 0;
+    m_initRequest_oi_negotiation_num_charsets = 0;
+    m_initRequest_oi_negotiation_langs = 0;
+    m_initRequest_oi_negotiation_num_langs = 0;
+    m_initRequest_oi_negotiation_selected = 0;
     m_apdu_invalid_session = 0;
     m_mem_invalid_session = 0;
     m_s2z_odr_init = 0;
@@ -189,6 +197,8 @@ Yaz_Proxy::~Yaz_Proxy()
     xfree(m_proxyTarget);
     xfree(m_default_target);
     xfree(m_proxy_authentication);
+    xfree(m_proxy_negotiation_charset);
+    xfree(m_proxy_negotiation_lang);
     xfree(m_optimize);
 
 #if HAVE_XSLT
@@ -239,7 +249,19 @@ void Yaz_Proxy::set_proxy_authentication (const char *auth)
     if (auth)
 	m_proxy_authentication = (char *) xstrdup (auth);
 }
-
+void Yaz_Proxy::set_proxy_negotiation (const char *charset, const char *lang)
+{
+    yaz_log(YLOG_LOG, "%sSet the proxy negotiation: charset to '%s',
+	language to '%s'", m_session_str, (charset)?charset:"none",
+	(lang)?lang:"none");
+    xfree (m_proxy_negotiation_charset);
+    xfree (m_proxy_negotiation_lang);
+    m_proxy_negotiation_charset = m_proxy_negotiation_lang = 0;
+    if (charset)
+	m_proxy_negotiation_charset = (char *) xstrdup (charset);
+    if (lang)
+	m_proxy_negotiation_lang = (char *) xstrdup (lang);
+}
 Yaz_ProxyConfig *Yaz_Proxy::check_reconfigure()
 {
     if (m_parent)
@@ -287,6 +309,8 @@ IYaz_PDU_Observer *Yaz_Proxy::sessionNotify(IYaz_PDU_Observable
     else
 	new_proxy->set_APDU_yazlog(0);
     new_proxy->set_proxy_authentication(m_proxy_authentication);
+    new_proxy->set_proxy_negotiation(m_proxy_negotiation_charset,
+	m_proxy_negotiation_lang);
     sprintf(new_proxy->m_session_str, "%ld:%d ", (long) time(0), m_session_no);
     m_session_no++;
     yaz_log (YLOG_LOG, "%sNew session %s", new_proxy->m_session_str,
@@ -310,7 +334,6 @@ char *Yaz_Proxy::get_cookie(Z_OtherInformation **otherInfo)
 	return oi->information.characterInfo;
     return 0;
 }
-
 char *Yaz_Proxy::get_proxy(Z_OtherInformation **otherInfo)
 {
     int oid[OID_SIZE];
@@ -325,7 +348,6 @@ char *Yaz_Proxy::get_proxy(Z_OtherInformation **otherInfo)
 	return oi->information.characterInfo;
     return 0;
 }
-
 const char *Yaz_Proxy::load_balance(const char **url)
 {
     int zurl_in_use[MAX_ZURL_PLEX];
@@ -403,6 +425,8 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
 	int client_idletime = -1;
 	const char *cql2rpn_fname = 0;
 	const char *authentication = 0;
+	const char *negotiation_charset = 0;
+	const char *negotiation_lang = 0;
 	url[0] = m_default_target;
 	url[1] = 0;
 	if (cfg)
@@ -416,7 +440,9 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
 				 &m_keepalive_limit_pdu,
 				 &pre_init,
 				 &cql2rpn_fname,
-				 &authentication);
+				 &authentication,
+				 &negotiation_charset,
+				 &negotiation_lang);
 	}
 	if (client_idletime != -1)
 	{
@@ -427,6 +453,9 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
 	    m_cql2rpn.set_pqf_file(cql2rpn_fname);
 	if (authentication)
 	    set_proxy_authentication(authentication);
+	if (negotiation_charset || negotiation_lang)
+	    set_proxy_negotiation(negotiation_charset,
+		negotiation_lang);
 	if (!url[0])
 	{
 	    yaz_log(YLOG_LOG, "%sNo default target", m_session_str);
@@ -484,11 +513,14 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
 	    }
 	}
     }
-    else if (!c && apdu->which == Z_APDU_initRequest
-	     && apdu->u.initRequest->idAuthentication == 0)
+    else if (!c &&
+	    apdu->which == Z_APDU_initRequest &&
+	    apdu->u.initRequest->idAuthentication == 0 &&
+	    !ODR_MASK_GET(apdu->u.initRequest->options, Z_Options_negotiationModel))
     {
 	// anonymous sessions without cookie.
 	// if authentication is set it is NOT anonymous se we can't share them.
+	// If charset and lang negotiation is use it is NOT anonymous session too.
 	for (c = parent->m_clientPool; c; c = c->m_next)
 	{
 	    assert(c->m_prev);
@@ -645,7 +677,6 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
     yaz_log (YLOG_DEBUG, "get_client 3 %p %p", this, c);
     return c;
 }
-
 void Yaz_Proxy::display_diagrecs(Z_DiagRec **pp, int num)
 {
     int i;
@@ -826,7 +857,6 @@ void Yaz_Proxy::convert_to_marcxml(Z_NamePlusRecordList *p,
 				   const char *backend_charset)
 {
     int i;
-
     if (!backend_charset)
 	backend_charset = "MARC-8";
     yaz_iconv_t cd = yaz_iconv_open("UTF-8", backend_charset);
@@ -1222,6 +1252,10 @@ int Yaz_Proxy::send_to_client(Z_APDU *apdu)
     }
     else if (apdu->which == Z_APDU_initResponse)
     {
+	//Get and check negotiation record
+	//from init response.
+	handle_charset_lang_negotiation(apdu);
+	
 	if (m_initRequest_options)
 	{
 	    Z_Options *nopt = 
@@ -1263,6 +1297,7 @@ int Yaz_Proxy::send_to_client(Z_APDU *apdu)
 		       m_initRequest_maximumRecordSize :
 		       m_client->m_initResponse_maximumRecordSize);
     }
+    
     int r = send_PDU_convert(apdu);
     if (r)
 	return r;
@@ -1597,7 +1632,113 @@ void Yaz_Proxy::handle_max_record_retrieve(Z_APDU *apdu)
 	}
     }
 }
+void Yaz_Proxy::handle_charset_lang_negotiation(Z_APDU *apdu)
+{
+    if (apdu->which == Z_APDU_initRequest)
+    {
+	if (m_initRequest_options &&
+	    !ODR_MASK_GET(m_initRequest_options, Z_Options_negotiationModel) &&
+	    (m_proxy_negotiation_charset || m_proxy_negotiation_lang))
+	{
+	    // There is not negotiation proposal from
+	    // client's side. OK. The proxy negotiation
+	    // in use, only.
+	    Z_InitRequest *initRequest = apdu->u.initRequest;
+	    Z_OtherInformation **otherInfo;  
+	    Z_OtherInformationUnit *oi;
+	    get_otherInfoAPDU(apdu, &otherInfo);
+	    oi = update_otherInformation(otherInfo, 1, NULL, 0, 0);
+	    if (oi)
+	    {
+		ODR_MASK_SET(initRequest->options,
+		    Z_Options_negotiationModel);
+		oi->which = Z_OtherInfo_externallyDefinedInfo;    
+		oi->information.externallyDefinedInfo =
+		yaz_set_proposal_charneg(odr_encode(),
+		    (const char**)&m_proxy_negotiation_charset,
+		    m_proxy_negotiation_charset ? 1:0,
+		    (const char**)&m_proxy_negotiation_lang,
+		    m_proxy_negotiation_lang ? 1:0,
+		    1);
+	    }
+	}
+    }
+    else if (apdu->which == Z_APDU_initResponse)
+    {
+	Z_InitResponse *initResponse = apdu->u.initResponse;	
+	Z_OtherInformation **otherInfo;  
+	Z_OtherInformationUnit *oi;
+	
+	if (ODR_MASK_GET(initResponse->options, Z_Options_negotiationModel))
+	{
+	    char *charset = 0;
+	    char *lang = 0;
+	    int selected = 0;
+	    
+	    get_otherInfoAPDU(apdu, &otherInfo);
+	    
+	    if (!otherInfo && !(*otherInfo))
+		return;
+	    
+	    Z_CharSetandLanguageNegotiation *charneg =
+		yaz_get_charneg_record(*otherInfo);
+		
+	    if (!charneg)
+		return;
+				
+	    yaz_get_response_charneg(m_referenceId_mem, charneg,
+		&charset, &lang, &selected);
+				
+	    yaz_log(YLOG_LOG, "%sAccepted charset - '%s' and lang - '%s'",
+		m_session_str, (charset)?charset:"none", (lang)?lang:"none");
+		
+	    if (m_initRequest_options &&
+		ODR_MASK_GET(m_initRequest_options, Z_Options_negotiationModel))
+	    {
+		yaz_log(YLOG_LOG, "%sClient's negotiation record in use",
+		    m_session_str);	     
+	    }
+	    else if (m_proxy_negotiation_charset || m_proxy_negotiation_lang)
+	    {
+		// negotiation-charset, negotiation-lang
+		// elements of config file in use.
 
+		yaz_log(YLOG_LOG, "%sProxy's negotiation record in use",
+		    m_session_str);
+
+		// clear negotiation option.
+		ODR_MASK_CLEAR(initResponse->options, Z_Options_negotiationModel);
+		
+		// Delete negotiation (charneg-3) entry.
+		Z_OtherInformation *p = *otherInfo;
+		for (int i=0; i<p->num_elements; i++)
+		{
+		    if (p->list[i]->which == Z_OtherInfo_externallyDefinedInfo)
+		    {
+			Z_External *pext =
+			    p->list[i]->information.externallyDefinedInfo;
+			struct oident *e = oid_getentbyoid(pext->direct_reference);
+		    
+			if (e && e->value == VAL_CHARNEG3 && e->oclass == CLASS_NEGOT &&
+			    pext->which == Z_External_charSetandLanguageNegotiation)
+			{
+			    (p->num_elements)--;			
+			    if(p->num_elements == 0)
+			    {
+				*otherInfo = 0;
+			    }
+			    else
+			    {
+				for (int j=i; j<p->num_elements;j++)
+				    p->list[j] = p->list[j+1];
+			    }
+			}
+		    }
+		}    
+	    }
+	}
+    }
+}
 Z_Records *Yaz_Proxy::create_nonSurrogateDiagnostics(ODR odr,
 						     int error,
 						     const char *addinfo)
@@ -1929,7 +2070,7 @@ int Yaz_Proxy::file_access(Z_HTTP_Request *hreq)
 	yaz_log(YLOG_WARN, "%s: too large for transfer", fname);
 	return 0;
     }
-
+    
     ODR o = odr_encode();
     Yaz_ProxyConfig *cfg = check_reconfigure();
     const char *ctype = cfg->check_mime_type(fname);
@@ -2311,6 +2452,7 @@ void Yaz_Proxy::handle_incoming_Z_PDU(Z_APDU *apdu)
 	    return;
 	}
     }
+    
     m_client->m_server = this;
 
     if (apdu->which == Z_APDU_initRequest)
@@ -2328,6 +2470,7 @@ void Yaz_Proxy::handle_incoming_Z_PDU(Z_APDU *apdu)
 	{
 	    if (m_initRequest_mem)
 		nmem_destroy(m_initRequest_mem);
+
 	    m_initRequest_apdu = apdu;
 	    m_initRequest_mem = odr_extract_mem(odr_decode());
 
@@ -2337,7 +2480,37 @@ void Yaz_Proxy::handle_incoming_Z_PDU(Z_APDU *apdu)
 	    m_initRequest_maximumRecordSize = *apdu->u.initRequest->
 		maximumRecordSize;
 	    *apdu->u.initRequest->maximumRecordSize = 1024*1024;
-
+	    	    
+	    // Save proposal charsets and langs.
+	    if (ODR_MASK_GET(apdu->u.initRequest->options,
+		Z_Options_negotiationModel))
+	    {
+		Z_CharSetandLanguageNegotiation *charSetandLangRecord =
+		    yaz_get_charneg_record(*oi);
+    
+		yaz_get_proposal_charneg(m_referenceId_mem,
+		    charSetandLangRecord,
+		    &m_initRequest_oi_negotiation_charsets,
+		    &m_initRequest_oi_negotiation_num_charsets,
+		    &m_initRequest_oi_negotiation_langs,
+		    &m_initRequest_oi_negotiation_num_langs,
+		    &m_initRequest_oi_negotiation_selected);
+	
+		for (int i=0; i<m_initRequest_oi_negotiation_num_charsets; i++)
+		{
+		    yaz_log(YLOG_LOG, "%scharacters set proposal: %s",
+			m_session_str,(m_initRequest_oi_negotiation_charsets[i])?
+			m_initRequest_oi_negotiation_charsets[i]:"none");
+		}
+		for (int i=0; i<m_initRequest_oi_negotiation_num_langs; i++)
+		{
+		    yaz_log(YLOG_LOG, "%slanguages proposal: %s",
+			m_session_str, (m_initRequest_oi_negotiation_langs[i])?
+			m_initRequest_oi_negotiation_langs[i]:"none");
+		}
+		yaz_log(YLOG_LOG, "%sselected proposal: %d (boolean)",
+		    m_session_str, m_initRequest_oi_negotiation_selected);
+	    }	
 	    // save init options for the response..
 	    m_initRequest_options = apdu->u.initRequest->options;
 	    
@@ -2348,11 +2521,15 @@ void Yaz_Proxy::handle_incoming_Z_PDU(Z_APDU *apdu)
 	    int i;
 	    for (i = 0; i<= 24; i++)
 		ODR_MASK_SET(apdu->u.initRequest->options, i);
+	    // check negotiation option
+	    if (!ODR_MASK_GET(m_initRequest_options,
+		Z_Options_negotiationModel))
+	    {
+		ODR_MASK_CLEAR(apdu->u.initRequest->options,
+		    Z_Options_negotiationModel);
+	    }
 	    ODR_MASK_CLEAR(apdu->u.initRequest->options,
-			   Z_Options_negotiationModel);
-	    ODR_MASK_CLEAR(apdu->u.initRequest->options,
-			   Z_Options_concurrentOperations);
-
+		Z_Options_concurrentOperations);
 	    // make new version
 	    m_initRequest_version = apdu->u.initRequest->protocolVersion;
 	    apdu->u.initRequest->protocolVersion = 
@@ -2405,6 +2582,10 @@ void Yaz_Proxy::handle_incoming_Z_PDU(Z_APDU *apdu)
 	// though we didn't use it
 	return;
     }
+    // Add otherInformation entry in APDU if
+    // negotiatoin in use.
+    if (apdu)
+	handle_charset_lang_negotiation(apdu);
 
     // delete other info construct completely if 0 elements
     get_otherInfoAPDU(apdu, &oi);
@@ -2587,6 +2768,8 @@ void Yaz_Proxy::pre_init()
     int pre_init;
     const char *cql2rpn = 0;
     const char *authentication = 0;
+    const char *negotiation_charset = 0;
+    const char *negotiation_lang = 0;
 
     Yaz_ProxyConfig *cfg = check_reconfigure();
 
@@ -2605,7 +2788,9 @@ void Yaz_Proxy::pre_init()
 					  &keepalive_limit_pdu,
 					  &pre_init,
 					  &cql2rpn,
-					  &authentication) ; i++)
+					  &authentication,
+					  &negotiation_charset,
+					  &negotiation_lang) ; i++)
     {
 	if (pre_init)
 	{
