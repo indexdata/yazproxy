@@ -1,3 +1,5 @@
+--- 1.0 2005/03/14
+
 Added Support OPAC to XML conversion. Triggered by backendtype="opac"
 and marcxml="1" in syntax sections. See etc/voyager.xml for example.
 
