@@ -1,4 +1,4 @@
-/* $Id: proxy.h,v 1.9 2004-12-03 14:28:18 adam Exp $
+/* $Id: proxy.h,v 1.10 2004-12-13 20:52:33 adam Exp $
    Copyright (c) 1998-2004, Index Data.
 
 This file is part of the yaz-proxy.
@@ -74,6 +74,7 @@ public:
 			 const char **cql2rpn,
 			 const char **authentication);
 
+    const char *check_mime_type(const char *path);
     int check_query(ODR odr, const char *name, Z_Query *query, char **addinfo);
     int check_syntax(ODR odr, const char *name,
 		     Odr_oid *syntax, Z_RecordComposition *comp,
@@ -245,6 +246,7 @@ class YAZ_EXPORT Yaz_Proxy : public Yaz_Z_Assoc {
     Z_APDU *m_s2z_present_apdu;
     char *m_s2z_stylesheet;
     char *m_soap_ns;
+    int file_access(Z_HTTP_Request *hreq);
     int send_to_srw_client_error(int error, const char *add);
     int send_to_srw_client_ok(int hits, Z_Records *records, int start);
     int send_http_response(int code);

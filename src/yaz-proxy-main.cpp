@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy-main.cpp,v 1.6 2004-11-30 21:10:45 adam Exp $
+/* $Id: yaz-proxy-main.cpp,v 1.7 2004-12-13 20:52:33 adam Exp $
    Copyright (c) 1998-2004, Index Data.
 
 This file is part of the yaz-proxy.
@@ -34,7 +34,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include <sys/resource.h>
 #endif
 
-#include <yaz/ylog.h>
+#include <yaz/log.h>
 #include <yaz/options.h>
 
 #include <yaz++/socket-manager.h>

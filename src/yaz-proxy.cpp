@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.13 2004-12-03 14:28:18 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.14 2004-12-13 20:52:33 adam Exp $
    Copyright (c) 1998-2004, Index Data.
 
 This file is part of the yaz-proxy.
@@ -36,7 +36,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include <yaz/srw.h>
 #include <yaz/marcdisp.h>
 #include <yaz/yaz-iconv.h>
-#include <yaz/ylog.h>
+#include <yaz/log.h>
 #include <yaz/diagbib1.h>
 #include "proxyp.h"
 #include <yaz/pquery.h>
@@ -1560,6 +1560,7 @@ void Yaz_Proxy::recv_GDU(Z_GDU *apdu, int len)
 	    reduce = (reduce > nreduce) ? reduce : nreduce;
 	}
     }
+    m_http_version = 0;
     if (reduce)  
     {
 	yaz_log(YLOG_LOG, "%sdelay=%d bw=%d pdu=%d limit-bw=%d limit-pdu=%d",
@@ -1882,6 +1883,70 @@ void Yaz_Proxy::srw_get_client(const char *db, const char **backend_db)
 	m_default_target = xstrdup(t);
     }
 }
+
+int Yaz_Proxy::file_access(Z_HTTP_Request *hreq)
+{
+    yaz_log(YLOG_LOG, "file_access");
+    if (strcmp(hreq->method, "GET"))
+	return 0;
+    struct stat sbuf;
+    if (hreq->path[0] != '/')
+    {
+	yaz_log(YLOG_WARN, "Path != /");
+	return 0;
+    }
+    const char *cp = hreq->path;
+    while (*cp)
+    {
+	if (*cp == '/' && strchr("/.", cp[1]))
+	    return 0;
+	cp++;
+    }
+    const char *fname = hreq->path+1;
+    if (stat(fname, &sbuf))
+    {
+	yaz_log(YLOG_WARN, "stat %s failed", fname);
+	return 0;
+    }
+    if ((sbuf.st_mode & S_IFMT) != S_IFREG)
+	return 0;
+    if (sbuf.st_size > (off_t) 1000000)
+	return 0;
+
+    ODR o = odr_encode();
+    Yaz_ProxyConfig *cfg = check_reconfigure();
+    const char *ctype = cfg->check_mime_type(fname);
+    Z_GDU *gdu = z_get_HTTP_Response(o, 200);
+    Z_HTTP_Response *hres = gdu->u.HTTP_Response;
+    if (m_http_version)
+	hres->version = odr_strdup(o, m_http_version);
+    z_HTTP_header_add(o, &hres->headers, "Content-Type", ctype);
+    if (m_http_keepalive)
+        z_HTTP_header_add(o, &hres->headers, "Connection", "Keep-Alive");
+    else
+	timeout(0);
+
+    hres->content_len = sbuf.st_size;
+    hres->content_buf = (char*) odr_malloc(o, hres->content_len);
+    FILE *f = fopen(fname, "rb");
+    if (f)
+    {
+	fread(hres->content_buf, 1, hres->content_len, f);
+	fclose(f);
+    }
+    else
+    {
+	return 0;
+    }
+    if (m_log_mask & PROXY_LOG_REQ_CLIENT)
+    {
+	yaz_log (YLOG_LOG, "%sSending file %s to client", m_session_str,
+		 fname);
+    }
+    int len;
+    send_GDU(gdu, &len);
+    return 1;
+}
 	
 void Yaz_Proxy::handle_incoming_HTTP(Z_HTTP_Request *hreq)
 {
@@ -1922,10 +1987,15 @@ void Yaz_Proxy::handle_incoming_HTTP(Z_HTTP_Request *hreq)
     char *charset = 0;
     Z_SRW_diagnostic *diagnostic = 0;
     int num_diagnostic = 0;
-    if (yaz_srw_decode(hreq, &srw_pdu, &soap_package, odr_decode(),
-		       &charset) == 0
-	|| yaz_sru_decode(hreq, &srw_pdu, &soap_package, odr_decode(),
-			  &charset, &diagnostic, &num_diagnostic) == 0)
+
+    if (file_access(hreq))
+    {
+	return;
+    }
+    else if (yaz_srw_decode(hreq, &srw_pdu, &soap_package, odr_decode(),
+			    &charset) == 0
+	     || yaz_sru_decode(hreq, &srw_pdu, &soap_package, odr_decode(),
+			       &charset, &diagnostic, &num_diagnostic) == 0)
     {
 	m_s2z_odr_init = odr_createmem(ODR_ENCODE);
 	m_s2z_odr_search = odr_createmem(ODR_ENCODE);
@@ -2181,10 +2251,7 @@ void Yaz_Proxy::handle_incoming_HTTP(Z_HTTP_Request *hreq)
 	    send_to_srw_client_error(4, 0);
         }
     }
-    int len = 0;
-    Z_GDU *p = z_get_HTTP_Response(odr_encode(), 400);
-    timeout(0);
-    send_GDU(p, &len);
+    send_http_response(400);
 }
 
 void Yaz_Proxy::handle_incoming_Z_PDU(Z_APDU *apdu)
@@ -2216,8 +2283,16 @@ void Yaz_Proxy::handle_incoming_Z_PDU(Z_APDU *apdu)
     m_client = get_client(apdu, get_cookie(oi), get_proxy(oi));
     if (!m_client)
     {
-	delete this;
-	return;
+	if (m_http_version)
+	{
+	    send_http_response(404);
+	    return;
+	}
+	else
+	{
+	    delete this;
+	    return;
+	}
     }
     m_client->m_server = this;
 

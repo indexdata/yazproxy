@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy-config.cpp,v 1.11 2004-12-03 14:28:18 adam Exp $
+/* $Id: yaz-proxy-config.cpp,v 1.12 2004-12-13 20:52:33 adam Exp $
    Copyright (c) 1998-2004, Index Data.
 
 This file is part of the yaz-proxy.
@@ -20,7 +20,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
  */
 
 #include <ctype.h>
-#include <yaz/ylog.h>
+#include <yaz/log.h>
 #include "proxyp.h"
 
 class Yaz_ProxyConfigP {
@@ -450,6 +450,34 @@ int Yaz_ProxyConfigP::check_schema(xmlNodePtr ptr, Z_RecordComposition *comp,
     return default_match;
 }
 #endif
+
+const char *Yaz_ProxyConfig::check_mime_type(const char *path)
+{
+    struct {
+	const char *mask;
+	const char *type;
+    } types[] = {
+	{".xml", "text/xml"},
+	{".xsl", "text/xml"},
+	{".tkl", "text/xml"},
+	{".xsd", "text/xml"},
+	{0, "text/plain"},
+	{0, 0},
+    };
+    int i;
+    size_t plen = strlen (path);
+    for (i = 0; types[i].type; i++)
+	if (types[i].mask == 0)
+	    return types[i].type;
+	else
+	{
+	    size_t mlen = strlen(types[i].mask);
+	    if (plen > mlen && !memcmp(path+plen-mlen, types[i].mask, mlen))
+		return types[i].type;
+	}
+    return "application/octet-stream";
+}
+
 
 int Yaz_ProxyConfig::check_syntax(ODR odr, const char *name,
 				  Odr_oid *syntax, Z_RecordComposition *comp,

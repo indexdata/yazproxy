@@ -1,4 +1,4 @@
-/* $Id: yaz-bw.cpp,v 1.5 2004-11-30 21:10:45 adam Exp $
+/* $Id: yaz-bw.cpp,v 1.6 2004-12-13 20:52:33 adam Exp $
    Copyright (c) 1998-2004, Index Data.
 
 This file is part of the yaz-proxy.
@@ -20,7 +20,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
  */
 
 #include <time.h>
-#include <yaz/ylog.h>
+#include <yaz/log.h>
 #include <yazproxy/bw.h>
 
 Yaz_bw::Yaz_bw(int sz)
