@@ -1,4 +1,12 @@
-Use YAZ_DOC macro to setup documentation. Add yaz.m4.
+
+New attribute "backendtype" for syntax section which specifies
+record syntax to be transmitted to backend. This allows proxy to
+offer a record syntax different from that offered by backend.
+
+YAZ proxy no longer transmits element set name to backend target when
+doing schema conversions. It just gets unset instead (it's optional).
+
+Use YAZ_DOC macro to setup documentation. Added yaz.m4.
 
 --- 0.8 2004/04/23
 

@@ -1,0 +1,209 @@
+<?xml version="1.0"?>
+<!-- $Id: fennica.xml,v 1.1 2004-08-10 09:02:16 adam Exp $ -->
+<proxy xmlns="http://indexdata.dk/yazproxy/schema/0.8/"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="http://indexdata.dk/yazproxy/schema/0.8/ yazproxy.xsd"
+>
+  <!-- define default target and name it voyager -->
+  <target default="1" name="voyager">
+    <!-- all backend addresses as seen from this proxy .. -->
+    <xurl>193.166.7.194:11390</xurl>
+    <url>localhost:9999</url>
+
+    <!-- set session timeout between proxy and backend target -->
+    <target-timeout>300</target-timeout>
+
+    <!-- set session timeout between client and proxy.
+    Should be lower than target-timeout -->
+    <client-timeout>180</client-timeout>
+
+    <!-- if either bandwidth or pdu limit is reached the session is no
+    longer kept alive -->
+    <keepalive>
+      <bandwidth>500000</bandwidth>
+      <pdu>500</pdu>
+    </keepalive>
+
+    <!-- client limits .. -->
+    <limit>
+      <bandwidth>200000</bandwidth>
+      <pdu>31</pdu>
+      <retrieve>50</retrieve>
+    </limit>
+
+    <!-- use attributes -->
+    <attribute type="1" value="1-11,13-1010,1013-1023,1025-1030"/>
+    <attribute type="1" value="*" error="114"/>
+
+    <!-- relation attributes -->
+    <attribute type="2" value="1,2,3,4,5,6"/>
+    <attribute type="2" value="*" error="117"/>
+    
+    <!-- position attributes -->
+    <attribute type="3" value="1,2,3"/>
+    <attribute type="3" value="*" error="119"/>
+
+    <!-- structure attributes -->
+    <attribute type="4" value="1,2,3,4,5,6"/>
+    <attribute type="4" value="*" error="118"/>
+
+    <!-- truncation attributes -->
+    <attribute type="5" value="1,100"/>
+    <attribute type="5" value="*" error="120"/>
+
+    <!-- completeness attributes -->
+    <attribute type="6" value="1,2,3"/>
+    <attribute type="6" value="*" error="122"/>
+
+    <!-- other types -->
+    <attribute type="*" value="*" error="113"/>
+
+    <!-- list allowed record syntaxes and possible schemas (if any);
+    reject all others at the end -->
+    <syntax type="opac"/>
+    <syntax type="finmarc" backendtype="usmarc"/>
+    <zsyntax type="usmarc"/>
+    <syntax type="usmarc" backendtype="canmarc"/>
+    <syntax type="none"/>
+    
+    <syntax type="xml" marcxml="1"
+      identifier="info:srw/schema/1/marcxml-v1.1"
+      >
+      <title>MARCXML</title>
+      <name>marcxml</name>
+    </syntax>
+    <syntax type="xml" marcxml="1" stylesheet="MARC21slim2SRWDC.xsl"
+      identifier="info:srw/schema/1/dc-v1.1"
+      >
+      <title>Dublin Core</title>
+      <name>dc</name>
+    </syntax>
+    <syntax type="xml" marcxml="1" stylesheet="MARC21slim2MODS.xsl"
+      identifier="http://www.loc.gov/mods"
+      >
+      <title>MODS v2</title>
+      <name>mods2</name>
+    </syntax>
+    <syntax type="xml" marcxml="1" stylesheet="MARC21slim2MODS3.xsl"
+      identifier="info:srw/schema/1/mods-v3.0"
+      >
+      <title>MODS v3</title>
+      <name>mods3</name>
+      <name>mods</name>
+    </syntax>
+
+    <syntax type="*" error="238"/>
+
+    <!-- keep this number of spare sessions for future sessions -->
+    <preinit>0</preinit>
+
+    <explain xmlns="http://explain.z3950.org/dtd/2.0/">
+      <serverInfo>
+	<host>indexdata.dk</host>
+	<port>9000</port>
+	<database>voyager</database>
+      </serverInfo>
+      
+      <databaseInfo>
+	<title>LoC gateway</title>
+	<description lang="en" primary="true">
+	  SRW/SRU/Z39.50 Gateway to HELKA (The OPAC of the Helsinki University Libraries)
+	</description>
+      </databaseInfo>
+      
+      <indexInfo>
+	<set identifier="info:srw/cql-context-set/1/cql-v1.1"
+	  name="cql"/>
+	<set identifier="info:srw/cql-context-set/1/dc-v1.1"
+	  name="dc"/>
+	<set identifier="http://zing.z3950.org/cql/bath/2.0/"
+	  name="bath"/>
+	
+	<index id="4">
+	  <title>title</title>
+	  <map><name set="dc">title</name></map>
+	</index>
+	<index id="21">
+	  <title>subject</title>
+	  <map><name set="dc">subject</name></map>
+	</index>
+	<index id="1003">
+	  <title>creator</title>
+	  <map><name set="dc">creator</name></map>
+	  <map><name set="dc">author</name></map>
+	</index>
+	
+	<index id="1020">
+	  <title>editor</title>
+	  <map><name set="dc">editor</name></map>
+	</index>
+	
+	<index id="1018">
+	  <title>publisher</title>
+	  <map><name set="dc">publisher</name></map>
+	</index>
+	
+	<index id="62">
+	  <title>description</title>
+	  <map><name set="dc">description</name></map>
+	</index>
+	
+	<index id="30">
+	  <title>date</title>
+	  <map><name set="dc">date</name></map>
+	</index>
+	
+	<index id="1002">
+	  <title>name</title>
+	  <map><name set="bath">name</name></map>
+	</index>
+	
+	<index id="7">
+	  <title>isbn</title>
+	  <map><name set="bath">isbn</name></map>
+	</index>
+	<index id="8">
+	  <title>issn</title>
+	  <map><name set="bath">issn</name></map>
+	</index>
+      </indexInfo>
+
+      <schemaInfo>
+	<schema identifier="info:srw/schema/1/marcxml-v1.1"
+	  sort="false" name="marcxml">
+	  <title>MARCXML</title>
+	</schema>
+	
+	<schema identifier="info:srw/schema/1/dc-v1.1"
+	  sort="false" name="dc">
+	  <title>Dublin Core</title>
+	</schema>
+	
+	<schema identifier="http://www.loc.gov/mods"
+	  sort="false" name="mods2">
+	  <title>MODS v2</title>
+	</schema>
+
+	<schema identifier="info:srw/schema/1/mods-v3.0"
+	  sort="false" name="mods">
+	  <title>MODS v3</title>
+	</schema>
+
+      </schemaInfo>
+
+      <configInfo>
+        <default type="numberOfRecords">0</default>
+      </configInfo>
+    </explain>
+   <cql2rpn>pqf.properties</cql2rpn>
+  </target>
+
+
+  <!-- maximum number of client sessions. Remember to allow for
+     at least max-clients*2+5 sockets. Use 'ulimit -n 1040' on bash -->
+  <max-clients>500</max-clients>
+  
+  <!-- what we log. Allowed tokens: client-apdu, server-apdu,
+  client-requests, server-requests -->
+  <log>client-requests server-requests</log>
+</proxy>

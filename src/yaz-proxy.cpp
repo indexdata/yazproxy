@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.4 2004-04-22 07:46:21 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.5 2004-08-10 09:02:16 adam Exp $
    Copyright (c) 1998-2004, Index Data.
 
 This file is part of the yaz-proxy.
@@ -141,6 +141,8 @@ Yaz_Proxy::Yaz_Proxy(IYaz_PDU_Observable *the_PDU_Observable,
     m_s2z_stylesheet = 0;
     m_s2z_database = 0;
     m_schema = 0;
+    m_backend_type = 0;
+    m_frontend_type = 0;
     m_initRequest_apdu = 0;
     m_initRequest_mem = 0;
     m_initRequest_preferredMessageSize = 0;
@@ -190,6 +192,7 @@ Yaz_Proxy::~Yaz_Proxy()
     xfree (m_time_tv);
 
     xfree (m_schema);
+    xfree (m_backend_type);
     if (m_s2z_odr_init)
 	odr_destroy(m_s2z_odr_init);
     if (m_s2z_odr_search)
@@ -725,6 +728,30 @@ void Yaz_Proxy::convert_xsl_delay()
 	timeout(0);
 }
 
+void Yaz_Proxy::convert_to_frontend_type(Z_NamePlusRecordList *p)
+{
+    if (m_frontend_type != VAL_NONE)
+    {
+	int i;
+	for (i = 0; i < p->num_records; i++)
+	{
+	    Z_NamePlusRecord *npr = p->records[i];
+	    if (npr->which == Z_NamePlusRecord_databaseRecord)
+	    {
+		Z_External *r = npr->u.databaseRecord;
+		if (r->which == Z_External_octet)
+		{
+		    npr->u.databaseRecord =
+			z_ext_record(odr_encode(),
+				     m_frontend_type,
+				     (char*) r->u.octet_aligned->buf,
+				     r->u.octet_aligned->len);
+		}
+	    }
+	}
+    }
+}
+
 void Yaz_Proxy::convert_to_marcxml(Z_NamePlusRecordList *p)
 {
     int i;
@@ -1062,6 +1089,8 @@ int Yaz_Proxy::send_to_client(Z_APDU *apdu)
 	{
 	    if (p && p->which == Z_Records_DBOSD)
 	    {
+		if (m_backend_type)
+		    convert_to_frontend_type(p->u.databaseOrSurDiagnostics);
 		if (m_marcxml_flag)
 		    convert_to_marcxml(p->u.databaseOrSurDiagnostics);
 		if (convert_xsl(p->u.databaseOrSurDiagnostics, apdu))
@@ -1100,6 +1129,8 @@ int Yaz_Proxy::send_to_client(Z_APDU *apdu)
 	}
 	if (p && p->which == Z_Records_DBOSD)
 	{
+	    if (m_backend_type)
+		convert_to_frontend_type(p->u.databaseOrSurDiagnostics);
 	    if (m_marcxml_flag)
 		convert_to_marcxml(p->u.databaseOrSurDiagnostics);
 	    if (convert_xsl(p->u.databaseOrSurDiagnostics, apdu))
@@ -1208,6 +1239,12 @@ Z_APDU *Yaz_Proxy::result_set_optimize(Z_APDU *apdu)
 		return 0;
 	    }
 	    Z_NamePlusRecordList *npr;
+	    int oclass = 0;
+#if 0
+	    yaz_log(LOG_LOG, "%sCache lookup %d+%d syntax=%s",
+		    m_session_str, start, toget, yaz_z3950oid_to_str(
+			pr->preferredRecordSyntax, &oclass));
+#endif
 	    if (m_client->m_cache.lookup (odr_encode(), &npr, start, toget,
 					  pr->preferredRecordSyntax,
 					  pr->recordComposition))
@@ -1593,12 +1630,22 @@ Z_APDU *Yaz_Proxy::handle_syntax_validation(Z_APDU *apdu)
 	    rc = &rc_temp;
 	}
 
+	if (sr->preferredRecordSyntax)
+	{
+	    struct oident *ent;
+	    ent = oid_getentbyoid(sr->preferredRecordSyntax);
+	    m_frontend_type = ent->value;
+	}
+	else
+	    m_frontend_type = VAL_NONE;
+
 	char *stylesheet_name = 0;
 	if (cfg)
 	    err = cfg->check_syntax(odr_encode(),
 				    m_default_target,
 				    sr->preferredRecordSyntax, rc,
-				    &addinfo, &stylesheet_name, &m_schema);
+				    &addinfo, &stylesheet_name, &m_schema,
+				    &m_backend_type);
 	if (stylesheet_name)
 	{
 	    m_parent->low_socket_close();
@@ -1616,8 +1663,19 @@ Z_APDU *Yaz_Proxy::handle_syntax_validation(Z_APDU *apdu)
 	}
 	if (err == -1)
 	{
-	    sr->preferredRecordSyntax =
-		yaz_oidval_to_z3950oid(odr_encode(), CLASS_RECSYN, VAL_USMARC);
+	    sr->smallSetElementSetNames = 0;
+	    sr->mediumSetElementSetNames = 0;
+	    if (m_backend_type)
+	    {
+		
+		sr->preferredRecordSyntax =
+		    yaz_str_to_z3950oid(odr_encode(), CLASS_RECSYN,
+					m_backend_type);
+	    }
+	    else
+		sr->preferredRecordSyntax =
+		    yaz_oidval_to_z3950oid(odr_encode(), CLASS_RECSYN,
+					   VAL_USMARC);
 	    m_marcxml_flag = 1;
 	}
 	else if (err)
@@ -1633,6 +1691,11 @@ Z_APDU *Yaz_Proxy::handle_syntax_validation(Z_APDU *apdu)
 	    
 	    return 0;
 	}
+	else if (m_backend_type)
+	{
+	    sr->preferredRecordSyntax =
+		yaz_str_to_z3950oid(odr_encode(), CLASS_RECSYN, m_backend_type);
+	}
     }
     else if (apdu->which == Z_APDU_presentRequest)
     {
@@ -1641,12 +1704,22 @@ Z_APDU *Yaz_Proxy::handle_syntax_validation(Z_APDU *apdu)
 	char *addinfo = 0;
 	Yaz_ProxyConfig *cfg = check_reconfigure();
 
+	if (pr->preferredRecordSyntax)
+	{
+	    struct oident *ent;
+	    ent = oid_getentbyoid(pr->preferredRecordSyntax);
+	    m_frontend_type = ent->value;
+	}
+	else
+	    m_frontend_type = VAL_NONE;
+
 	char *stylesheet_name = 0;
 	if (cfg)
 	    err = cfg->check_syntax(odr_encode(), m_default_target,
 				    pr->preferredRecordSyntax,
 				    pr->recordComposition,
-				    &addinfo, &stylesheet_name, &m_schema);
+				    &addinfo, &stylesheet_name, &m_schema,
+				    &m_backend_type);
 	if (stylesheet_name)
 	{
 	    m_parent->low_socket_close();
@@ -1664,8 +1737,18 @@ Z_APDU *Yaz_Proxy::handle_syntax_validation(Z_APDU *apdu)
 	}
 	if (err == -1)
 	{
-	    pr->preferredRecordSyntax =
-		yaz_oidval_to_z3950oid(odr_decode(), CLASS_RECSYN, VAL_USMARC);
+	    pr->recordComposition = 0;
+	    if (m_backend_type)
+	    {
+		
+		pr->preferredRecordSyntax =
+		    yaz_str_to_z3950oid(odr_encode(), CLASS_RECSYN,
+					m_backend_type);
+	    }
+	    else
+		pr->preferredRecordSyntax =
+		    yaz_oidval_to_z3950oid(odr_encode(), CLASS_RECSYN,
+					   VAL_USMARC);
 	    m_marcxml_flag = 1;
 	}
 	else if (err)
@@ -1681,6 +1764,11 @@ Z_APDU *Yaz_Proxy::handle_syntax_validation(Z_APDU *apdu)
 	    send_to_client(new_apdu);
 	    
 	    return 0;
+	}
+	else if (m_backend_type)
+	{
+	    pr->preferredRecordSyntax =
+		yaz_str_to_z3950oid(odr_encode(), CLASS_RECSYN, m_backend_type);
 	}
     }
     return apdu;

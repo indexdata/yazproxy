@@ -434,7 +434,12 @@
      If attribute <literal>marcxml</literal> is given, the proxy will
      perform MARC21 to MARCXML conversion. In this case the
      <literal>type</literal> should be XML. The proxy will use
-     preferred record syntax USMARC/MARC21 against the backend target.
+     preferred record syntax USMARC/MARC21 or <literal>backendtype</literal> 
+     (if given) against the backend target.
+    </para>
+    <para>
+     If attribute <literal>backendtype</literal> is given, that holds the
+     record syntax to be transmitted to backend.
     </para>
     <para>
      If attribute <literal>stylesheet</literal> is given, the proxy
@@ -691,7 +696,7 @@
    <screen><![CDATA[
 <?xml version="1.0"?>
 <!-- XML Schema for YAZ proxy config file.
-    $Id: reference.xml,v 1.9 2004-07-06 10:49:44 mike Exp $
+    $Id: reference.xml,v 1.10 2004-08-10 09:02:16 adam Exp $
 -->
 <xs:schema
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
