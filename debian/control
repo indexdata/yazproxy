@@ -17,7 +17,7 @@ Description: YAZ Proxy.
 Package: libyazproxy
 Section: libs
 Architecture: any
-Depends: ${shlibs:Depends}
+Depends: ${shlibs:Depends}, libyaz++ (>= 0.8)
 Description: YAZ Proxy libraries.
  YAZ proxy is a daemon that accepts Z39.50/SRW/SRU incoming requests and
  converts them to Z39.50 client requests. The proxy has several facilities
