@@ -1,4 +1,4 @@
-/* $Id: proxy.h,v 1.12 2005-02-11 15:19:08 adam Exp $
+/* $Id: proxy.h,v 1.13 2005-02-21 14:27:32 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -38,134 +38,9 @@ class Yaz_Proxy;
 #define PROXY_LOG_REQ_CLIENT 4
 #define PROXY_LOG_REQ_SERVER 8
 
-struct Yaz_RecordCache_Entry;
-class Yaz_ProxyConfigP;
 class Yaz_usemarcon;
-
-class YAZ_EXPORT Yaz_ProxyConfig {
-public:
-    Yaz_ProxyConfig();
-    ~Yaz_ProxyConfig();
-    int read_xml(const char *fname);
-
-    int get_target_no(int no,
-		      const char **name,
-		      const char **url,
-		      int *limit_bw,
-		      int *limit_pdu,
-		      int *limit_req,
-		      int *target_idletime,
-		      int *client_idletime,
-		      int *max_clients,
-		      int *keepalive_limit_bw,
-		      int *keepalive_limit_pdu,
-		      int *pre_init,
-		      const char **cql2rpn,
-		      const char **authentication,
-		      const char **negotiation_charset,
-		      const char **negotiation_lang);
-    
-    void get_generic_info(int *log_mask, int *max_clients);
-
-    void get_target_info(const char *name, const char **url,
-			 int *limit_bw, int *limit_pdu, int *limit_req,
-			 int *target_idletime, int *client_idletime,
-			 int *max_clients,
-			 int *keepalive_limit_bw, int *keepalive_limit_pdu,
-			 int *pre_init,
-			 const char **cql2rpn,
-			 const char **authentication,
-			 const char **negotiation_charset,
-			 const char **negotiation_lang);
-
-    const char *check_mime_type(const char *path);
-    int check_query(ODR odr, const char *name, Z_Query *query, char **addinfo);
-    int check_syntax(ODR odr, const char *name,
-		     Odr_oid *syntax, Z_RecordComposition *comp,
-		     char **addinfo, char **stylesheet, char **schema,
-		     char **backend_type, char **backend_charset,
-		     char **usemarcon_ini_stage1, char **usemarcon_ini_stage2);
-
-    int check_authentication(const char *user, const char *group,
-			     const char *password);
-    char *get_explain_doc(ODR odr, const char *name, const char *db,
-			  int *len);
-    const char *get_explain_name(const char *db, const char **backend_db);
- private:
-    void operator=(const Yaz_ProxyConfig &conf);
-    class Yaz_ProxyConfigP *m_cp;
-};
-
-class YAZ_EXPORT Yaz_RecordCache {
- public:
-    Yaz_RecordCache ();
-    ~Yaz_RecordCache ();
-    void add (ODR o, Z_NamePlusRecordList *npr, int start, int hits);
-    
-    int lookup (ODR o, Z_NamePlusRecordList **npr, int start, int num,
-		Odr_oid *syntax, Z_RecordComposition *comp);
-    void clear();
-
-    void copy_searchRequest(Z_SearchRequest *sr);
-    void copy_presentRequest(Z_PresentRequest *pr);
-    void set_max_size(int sz);
- private:
-    NMEM m_mem;
-    Yaz_RecordCache_Entry *m_entries;
-    Z_SearchRequest *m_searchRequest;
-    Z_PresentRequest *m_presentRequest;
-    int match (Yaz_RecordCache_Entry *entry,
-	       Odr_oid *syntax, int offset,
-	       Z_RecordComposition *comp);
-    int m_max_size;
-};
-
-/// Private class
-class YAZ_EXPORT Yaz_ProxyClient : public Yaz_Z_Assoc {
-    friend class Yaz_Proxy;
-    Yaz_ProxyClient(IYaz_PDU_Observable *the_PDU_Observable,
-		    Yaz_Proxy *parent);
-    ~Yaz_ProxyClient();
-    void recv_GDU(Z_GDU *apdu, int len);
-    void recv_Z_PDU(Z_APDU *apdu, int len);
-    void recv_HTTP_response(Z_HTTP_Response *apdu, int len);
-    IYaz_PDU_Observer* sessionNotify
-	(IYaz_PDU_Observable *the_PDU_Observable, int fd);
-    void shutdown();
-    Yaz_Proxy *m_server;
-    void failNotify();
-    void timeoutNotify();
-    void connectNotify();
-    int send_to_target(Z_APDU *apdu);
-    const char *get_session_str();
-    char *m_cookie;
-    Yaz_ProxyClient *m_next;
-    Yaz_ProxyClient **m_prev;
-    int m_init_flag;
-    Yaz_Z_Query *m_last_query;
-    Yaz_Z_Databases m_last_databases;
-    char *m_last_resultSetId;
-    int m_last_ok;
-    int m_last_resultCount;
-    int m_sr_transform;
-    int m_seqno;
-    int m_waiting;
-    int m_resultSetStartPoint;
-    int m_bytes_sent;
-    int m_bytes_recv;
-    int m_pdu_recv;
-    ODR m_init_odr;
-    Z_APDU *m_initResponse;
-    Z_Options *m_initResponse_options;
-    Z_ProtocolVersion *m_initResponse_version;
-    int m_initResponse_preferredMessageSize;
-    int m_initResponse_maximumRecordSize;
-    Yaz_RecordCache m_cache;
-    void pre_init_client();
-    int m_target_idletime;
-    Yaz_Proxy *m_root;
-};
-
+class Yaz_ProxyConfig;
+class Yaz_ProxyClient;
 
 /// Information Retrieval Proxy Server.
 class YAZ_EXPORT Yaz_Proxy : public Yaz_Z_Assoc {
@@ -191,9 +66,9 @@ class YAZ_EXPORT Yaz_Proxy : public Yaz_Z_Assoc {
     int m_keepalive_limit_pdu;
     int m_client_idletime;
     int m_target_idletime;
+    int m_debug_mode;
     char *m_proxyTarget;
     char *m_default_target;
-    char *m_proxy_authentication;
     char *m_proxy_negotiation_charset;
     char *m_proxy_negotiation_lang;
     long m_seed;
@@ -305,7 +180,6 @@ class YAZ_EXPORT Yaz_Proxy : public Yaz_Z_Assoc {
     void markInvalid();
     const char *option(const char *name, const char *value);
     void set_default_target(const char *target);
-    void set_proxy_authentication (const char *auth);
     void set_proxy_negotiation (const char *charset, const char *lang);
     char *get_proxy_target() { return m_proxyTarget; };
     char *get_session_str() { return m_session_str; };
@@ -320,6 +194,7 @@ class YAZ_EXPORT Yaz_Proxy : public Yaz_Z_Assoc {
     void pre_init();
     int get_log_mask() { return m_log_mask; };
     int handle_init_response_for_invalid_session(Z_APDU *apdu);
+    void set_debug_mode(int mode);
 };
 
 #endif

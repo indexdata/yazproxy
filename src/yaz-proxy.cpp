@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.22 2005-02-11 15:19:08 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.23 2005-02-21 14:27:32 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -38,6 +38,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #endif
 
 #include <assert.h>
+#include <stdlib.h>
 #include <time.h>
 #include <fcntl.h>
 
@@ -116,7 +117,6 @@ Yaz_Proxy::Yaz_Proxy(IYaz_PDU_Observable *the_PDU_Observable,
     m_keepalive_limit_pdu = 1000;
     m_proxyTarget = 0;
     m_default_target = 0;
-    m_proxy_authentication = 0;
     m_proxy_negotiation_charset = 0;
     m_proxy_negotiation_lang = 0;
     m_max_clients = 150;
@@ -196,7 +196,6 @@ Yaz_Proxy::~Yaz_Proxy()
 
     xfree(m_proxyTarget);
     xfree(m_default_target);
-    xfree(m_proxy_authentication);
     xfree(m_proxy_negotiation_charset);
     xfree(m_proxy_negotiation_lang);
     xfree(m_optimize);
@@ -222,6 +221,11 @@ Yaz_Proxy::~Yaz_Proxy()
     delete m_config;
 }
 
+void Yaz_Proxy::set_debug_mode(int mode)
+{
+    m_debug_mode = mode;
+}
+
 int Yaz_Proxy::set_config(const char *config)
 {
     delete m_config;
@@ -240,14 +244,6 @@ void Yaz_Proxy::set_default_target(const char *target)
     m_default_target = 0;
     if (target)
 	m_default_target = (char *) xstrdup (target);
-}
-
-void Yaz_Proxy::set_proxy_authentication (const char *auth)
-{
-    xfree (m_proxy_authentication);
-    m_proxy_authentication = 0;
-    if (auth)
-	m_proxy_authentication = (char *) xstrdup (auth);
 }
 
 void Yaz_Proxy::set_proxy_negotiation (const char *charset, const char *lang)
@@ -310,7 +306,6 @@ IYaz_PDU_Observer *Yaz_Proxy::sessionNotify(IYaz_PDU_Observable
 	new_proxy->set_APDU_yazlog(1);
     else
 	new_proxy->set_APDU_yazlog(0);
-    new_proxy->set_proxy_authentication(m_proxy_authentication);
     new_proxy->set_proxy_negotiation(m_proxy_negotiation_charset,
 	m_proxy_negotiation_lang);
     sprintf(new_proxy->m_session_str, "%ld:%d ", (long) time(0), m_session_no);
@@ -415,18 +410,18 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
 	Yaz_ProxyConfig *cfg = check_reconfigure();
 	if (proxy_host)
 	{
-#if 0
-/* only to be enabled for debugging... */
-	    if (!strcmp(proxy_host, "stop"))
-		exit(0);
-#endif
+	    if (parent && parent->m_debug_mode)
+	    {
+                // only to be enabled for debugging...
+		if (!strcmp(proxy_host, "stop"))
+		    exit(0);
+	    }
 	    xfree(m_default_target);
 	    m_default_target = xstrdup(proxy_host);
 	}
 	proxy_host = m_default_target;
 	int client_idletime = -1;
 	const char *cql2rpn_fname = 0;
-	const char *authentication = 0;
 	const char *negotiation_charset = 0;
 	const char *negotiation_lang = 0;
 	url[0] = m_default_target;
@@ -442,7 +437,6 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
 				 &m_keepalive_limit_pdu,
 				 &pre_init,
 				 &cql2rpn_fname,
-				 &authentication,
 				 &negotiation_charset,
 				 &negotiation_lang);
 	}
@@ -453,11 +447,12 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
 	}
 	if (cql2rpn_fname)
 	    m_cql2rpn.set_pqf_file(cql2rpn_fname);
-	if (authentication)
-	    set_proxy_authentication(authentication);
 	if (negotiation_charset || negotiation_lang)
+	{
+	    yaz_log(YLOG_LOG, "set_proxy_negotiation...");
 	    set_proxy_negotiation(negotiation_charset,
 		negotiation_lang);
+	}
 	if (!url[0])
 	{
 	    yaz_log(YLOG_LOG, "%sNo default target", m_session_str);
@@ -561,23 +556,9 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
 	}
         Z_InitRequest *initRequest = apdu->u.initRequest;
 
-        if (!initRequest->idAuthentication)
-        {
-            if (m_proxy_authentication)
-            {
-                initRequest->idAuthentication =
-                    (Z_IdAuthentication *)
-                    odr_malloc (odr_encode(),
-                                sizeof(*initRequest->idAuthentication));
-                initRequest->idAuthentication->which =
-                    Z_IdAuthentication_open;
-                initRequest->idAuthentication->u.open =
-                    odr_strdup (odr_encode(), m_proxy_authentication);
-            }
-        }
-	else
+        if (initRequest->idAuthentication)
 	{
-	    // the client use authentication. We set the keepalive PDU
+	    // the client uses authentication. We set the keepalive PDU
 	    // to 0 so we don't cache it in releaseClient
 	    m_keepalive_limit_pdu = 0;
 	}
@@ -844,6 +825,7 @@ void Yaz_Proxy::convert_to_frontend_type(Z_NamePlusRecordList *p)
 			continue;
 		    }
 #endif
+/* HAVE_USEMARCON */
 		    npr->u.databaseRecord =
 			z_ext_record(odr_encode(),
 				     m_frontend_type,
@@ -1850,11 +1832,11 @@ int Yaz_Proxy::handle_authentication(Z_APDU *apdu)
     int ret;
     if (req->idAuthentication == 0)
     {
-	ret = cfg->check_authentication(0, 0, 0);
+	ret = cfg->client_authentication(m_default_target, 0, 0, 0);
     }
     else if (req->idAuthentication->which == Z_IdAuthentication_idPass)
     {
-	ret = cfg->check_authentication(
+	ret = cfg->client_authentication(m_default_target,
 	    req->idAuthentication->u.idPass->userId,
 	    req->idAuthentication->u.idPass->groupId,
 	    req->idAuthentication->u.idPass->password);
@@ -1865,10 +1847,13 @@ int Yaz_Proxy::handle_authentication(Z_APDU *apdu)
 	*user = '\0';
 	*pass = '\0';
 	sscanf(req->idAuthentication->u.open, "%63[^/]/%63s", user, pass);
-	ret = cfg->check_authentication(user, 0, pass);
+	ret = cfg->client_authentication(m_default_target, user, 0, pass);
     }
     else
-	ret = cfg->check_authentication(0, 0, 0);
+	ret = cfg->client_authentication(m_default_target, 0, 0, 0);
+
+    cfg->target_authentication(m_default_target, odr_encode(), req);
+
     return ret;
 }
 

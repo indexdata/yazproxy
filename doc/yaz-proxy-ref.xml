@@ -14,7 +14,6 @@
   <arg choice="opt">-m <replaceable>num</replaceable></arg>
   <arg choice="opt">-v <replaceable>level</replaceable></arg>
   <arg choice="opt">-t <replaceable>target</replaceable></arg>
-  <arg choice="opt">-U <replaceable>auth</replaceable></arg>
   <arg choice="opt">-o <replaceable>level</replaceable></arg>
   <arg choice="opt">-i <replaceable>seconds</replaceable></arg>
   <arg choice="opt">-T <replaceable>seconds</replaceable></arg>
@@ -84,14 +83,6 @@
      Specifies the default backend target to use when a client
      connects that does not explicitly specify a target in its
      <literal>initRequest</literal>.
-    </para></listitem>
-  </varlistentry>
-  <varlistentry><term>-U <replaceable>auth</replaceable></term>
-   <listitem><para>
-     Specifies authentication info to be sent to the backend target.
-     This is useful if you happen to have an internal target that
-     requires authentication, or if the client software does not allow
-     you to set it.
     </para></listitem>
   </varlistentry>
   <varlistentry><term>-o <replaceable>level</replaceable></term>

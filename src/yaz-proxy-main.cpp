@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy-main.cpp,v 1.11 2005-02-11 15:39:55 adam Exp $
+/* $Id: yaz-proxy-main.cpp,v 1.12 2005-02-21 14:27:32 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -76,7 +76,7 @@ int args(Yaz_Proxy *proxy, int argc, char **argv)
     char *prog = argv[0];
     int ret;
 
-    while ((ret = options("o:a:t:v:c:u:i:m:l:T:p:U:n:X",
+    while ((ret = options("o:a:t:v:c:u:i:m:l:T:p:n:X",
 			  argv, argc, &arg)) != -2)
     {
 	int err;
@@ -109,9 +109,6 @@ int args(Yaz_Proxy *proxy, int argc, char **argv)
         case 't':
 	    proxy->set_default_target(arg);
 	    break;
-        case 'U':
-            proxy->set_proxy_authentication(arg);
-            break;
         case 'o':
 	    proxy->option("optimize", arg);
 	    break;
@@ -135,6 +132,7 @@ int args(Yaz_Proxy *proxy, int argc, char **argv)
 	    no_limit_files = atoi(arg);
 	    break;
 	case 'X':
+	    proxy->set_debug_mode(1);
 	    debug = 1;
 	    break;
 	case 'p':

@@ -1,4 +1,4 @@
-/* $Id: mod_sample.cpp,v 1.1 2005-02-11 15:19:08 adam Exp $
+/* $Id: mod_sample.cpp,v 1.2 2005-02-21 14:27:32 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -24,6 +24,14 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 
 #include <yazproxy/module.h>
 
+#if HAVE_XSLT
+#include <libxml/parser.h>
+#include <libxml/tree.h>
+#include <libxml/xinclude.h>
+#include <libxslt/xsltutils.h>
+#include <libxslt/transform.h>
+#endif
+
 void *my_init(void)
 {
     return 0;  // no private data for handler
@@ -34,11 +42,30 @@ void my_destroy(void *p)
     // private data destroy
 }
 
-int my_authenticate(void *p, const char *user, const char *group,
-		    const char *password)
+int my_authenticate(void *user_handle,
+		    const char *target_name,
+		    void *element_ptr,
+		    const char *user, const char *group, const char *password)
 {
-    fprintf(stderr, "my_authenticate: user=%s group=%s\n",
-	    user ? user : "none", group ? group : "none");
+    // see if we have an "args" attribute
+    const char *args = 0;
+#if HAVE_XSLT
+    xmlNodePtr ptr = (xmlNodePtr) element_ptr;
+    struct _xmlAttr *attr;
+    
+    for (attr = ptr->properties; attr; attr = attr->next)
+    {
+	if (!strcmp((const char *) attr->name, "args") &&
+	    attr->children && attr->children->type == XML_TEXT_NODE)
+	    args = (const char *) attr->children->content;
+    }
+#endif
+    // args holds args (or NULL if  none is provided)
+
+    fprintf(stderr, "my_authenticate: target=%s user=%s group=%s args=%s\n",
+	    target_name ? target_name : "none", 
+	    user ? user : "none", group ? group : "none",
+	    args ? args : "none");
     // authentication handler
     if (!user && !group && !password)
 	return YAZPROXY_RET_OK;   // OK if anonymous
@@ -60,4 +87,3 @@ Yaz_ProxyModule_entry yazproxy_module = {
     "Sample Module for YAZ Proxy",// description
     &interface0
 };
-	

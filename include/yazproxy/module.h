@@ -1,4 +1,4 @@
-/* $Id: module.h,v 1.1 2005-02-11 15:19:08 adam Exp $
+/* $Id: module.h,v 1.2 2005-02-21 14:27:31 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -34,10 +34,20 @@ struct Yaz_ProxyModule_entry {
 #define  YAZPROXY_RET_PERM   2 /* Permissiong denied, reject etc. */
 
 struct Yaz_ProxyModule_int0 {
-    void *(*init)(void);
-    void (*destroy)(void *handle);
-    int (*authenticate)(void *handle,
-			const char *user, const char *group, const char *pw);
+    void *(*init)(void);   // Init handler - returns module-specific handle
+
+    void (*destroy)(       // Destroy handler
+	void *handle       // module-specific handle as returned by init
+	);
+    
+    int (*authenticate)(   // Authenticate handler. Returns YAZPROXY_RET_..
+	void *handle,      // module-specific handle as returned by init 
+	const char *name,  // target name (or NULL if default target)
+	void *element_ptr, // xmlnodePtr thing to XML config this
+	const char *user,  // User ID (or NULL if no suppliied User ID)
+	const char *group, // Group ID (or NULL if no supplied Group ID)
+	const char *pw     // Password (or NULL if no supplied password)
+    );
 };
 
 #endif

@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
 <!-- XML Schema for YAZ proxy config file.
-    $Id: yazproxy.xsd,v 1.7 2004-12-03 14:28:18 adam Exp $
+    $Id: yazproxy.xsd,v 1.8 2005-02-21 14:27:31 adam Exp $
 -->
 <xs:schema
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
   xmlns:exp="http://explain.z3950.org/dtd/2.0/"
-  xmlns="http://indexdata.dk/yazproxy/schema/0.8/"
-  targetNamespace="http://indexdata.dk/yazproxy/schema/0.8/"
+  xmlns="http://indexdata.dk/yazproxy/schema/0.9/"
+  targetNamespace="http://indexdata.dk/yazproxy/schema/0.9/"
   >
  <xs:import namespace="http://explain.z3950.org/dtd/2.0/" 
       schemaLocation="zeerex-2.0.xsd"/>
@@ -16,6 +16,7 @@
     <xs:element ref="target" minOccurs="0" maxOccurs="unbounded"/>
     <xs:element ref="max-clients" minOccurs="0"/>
     <xs:element ref="log" minOccurs="0"/>
+    <xs:element ref="module" minOccurs="0"/>
    </xs:sequence>
   </xs:complexType>
  </xs:element>
@@ -33,7 +34,10 @@
      <xs:element ref="preinit" minOccurs="0"/>
      <xs:element ref="exp:explain" minOccurs="0"/>
      <xs:element ref="cql2rpn" minOccurs="0"/>
-     <xs:element ref="authentication" minOccurs="0"/>
+     <xs:element ref="target-authentication" minOccurs="0"/>
+     <xs:element ref="client-authentication" minOccurs="0"/>
+     <xs:element ref="negotiation-charset" minOccurs="0"/>
+     <xs:element ref="negotiation-lang" minOccurs="0"/>
    </xs:sequence>
    <xs:attribute name="default" type="xs:string" use="optional"/>
    <xs:attribute name="name" type="xs:string"/>
@@ -49,7 +53,29 @@
  <xs:element name="retrieve" type="xs:integer"/>
  <xs:element name="preinit" type="xs:integer"/>
  <xs:element name="cql2rpn" type="xs:string"/>
- <xs:element name="authentication" type="xs:string"/>
+ <xs:element name="target-authentication">
+   <xs:complexType>
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute name="type" type="xs:string"/>
+      </xs:extension>
+    </xs:simpleContent>
+   </xs:complexType>
+ </xs:element>
+
+ <xs:element name="client-authentication">
+   <xs:complexType>
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute name="module" type="xs:string"/>
+        <xs:attribute name="args" type="xs:string"/>
+      </xs:extension>
+    </xs:simpleContent>
+   </xs:complexType>
+ </xs:element>
+
+ <xs:element name="negotiation-charset" type="xs:string"/>
+ <xs:element name="negotiation-lang" type="xs:string"/>
 
  <xs:element name="keepalive">
   <xs:complexType>
@@ -100,5 +126,6 @@
 
  <xs:element name="max-clients" type="xs:integer"/>
  <xs:element name="log" type="xs:string"/>
+ <xs:element name="module" type="xs:string"/>
 
 </xs:schema>

@@ -2,7 +2,7 @@
   <serverInfo>
     <host>localhost</host>
     <port>9000</port>
-    <database>gils</database>
+    <database>Default</database>
   </serverInfo>
   <databaseInfo>
     <title>My Database</title>

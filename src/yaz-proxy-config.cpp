@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy-config.cpp,v 1.16 2005-02-20 21:59:08 adam Exp $
+/* $Id: yaz-proxy-config.cpp,v 1.17 2005-02-21 14:27:32 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -31,7 +31,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 
 class Yaz_ProxyModule {
 private:
-    void *m_dl_handle;                 /* dlopen/close handle */
+    void *m_dl_handle;                /* dlopen/close handle */
     Yaz_ProxyModule_entry *m_entry;
     Yaz_ProxyModule *m_next; 
     void *m_user_handle;              /* user handle */
@@ -39,9 +39,19 @@ public:
     Yaz_ProxyModule(void *dl_handle, Yaz_ProxyModule_entry *ent,
 		    Yaz_ProxyModule *next);
     ~Yaz_ProxyModule();
+    
     Yaz_ProxyModule *get_next() { return m_next; };
-    int authenticate(const char *user, const char *group, const char *password);
+    int is_module(const char *name);
+    int authenticate(const char *target_name, void *element_ptr,
+		     const char *user, const char *group, const char *password);
 };
+
+int Yaz_ProxyModule::is_module(const char *type)
+{
+    if (!type || !strcmp(m_entry->module_name, type))
+	return 1;
+    return 0;
+}
 
 Yaz_ProxyModule::Yaz_ProxyModule(void *dl_handle, Yaz_ProxyModule_entry *ent,
 				 Yaz_ProxyModule *next)
@@ -73,7 +83,9 @@ Yaz_ProxyModule::~Yaz_ProxyModule()
 #endif
 }
 
-int Yaz_ProxyModule::authenticate(const char *user, const char *group,
+int Yaz_ProxyModule::authenticate(const char *name,
+				  void *element_ptr,
+				  const char *user, const char *group,
 				  const char *password)
 {
     if (m_entry->int_version == 0)
@@ -83,7 +95,8 @@ int Yaz_ProxyModule::authenticate(const char *user, const char *group,
 	
 	if (!int0->authenticate)
 	    return YAZPROXY_RET_NOT_ME;
-	return (*int0->authenticate)(m_user_handle, user, group, password);
+	return (*int0->authenticate)(m_user_handle, name, element_ptr,
+				     user, group, password);
     }
     return YAZPROXY_RET_NOT_ME;
 }
@@ -108,7 +121,6 @@ class Yaz_ProxyConfigP {
 			    int *target_idletime, int *client_idletime,
 			    int *keepalive_limit_bw, int *keepalive_limit_pdu,
 			    int *pre_init, const char **cql2rpn,
-			    const char **authentication,
 			    const char **negotiation_charset,
 			    const char **negotiation_lang);
     void return_limit(xmlNodePtr ptr,
@@ -160,7 +172,14 @@ Yaz_ProxyConfig::~Yaz_ProxyConfig()
 #if HAVE_XSLT
 void Yaz_ProxyConfigP::unload_modules()
 {
-    yaz_log(YLOG_WARN, "unload_modules not implemented yet");
+    Yaz_ProxyModule *m = m_modules;
+    while (m)
+    {
+	Yaz_ProxyModule *m_next = m->get_next();
+	delete m;
+	m = m_next;
+    }
+    m_modules = 0;
 }
 #endif
 
@@ -308,7 +327,6 @@ void Yaz_ProxyConfigP::return_target_info(xmlNodePtr ptr,
 					  int *keepalive_limit_pdu,
 					  int *pre_init,
 					  const char **cql2rpn,
-					  const char **authentication,
 					  const char **negotiation_charset,
 					  const char **negotiation_lang)
 {
@@ -373,13 +391,6 @@ void Yaz_ProxyConfigP::return_target_info(xmlNodePtr ptr,
 	    const char *t = get_text(ptr);
 	    if (t)
 		*cql2rpn = t;
-	}
-	if (ptr->type == XML_ELEMENT_NODE 
-	    && !strcmp((const char *) ptr->name, "authentication"))
-	{
-	    const char *t = get_text(ptr);
-	    if (t)
-		*authentication = t;
 	}
 	if (ptr->type == XML_ELEMENT_NODE 
 	    && !strcmp((const char *) ptr->name, "negotiation-charset"))
@@ -632,19 +643,108 @@ const char *Yaz_ProxyConfig::check_mime_type(const char *path)
 }
 
 
-int Yaz_ProxyConfig::check_authentication(const char *user,
-					  const char *group,
-					  const char *password)
+void Yaz_ProxyConfig::target_authentication(const char *name,
+					    ODR odr, Z_InitRequest *req)
 {
-    Yaz_ProxyModule *m = m_cp->m_modules;
+#if HAVE_XSLT
+    xmlNodePtr ptr = m_cp->find_target_node(name, 0);
+    if (!ptr)
+	return ;
+    
+    for (ptr = ptr->children; ptr; ptr = ptr->next)
+	if (ptr->type == XML_ELEMENT_NODE &&
+	    !strcmp((const char *) ptr->name, "target-authentication"))
+	{
+	    struct _xmlAttr *attr;
+	    const char *type = "open";
+	    for (attr = ptr->properties; attr; attr = attr->next)
+	    {
+		if (!strcmp((const char *) attr->name, "type") &&
+		    attr->children && attr->children->type == XML_TEXT_NODE)
+		    type = (const char *) attr->children->content;
+	    }
+	    const char *t = m_cp->get_text(ptr);
+	    if (!t || !strcmp(type, "none"))
+		req->idAuthentication = 0;
+	    else if (!strcmp(type, "anonymous"))
+	    {
+		req->idAuthentication =
+		    (Z_IdAuthentication *)
+		    odr_malloc (odr, sizeof(*req->idAuthentication));
+		req->idAuthentication->which =
+		    Z_IdAuthentication_anonymous;
+		req->idAuthentication->u.anonymous = odr_nullval();
+	    }
+	    else if (!strcmp(type, "open"))
+	    {
+		req->idAuthentication =
+		    (Z_IdAuthentication *)
+		    odr_malloc (odr, sizeof(*req->idAuthentication));
+		req->idAuthentication->which =
+		    Z_IdAuthentication_open;
+		req->idAuthentication->u.open = odr_strdup (odr, t);
+	    }
+	    else if (!strcmp(type, "idPass"))
+	    {
+		char user[64], group[64], password[64];
+		*group = '\0';
+		*password = '\0';
+		*user = '\0';
+		sscanf(t, "%63[^:]:%63[^:]:%63s", user, group, password);
+		
+		req->idAuthentication =
+		    (Z_IdAuthentication *)
+		    odr_malloc (odr, sizeof(*req->idAuthentication));
+		req->idAuthentication->which =
+		    Z_IdAuthentication_idPass;
+		req->idAuthentication->u.idPass =
+		    (Z_IdPass*) odr_malloc(odr, sizeof(Z_IdPass));
+		req->idAuthentication->u.idPass->userId =
+		    *user ? odr_strdup(odr, user) : 0;
+		req->idAuthentication->u.idPass->groupId =
+		    *group ? odr_strdup(odr, group) : 0;
+		req->idAuthentication->u.idPass->password =
+		    *password ? odr_strdup(odr, password) : 0;
+	    }
+	}
+#endif
+}
 
+int Yaz_ProxyConfig::client_authentication(const char *name,
+					   const char *user,
+					   const char *group,
+					   const char *password)
+{
     int ret = YAZPROXY_RET_NOT_ME;
-    for (; m; m = m->get_next())
-    {
-	ret = m->authenticate(user, group, password);
-	if (ret != YAZPROXY_RET_NOT_ME)
-	    break;
-    }
+#if HAVE_XSLT
+    xmlNodePtr ptr;
+    ptr = m_cp->find_target_node(name, 0);
+    if (!ptr)
+	return 1;
+    for (ptr = ptr->children; ptr; ptr = ptr->next)
+	if (ptr->type == XML_ELEMENT_NODE &&
+	    !strcmp((const char *) ptr->name, "client-authentication"))
+	{
+	    struct _xmlAttr *attr;
+	    const char *module_name = 0;
+	    for (attr = ptr->properties; attr; attr = attr->next)
+	    {
+		if (!strcmp((const char *) attr->name, "module") &&
+		    attr->children && attr->children->type == XML_TEXT_NODE)
+		    module_name = (const char *) attr->children->content;
+	    }
+	    Yaz_ProxyModule *m = m_cp->m_modules;
+	    for (; m; m = m->get_next())
+	    {
+		if (m->is_module(module_name))
+		{
+		    ret = m->authenticate(name, ptr, user, group, password);
+		    if (ret != YAZPROXY_RET_NOT_ME)
+			break;
+		}
+	    }
+	}
+#endif
     if (ret == YAZPROXY_RET_PERM)
 	return 0;
     return 1;
@@ -948,7 +1048,7 @@ int Yaz_ProxyConfig::get_target_no(int no,
 		    limit_bw, limit_pdu, limit_req,
 		    target_idletime, client_idletime,
 		    keepalive_limit_bw, keepalive_limit_pdu,
-		    pre_init, cql2rpn, authentication,
+		    pre_init, cql2rpn,
 		    negotiation_charset, negotiation_lang);
 		return 1;
 	    }
@@ -1147,7 +1247,6 @@ void Yaz_ProxyConfig::get_target_info(const char *name,
 				      int *keepalive_limit_pdu,
 				      int *pre_init,
 				      const char **cql2rpn,
-				      const char **authentication,
 				      const char **negotiation_charset,
 				      const char **negotiation_lang)
 {
@@ -1185,7 +1284,7 @@ void Yaz_ProxyConfig::get_target_info(const char *name,
 	m_cp->return_target_info(ptr, url, limit_bw, limit_pdu, limit_req,
 				 target_idletime, client_idletime,
 				 keepalive_limit_bw, keepalive_limit_pdu,
-				 pre_init, cql2rpn, authentication,
+				 pre_init, cql2rpn,
 				 negotiation_charset, negotiation_lang);
     }
 #else

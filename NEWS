@@ -1,3 +1,19 @@
+Option -X now makes it possible to stop YAZ proxy by sending
+"stop" as PROXY target (in init). This used to be debug code in a
+#if 0 .. #endif section.
+
+Moved a lot of "private" stuff to proxyp.h so that only Yaz_Proxy
+is publicly defined in include/yazproxy/proxy.h.
+
+Authentication info sent to target modified. Element renamed from
+"authentication" to "target-authentication" to avoid confusion with
+client authentication. It now takes an authentication
+type=open|idPass|anonymous . Value is user:group:password for idPass,
+user/pass for open. Option -U auth is no longer supported.
+
+Update YAZ Proxy config schema yazproxy.xsd to include definitions
+for new elements negotation-charset, negotiation-lang, module, etc. .
+Bump version to 0.9.
 
 Started work on facility for module loading (plugins). Initial
 effort is to be able to authenticate via a module. See mod_sample.cpp.

@@ -1,17 +1,15 @@
 <?xml version="1.0"?>
-<!-- $Id: config.xml,v 1.8 2005-02-11 15:19:07 adam Exp $ -->
-<proxy xmlns="http://indexdata.dk/yazproxy/schema/0.8/"
+<!-- $Id: config.xml,v 1.9 2005-02-21 14:27:31 adam Exp $ -->
+<proxy xmlns="http://indexdata.dk/yazproxy/schema/0.9/"
  xmlns:xi="http://www.w3.org/2001/XInclude"
  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
- xsi:schemaLocation="http://indexdata.dk/yazproxy/schema/0.8/ yazproxy.xsd"
->
+ xsi:schemaLocation="http://indexdata.dk/yazproxy/schema/0.9/ yazproxy.xsd"
+  >
 <!-- Config can be checked with xerces-c++: PParse -n -s config.xml -->
   <target name="localhost" default="1">
-    <negotiation-charset>iso-8859-1</negotiation-charset>
     <url>localhost:9999</url>
     <target-timeout>30</target-timeout>
     <client-timeout>60</client-timeout>
-    <authentication handler="pipe" args="authenticate.pl"/>
     <keepalive>
       <bandwidth>1000000</bandwidth>
       <pdu>1000</pdu>
@@ -31,6 +29,10 @@
     <preinit>0</preinit>
     <xi:include href="explain.xml"/>
     <cql2rpn>pqf.properties</cql2rpn>
+    <target-authentication type="open">my/bad</target-authentication>
+    <client-authentication module="sample" args="authenticate.pl"/>
+    <negotiation-charset>iso-8859-1</negotiation-charset>
+    <negotiation-lang>US</negotiation-lang>
   </target>
   <target name="*">
     <target-timeout>60</target-timeout>
