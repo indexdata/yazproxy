@@ -159,7 +159,8 @@
    <para>
     In order to offer SRW/SRU service we must be specify sufficient
     information to allow the proxy to convert from SRW/SRU to Z39.50.
-    This involves CQL to Type-1 (also called RPN/PQF), since most
+    This involves translating CQL queries
+    to Type-1 (also called RPN/PQF), since most
     Z39.50 servers do not support CQL. The conversion
     is specified by the <literal>cql2rpn</literal> element.
    </para>
@@ -185,7 +186,7 @@
    </para>
     <screen><![CDATA[
 <?xml version="1.0"?>
-<!-- $Id: using.xml,v 1.4 2004-04-21 08:16:42 adam Exp $ -->
+<!-- $Id: using.xml,v 1.5 2004-07-06 10:34:11 mike Exp $ -->
 <proxy xmlns="http://indexdata.dk/yazproxy/schema/0.8/">
   <target name="bagel">
     <url>indexdata.dk</url>
@@ -214,12 +215,13 @@
 ]]>
     </screen>
    <para>
-    The conversion from CQL to RPN is specified by the
+    The conversion from CQL to RPN is specified by a file whose name,
+    relative to the working directory, is given in the
     <link linkend="proxy-config-cql2rpn">cql2rpn</link> element.
-    <filename>pqf.properties</filename>.
-    A complete BATH/DC conversion file
-    <filename>pqf.properties</filename> is
-    part of yazproxy in sub directory <filename>etc</filename>.
+    A complete Bath/DC conversion file,
+    <filename>pqf.properties</filename> is provided as part of the
+    yazproxy distribution in the <filename>etc</filename>
+    subdirectory.
    </para>
    <para>
     Explain information is embedded in the configuration file. 
