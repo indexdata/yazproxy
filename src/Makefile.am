@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.4 2004-12-03 15:50:53 adam Exp $
+## $Id: Makefile.am,v 1.5 2005-02-11 15:19:08 adam Exp $
 
 AM_CXXFLAGS = $(YAZPPINC) -I$(srcdir)/../include $(XSLT_CFLAGS) $(USEMARCONINC)
 
@@ -18,3 +18,9 @@ cdetails_SOURCES=cdetails.cpp
 
 LDADD=libyazproxy.la $(YAZPPLALIB) $(XSLT_LIBS) $(USEMARCONLALIB)
 libyazproxy_la_LIBADD = $(XSLT_LIBS)
+
+# Modules
+mod_proxy_sample_la_SOURCES = mod_sample.cpp
+mod_proxy_sample_la_LDFLAGS = -rpath $(pkglibdir) -module -avoid-version
+
+pkglib_LTLIBRARIES = mod_proxy_sample.la

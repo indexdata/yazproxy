@@ -1,5 +1,5 @@
-/* $Id: yaz-proxy-config.cpp,v 1.14 2005-02-10 08:09:42 oleg Exp $
-   Copyright (c) 1998-2004, Index Data.
+/* $Id: yaz-proxy-config.cpp,v 1.15 2005-02-11 15:19:08 adam Exp $
+   Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
 
@@ -20,18 +20,83 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
  */
 
 #include <ctype.h>
+
+#if HAVE_DLFCN_H
+#include <dlfcn.h>
+#endif
+
 #include <yaz/log.h>
 #include "proxyp.h"
+
+
+class Yaz_ProxyModule {
+private:
+    void *m_dl_handle;                 /* dlopen/close handle */
+    Yaz_ProxyModule_entry *m_entry;
+    Yaz_ProxyModule *m_next; 
+    void *m_user_handle;              /* user handle */
+public:
+    Yaz_ProxyModule(void *dl_handle, Yaz_ProxyModule_entry *ent,
+		    Yaz_ProxyModule *next);
+    ~Yaz_ProxyModule();
+    Yaz_ProxyModule *get_next() { return m_next; };
+    int authenticate(const char *user, const char *group, const char *password);
+};
+
+Yaz_ProxyModule::Yaz_ProxyModule(void *dl_handle, Yaz_ProxyModule_entry *ent,
+				 Yaz_ProxyModule *next)
+{
+    m_dl_handle = dl_handle;
+    m_entry = ent;
+    m_next = next;
+    m_user_handle = 0;
+    if (m_entry->int_version == 0)
+    {
+	struct Yaz_ProxyModule_int0 *int0 =
+	    reinterpret_cast<Yaz_ProxyModule_int0 *>(m_entry->fl);
+	if (int0->init)
+	    m_user_handle = (*int0->init)();
+    }
+}
+
+Yaz_ProxyModule::~Yaz_ProxyModule()
+{
+    if (m_entry->int_version == 0)
+    {
+	struct Yaz_ProxyModule_int0 *int0 =
+	    reinterpret_cast<Yaz_ProxyModule_int0 *>(m_entry->fl);
+	if (int0->destroy)
+	    (*int0->destroy)(m_user_handle);
+    }
+    dlclose(m_dl_handle);
+}
+
+int Yaz_ProxyModule::authenticate(const char *user, const char *group,
+				  const char *password)
+{
+    if (m_entry->int_version == 0)
+    {
+	struct Yaz_ProxyModule_int0 *int0 =
+	    reinterpret_cast<Yaz_ProxyModule_int0 *>(m_entry->fl);
+	
+	if (!int0->authenticate)
+	    return YAZPROXY_RET_NOT_ME;
+	return (*int0->authenticate)(m_user_handle, user, group, password);
+    }
+    return YAZPROXY_RET_NOT_ME;
+}
 
 class Yaz_ProxyConfigP {
     friend class Yaz_ProxyConfig;
 
-    int m_copy;
+    Yaz_ProxyModule *m_modules;
 
     int mycmp(const char *hay, const char *item, size_t len);
     int match_list(int v, const char *m);
     int atoi_l(const char **cp);
 #if HAVE_XSLT
+    void load_modules(void);
+    void unload_modules(void);
     int check_schema(xmlNodePtr ptr, Z_RecordComposition *comp,
 		     const char *schema_identifier);
     xmlDocPtr m_docPtr;
@@ -59,26 +124,87 @@ class Yaz_ProxyConfigP {
     int get_explain_ptr(const char *host, const char *db,
 			xmlNodePtr *ptr_target,	xmlNodePtr *ptr_explain);
 #endif
+    Yaz_ProxyConfigP();
+    ~Yaz_ProxyConfigP();
 };
+
+Yaz_ProxyConfigP::Yaz_ProxyConfigP()
+{
+#if HAVE_XSLT
+    m_docPtr = 0;
+    m_proxyPtr = 0;
+#endif
+    m_modules = 0;
+}
+
+Yaz_ProxyConfigP::~Yaz_ProxyConfigP()
+{
+#if HAVE_XSLT
+    if (m_docPtr)
+	xmlFreeDoc(m_docPtr);
+#endif
+}
 
 Yaz_ProxyConfig::Yaz_ProxyConfig()
 {
     m_cp = new Yaz_ProxyConfigP;
-    m_cp->m_copy = 0;
-#if HAVE_XSLT
-    m_cp->m_docPtr = 0;
-    m_cp->m_proxyPtr = 0;
-#endif
 }
 
 Yaz_ProxyConfig::~Yaz_ProxyConfig()
 {
-#if HAVE_XSLT
-    if (!m_cp->m_copy && m_cp->m_docPtr)
-	xmlFreeDoc(m_cp->m_docPtr);
-#endif
     delete m_cp;
 }
+
+#if HAVE_XSLT
+void Yaz_ProxyConfigP::unload_modules()
+{
+    yaz_log(YLOG_WARN, "unload_modules not implemented yet");
+}
+#endif
+
+#if HAVE_XSLT
+void Yaz_ProxyConfigP::load_modules()
+{
+    if (!m_proxyPtr)
+	return;
+    xmlNodePtr ptr;
+    for (ptr = m_proxyPtr->children; ptr; ptr = ptr->next)
+    {
+	const char *fname;
+	if (ptr->type == XML_ELEMENT_NODE 
+	    && !strcmp((const char *) ptr->name, "module")
+	    && (fname = get_text(ptr)))
+	{
+#if HAVE_DLFCN_H
+	    void *dl_handle = dlopen(fname, RTLD_NOW|RTLD_GLOBAL);
+	    if (dl_handle)
+	    {
+		Yaz_ProxyModule_entry *fl_ptr = 0;
+		fl_ptr = reinterpret_cast<Yaz_ProxyModule_entry *> 
+		    (dlsym(dl_handle, "yazproxy_module"));
+		if (fl_ptr)
+		{
+		    Yaz_ProxyModule *m = new Yaz_ProxyModule(dl_handle,
+							     fl_ptr,
+							     m_modules);
+		    m_modules = m;
+		    yaz_log(YLOG_LOG, "Loading %s OK", fname);
+		}
+		else
+		{
+		    yaz_log(YLOG_WARN, "Loading %s FAIL: missing yazproxy_module symbol", fname);
+		    dlclose(dl_handle);
+		}
+	    }
+	    else
+		yaz_log(YLOG_WARN, "Loading %s FAIL: dlopen failed", fname);
+#else
+	    yaz_log(YLOG_WARN, "Loading &s FAIL: dl unsupported", fname);
+#endif
+	}
+    }
+}
+#endif
 
 int Yaz_ProxyConfig::read_xml(const char *fname)
 {
@@ -108,6 +234,9 @@ int Yaz_ProxyConfig::read_xml(const char *fname)
     if (m_cp->m_docPtr)
 	xmlFreeDoc(m_cp->m_docPtr);
     m_cp->m_docPtr = ndoc;
+
+    m_cp->unload_modules();
+    m_cp->load_modules();
     return 0;
 #else
     return -2;
@@ -500,6 +629,24 @@ const char *Yaz_ProxyConfig::check_mime_type(const char *path)
     return "application/octet-stream";
 }
 
+
+int Yaz_ProxyConfig::check_authentication(const char *user,
+					  const char *group,
+					  const char *password)
+{
+    Yaz_ProxyModule *m = m_cp->m_modules;
+
+    int ret = YAZPROXY_RET_NOT_ME;
+    for (; m; m = m->get_next())
+    {
+	ret = m->authenticate(user, group, password);
+	if (ret != YAZPROXY_RET_NOT_ME)
+	    break;
+    }
+    if (ret == YAZPROXY_RET_PERM)
+	return 0;
+    return 1;
+}
 
 int Yaz_ProxyConfig::check_syntax(ODR odr, const char *name,
 				  Odr_oid *syntax, Z_RecordComposition *comp,

@@ -1,2 +1,2 @@
 
-pkginclude_HEADERS = proxy.h bw.h
+pkginclude_HEADERS = proxy.h bw.h module.h

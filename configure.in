@@ -17,6 +17,7 @@ USEMARCON_INIT
 
 AC_CHECK_FUNCS(setrlimit getrlimit gettimeofday)
 AC_CHECK_HEADERS(pwd.h sys/resource.h sys/stat.h sys/time.h sys/types.h sys/wait.h unistd.h)
+AC_CHECK_LIB(dl,dlopen)
 dnl
 dnl ----- libXSLT
 AC_SUBST(XSLT_LIBS)

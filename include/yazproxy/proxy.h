@@ -1,5 +1,5 @@
-/* $Id: proxy.h,v 1.11 2005-02-10 08:09:42 oleg Exp $
-   Copyright (c) 1998-2004, Index Data.
+/* $Id: proxy.h,v 1.12 2005-02-11 15:19:08 adam Exp $
+   Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
 
@@ -84,8 +84,10 @@ public:
 		     Odr_oid *syntax, Z_RecordComposition *comp,
 		     char **addinfo, char **stylesheet, char **schema,
 		     char **backend_type, char **backend_charset,
-		     char **usemarcon_ini_stage1, char **usemarcon_ini_stage2
-	);
+		     char **usemarcon_ini_stage1, char **usemarcon_ini_stage2);
+
+    int check_authentication(const char *user, const char *group,
+			     const char *password);
     char *get_explain_doc(ODR odr, const char *name, const char *db,
 			  int *len);
     const char *get_explain_name(const char *db, const char **backend_db);
@@ -209,6 +211,7 @@ class YAZ_EXPORT Yaz_Proxy : public Yaz_Z_Assoc {
     Z_GDU *m_bw_hold_PDU;
     int m_max_record_retrieve;
     void handle_max_record_retrieve(Z_APDU *apdu);
+    int handle_authentication(Z_APDU *apdu);
     void display_diagrecs(Z_DiagRec **pp, int num);
     Z_Records *create_nonSurrogateDiagnostics(ODR o, int error,
 					      const char *addinfo);

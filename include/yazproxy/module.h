@@ -1,4 +1,4 @@
-/* $Id: proxyp.h,v 1.2 2005-02-11 15:19:08 adam Exp $
+/* $Id: module.h,v 1.1 2005-02-11 15:19:08 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -19,33 +19,25 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 02111-1307, USA.
  */
 
-#if HAVE_XSLT
-#include <libxml/parser.h>
-#include <libxml/tree.h>
-#include <libxml/xinclude.h>
-#include <libxslt/xsltutils.h>
-#include <libxslt/transform.h>
-#endif
+#ifndef YAZ_PROXY_MODULE_H
+#define YAZ_PROXY_MODULE_H_INCLUDED
 
-#if HAVE_USEMARCON
-#include <objectlist.h>
-#endif
-
-#include <yazproxy/proxy.h>
-#include <yazproxy/module.h>
-
-class Yaz_usemarcon {
- public:
-    Yaz_usemarcon();
-    ~Yaz_usemarcon();
-
-    int convert(const char *stage1, const char *stage2,
-		const char *input, int input_len,
-		char **output, int *output_len);
-#if HAVE_USEMARCON
-    CDetails *m_stage1;
-    CDetails *m_stage2;
-#else
-    int dummy;
-#endif
+struct Yaz_ProxyModule_entry {
+    int int_version;
+    char *module_name;
+    char *module_description;
+    void *fl;
 };
+
+#define  YAZPROXY_RET_NOT_ME 0 /* Did not catch it. pass to other handler */
+#define  YAZPROXY_RET_OK     1 /* OK, grabbed */
+#define  YAZPROXY_RET_PERM   2 /* Permissiong denied, reject etc. */
+
+struct Yaz_ProxyModule_int0 {
+    void *(*init)(void);
+    void (*destroy)(void *handle);
+    int (*authenticate)(void *handle,
+			const char *user, const char *group, const char *pw);
+};
+
+#endif

@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- $Id: config.xml,v 1.7 2004-11-09 14:24:22 adam Exp $ -->
+<!-- $Id: config.xml,v 1.8 2005-02-11 15:19:07 adam Exp $ -->
 <proxy xmlns="http://indexdata.dk/yazproxy/schema/0.8/"
  xmlns:xi="http://www.w3.org/2001/XInclude"
  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -7,9 +7,11 @@
 >
 <!-- Config can be checked with xerces-c++: PParse -n -s config.xml -->
   <target name="localhost" default="1">
+    <negotiation-charset>iso-8859-1</negotiation-charset>
     <url>localhost:9999</url>
     <target-timeout>30</target-timeout>
     <client-timeout>60</client-timeout>
+    <authentication handler="pipe" args="authenticate.pl"/>
     <keepalive>
       <bandwidth>1000000</bandwidth>
       <pdu>1000</pdu>
@@ -29,7 +31,6 @@
     <preinit>0</preinit>
     <xi:include href="explain.xml"/>
     <cql2rpn>pqf.properties</cql2rpn>
-    <authentication>adam/x</authentication>
   </target>
   <target name="*">
     <target-timeout>60</target-timeout>
@@ -38,4 +39,5 @@
   </target>
   <max-clients>50</max-clients>
   <log>client-requests server-requests</log>
+  <module>../src/.libs/mod_proxy_sample.so</module>
 </proxy>

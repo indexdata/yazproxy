@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.21 2005-02-10 19:17:44 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.22 2005-02-11 15:19:08 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -249,6 +249,7 @@ void Yaz_Proxy::set_proxy_authentication (const char *auth)
     if (auth)
 	m_proxy_authentication = (char *) xstrdup (auth);
 }
+
 void Yaz_Proxy::set_proxy_negotiation (const char *charset, const char *lang)
 {
     yaz_log(YLOG_LOG, "%sSet the proxy negotiation: charset to '%s', "
@@ -262,6 +263,7 @@ void Yaz_Proxy::set_proxy_negotiation (const char *charset, const char *lang)
     if (lang)
 	m_proxy_negotiation_lang = (char *) xstrdup (lang);
 }
+
 Yaz_ProxyConfig *Yaz_Proxy::check_reconfigure()
 {
     if (m_parent)
@@ -1835,6 +1837,41 @@ Z_APDU *Yaz_Proxy::handle_query_validation(Z_APDU *apdu)
     return apdu;
 }
 
+int Yaz_Proxy::handle_authentication(Z_APDU *apdu)
+{
+    if (apdu->which != Z_APDU_initRequest)
+	return 1;  // pass if no init request
+    Z_InitRequest *req = apdu->u.initRequest;
+
+    Yaz_ProxyConfig *cfg = check_reconfigure();
+    if (!cfg)
+	return 1;  // pass if no config
+
+    int ret;
+    if (req->idAuthentication == 0)
+    {
+	ret = cfg->check_authentication(0, 0, 0);
+    }
+    else if (req->idAuthentication->which == Z_IdAuthentication_idPass)
+    {
+	ret = cfg->check_authentication(
+	    req->idAuthentication->u.idPass->userId,
+	    req->idAuthentication->u.idPass->groupId,
+	    req->idAuthentication->u.idPass->password);
+    }
+    else if (req->idAuthentication->which == Z_IdAuthentication_open)
+    {
+	char user[64], pass[64];
+	*user = '\0';
+	*pass = '\0';
+	sscanf(req->idAuthentication->u.open, "%63[^/]/%63s", user, pass);
+	ret = cfg->check_authentication(user, 0, pass);
+    }
+    else
+	ret = cfg->check_authentication(0, 0, 0);
+    return ret;
+}
+
 Z_APDU *Yaz_Proxy::handle_syntax_validation(Z_APDU *apdu)
 {
     m_marcxml_flag = 0;
@@ -2562,6 +2599,17 @@ void Yaz_Proxy::handle_incoming_Z_PDU(Z_APDU *apdu)
 	}
 	m_client->m_init_flag = 1;
     }
+    
+    if (!handle_authentication(apdu))
+    {
+	Z_APDU *apdu_reject = zget_APDU(odr_encode(), Z_APDU_initResponse);
+	*apdu_reject->u.initResponse->result = 0;
+	send_to_client(apdu_reject);
+
+	shutdown();
+	return;
+    }
+
     handle_max_record_retrieve(apdu);
 
     if (apdu)
