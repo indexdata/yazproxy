@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.10 2004-10-23 23:12:24 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.11 2004-10-28 22:29:43 adam Exp $
    Copyright (c) 1998-2004, Index Data.
 
 This file is part of the yaz-proxy.
@@ -2254,9 +2254,9 @@ void Yaz_Proxy::handle_incoming_Z_PDU(Z_APDU *apdu)
 	return;
     }
 
-    // delete other info part from PDU before sending to target
+    // delete other info construct completely if 0 elements
     get_otherInfoAPDU(apdu, &oi);
-    if (oi)
+    if (*oi && (*oi)->num_elements == 0)
         *oi = 0;
 
     if (apdu->which == Z_APDU_presentRequest &&
