@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy-main.cpp,v 1.5 2004-10-23 23:15:48 adam Exp $
+/* $Id: yaz-proxy-main.cpp,v 1.6 2004-11-30 21:10:45 adam Exp $
    Copyright (c) 1998-2004, Index Data.
 
 This file is part of the yaz-proxy.
@@ -34,7 +34,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include <sys/resource.h>
 #endif
 
-#include <yaz/log.h>
+#include <yaz/ylog.h>
 #include <yaz/options.h>
 
 #include <yaz++/socket-manager.h>
@@ -146,7 +146,7 @@ int args(Yaz_Proxy *proxy, int argc, char **argv)
     {
 	if (proxy->server(addr))
 	{
-	    yaz_log(LOG_FATAL|LOG_ERRNO, "listen %s", addr);
+	    yaz_log(YLOG_FATAL|YLOG_ERRNO, "listen %s", addr);
 	    exit(1);
 	}
     }
@@ -182,7 +182,7 @@ static void proxy_xml_error_handler(void *ctx, const char *fmt, ...)
 #else
     vsnprintf(buf, sizeof(buf), fmt, ap);
 #endif
-    yaz_log(LOG_WARN, "%s: %s", (char*) ctx, buf);
+    yaz_log(YLOG_WARN, "%s: %s", (char*) ctx, buf);
 
     va_end (ap);
 }
@@ -201,7 +201,7 @@ static void child_run(Yaz_SocketManager *m, int run)
 #endif
 #ifdef WIN32
 #else
-    yaz_log(LOG_LOG, "0 proxy run=%d pid=%ld", run, (long) getpid());
+    yaz_log(YLOG_LOG, "0 proxy run=%d pid=%ld", run, (long) getpid());
 #endif
     if (no_limit_files)
     {
@@ -210,12 +210,12 @@ static void child_run(Yaz_SocketManager *m, int run)
 	limit_data.rlim_cur = no_limit_files;
 	limit_data.rlim_max = no_limit_files;
 	
-	yaz_log(LOG_LOG, "0 setrlimit NOFILE cur=%ld max=%ld",
+	yaz_log(YLOG_LOG, "0 setrlimit NOFILE cur=%ld max=%ld",
 		(long) limit_data.rlim_cur, (long) limit_data.rlim_max);
 	if (setrlimit(RLIMIT_NOFILE, &limit_data))
-	    yaz_log(LOG_ERRNO|LOG_WARN, "setrlimit");
+	    yaz_log(YLOG_ERRNO|YLOG_WARN, "setrlimit");
 #else
-	yaz_log(LOG_WARN, "setrlimit unavablable. Option -n ignored");
+	yaz_log(YLOG_WARN, "setrlimit unavablable. Option -n ignored");
 #endif
     }
 #ifdef WIN32
@@ -225,7 +225,7 @@ static void child_run(Yaz_SocketManager *m, int run)
 	FILE *f = fopen(pid_fname, "w");
 	if (!f)
 	{
-	    yaz_log(LOG_ERRNO|LOG_FATAL, "Couldn't create %s", pid_fname);
+	    yaz_log(YLOG_ERRNO|YLOG_FATAL, "Couldn't create %s", pid_fname);
 	    exit(0);
 	}
 	fprintf(f, "%ld", (long) getpid());
@@ -238,7 +238,7 @@ static void child_run(Yaz_SocketManager *m, int run)
 
 	if (!(pw = getpwnam(uid)))
 	{
-	    yaz_log(LOG_FATAL, "%s: Unknown user", uid);
+	    yaz_log(YLOG_FATAL, "%s: Unknown user", uid);
 	    exit(3);
 	}
 	if (log_file)
@@ -248,7 +248,7 @@ static void child_run(Yaz_SocketManager *m, int run)
 	}
 	if (setuid(pw->pw_uid) < 0)
 	{
-	    yaz_log(LOG_FATAL|LOG_ERRNO, "setuid");
+	    yaz_log(YLOG_FATAL|YLOG_ERRNO, "setuid");
 	    exit(4);
 	}
 	xfree(uid);
@@ -257,7 +257,7 @@ static void child_run(Yaz_SocketManager *m, int run)
 #if HAVE_GETRLIMIT
     struct rlimit limit_data;
     getrlimit(RLIMIT_NOFILE, &limit_data);
-    yaz_log(LOG_LOG, "0 getrlimit NOFILE cur=%ld max=%ld",
+    yaz_log(YLOG_LOG, "0 getrlimit NOFILE cur=%ld max=%ld",
 	    (long) limit_data.rlim_cur, (long) limit_data.rlim_max);
 #endif
     
@@ -296,7 +296,7 @@ int main(int argc, char **argv)
 	pid_t p = fork();
 	if (p == (pid_t) -1)
 	{
-	    yaz_log(LOG_FATAL|LOG_ERRNO, "fork");
+	    yaz_log(YLOG_FATAL|YLOG_ERRNO, "fork");
 	    exit(1);
 	}
 	else if (p == 0)
@@ -311,35 +311,35 @@ int main(int argc, char **argv)
 
 	if (p1 != p)
 	{
-	    yaz_log(LOG_FATAL, "p1=%d != p=%d", p1, p);
+	    yaz_log(YLOG_FATAL, "p1=%d != p=%d", p1, p);
 	    exit(1);
 	}
 	if (WIFSIGNALED(status))
 	{
 	    switch(WTERMSIG(status)) {
 	    case SIGILL:
-		yaz_log(LOG_WARN, "Received SIGILL from child %ld", (long) p);
+		yaz_log(YLOG_WARN, "Received SIGILL from child %ld", (long) p);
 		cont = 1;
 		break;
 	    case SIGABRT:
-		yaz_log(LOG_WARN, "Received SIGABRT from child %ld", (long) p);
+		yaz_log(YLOG_WARN, "Received SIGABRT from child %ld", (long) p);
 		cont = 1;
 		break ;
 	    case SIGSEGV:
-		yaz_log(LOG_WARN, "Received SIGSEGV from child %ld", (long) p);
+		yaz_log(YLOG_WARN, "Received SIGSEGV from child %ld", (long) p);
 		cont = 1;
 		break;
 	    case SIGBUS:	
-		yaz_log(LOG_WARN, "Received SIGBUS from child %ld", (long) p);
+		yaz_log(YLOG_WARN, "Received SIGBUS from child %ld", (long) p);
 		cont = 1;
 		break;
 	    case SIGTERM:
-		yaz_log(LOG_LOG, "Received SIGTERM from child %ld",
+		yaz_log(YLOG_LOG, "Received SIGTERM from child %ld",
 			(long) p);
 		cont = 0;
 		break;
 	    default:
-		yaz_log(LOG_WARN, "Received SIG %d from child %ld",
+		yaz_log(YLOG_WARN, "Received SIG %d from child %ld",
 			WTERMSIG(status), (long) p);
 		cont = 0;
 	    }
@@ -348,7 +348,7 @@ int main(int argc, char **argv)
 	    cont = 0;
 	else
 	{
-	    yaz_log(LOG_LOG, "Exit %d from child %ld", status, (long) p);
+	    yaz_log(YLOG_LOG, "Exit %d from child %ld", status, (long) p);
 	    cont = 1;
 	}
 	if (cont)
