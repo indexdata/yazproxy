@@ -1,4 +1,3 @@
-## $Id: yazpp.m4,v 1.3 2004-04-22 07:52:51 adam Exp $
 AC_DEFUN([YAZPP_INIT],
 [
         AC_SUBST(YAZPPLIB)
@@ -16,7 +15,7 @@ AC_DEFUN([YAZPP_INIT],
                 else
                         yazppsrcdir=$srcdir
                 fi
-                for i in ${yazppsrcdir}/../yaz++-* ${yazppsrcdir}/../yaz++; do
+                for i in ${yazppsrcdir}/../../yaz++ ${yazppsrcdir}/../yaz++-* ${yazppsrcdir}/../yaz++; do
                         if test -d $i; then
                                 if test -r $i/yaz++-config; then
                                         yazppconfig=$i/yaz++-config
