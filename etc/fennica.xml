@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- $Id: fennica.xml,v 1.3 2004-08-13 13:53:18 adam Exp $ -->
+<!-- $Id: fennica.xml,v 1.4 2004-08-13 13:54:51 adam Exp $ -->
 <proxy xmlns="http://indexdata.dk/yazproxy/schema/0.8/"
  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
  xsi:schemaLocation="http://indexdata.dk/yazproxy/schema/0.8/ yazproxy.xsd"
@@ -104,9 +104,9 @@
       </serverInfo>
       
       <databaseInfo>
-	<title>LoC gateway</title>
+	<title>FENNICA</title>
 	<description lang="en" primary="true">
-	  SRW/SRU/Z39.50 Gateway to FENNICA (The OPAC of the Helsinki University Libraries)
+	  SRW/SRU/Z39.50 Gateway to FENNICA (the Finnish National Bibliography)
 	</description>
       </databaseInfo>
       
@@ -217,7 +217,7 @@ To get USMARC, CanMarc must be sent. To get FINMARC, USMARC must be sent.
 Solution: This is fixed by the 'backend' attribute for 'syntax' sections
 in the proxy config.
 
-1.2 Attribute 1=12 seems to work - unlike the Voyager at LoC.
+1.2 Attribute 1=12 seems to work - unlike the Voyager target at LoC.
 
 Solution: ensure that yazproxy accepts this attribute now that it seems
 to work.
