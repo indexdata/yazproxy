@@ -1,12 +1,12 @@
 #!/bin/sh
-# $Id: buildconf.sh,v 1.2 2004-04-11 14:25:50 adam Exp $
+# $Id: buildconf.sh,v 1.3 2004-08-16 12:38:22 adam Exp $
 set -x
 dir=`aclocal --print-ac-dir`
-if [ -f $dir/yazpp.m4 ]; then
-	aclocal
-else
+#if [ -f $dir/yazpp.m4 ]; then
+#	aclocal
+#else
 	aclocal -I . 
-fi
+#fi
 libtoolize --force 
 automake -a 
 automake -a 
