@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.3 2004-04-11 14:38:53 adam Exp $
+## $Id: Makefile.am,v 1.4 2004-04-11 14:58:02 adam Exp $
 docdir=$(datadir)/doc/@PACKAGE@
 
 SUPPORTFILES = \
@@ -34,7 +34,7 @@ HTMLFILES = \
  record-cache.html \
  record-validation.html \
  windows.html \
- yaz-proxy.html \
+ yazproxy-ref.html \
  yazproxy.html
 
 doc_DATA = $(HTMLFILES) yazproxy.pdf id.png yaz.css
