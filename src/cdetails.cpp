@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <yaz/nmem.h>
 
 #if HAVE_USEMARCON
 #include <objectlist.h>
