@@ -1,4 +1,4 @@
-## $Id: yazpp.m4,v 1.1 2004-04-11 11:36:46 adam Exp $
+## $Id: yazpp.m4,v 1.2 2004-04-11 14:34:16 adam Exp $
 AC_DEFUN([YAZPP_INIT],
 [
         AC_SUBST(YAZPPLIB)
@@ -24,7 +24,7 @@ AC_DEFUN([YAZPP_INIT],
                         fi
                 done
                 if test "x$yazppconfig" = "xNONE"; then
-                        AC_PATH_PROG(yazppconfig, yaz-config, NONE)
+                        AC_PATH_PROG(yazppconfig, yaz++-config, NONE)
                 fi
         fi
         AC_MSG_CHECKING(for YAZ++)
