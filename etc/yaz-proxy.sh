@@ -1,20 +1,20 @@
 #!/bin/sh
-# $Id: yaz-proxy.sh,v 1.1 2004-04-11 11:58:34 adam Exp $
+# $Id: yaz-proxy.sh,v 1.2 2004-04-11 14:45:13 adam Exp $
 # YAZ proxy start/stop init.d script.
 #
 PATH=/usr/local/bin:/bin:/usr/bin
 export PATH
 
 # Proxy CWD is here. Should be writable by it.
-DIR=/var/yaz-proxy
+DIR=/var/yazproxy
 # Proxy Path 
-DAEMON=/usr/local/bin/yaz-proxy
+DAEMON=/usr/local/bin/yazproxy
 
 # Proxy PIDFILE. Must be writable by it.
-PIDFILE="/var/run/yaz-proxy.pid"
+PIDFILE="/var/run/yazproxy.pid"
 
 # Log file
-LOGFILE=/var/log/yaz-proxy.log
+LOGFILE=/var/log/yazproxy.log
 
 # Port
 PORT=9000
@@ -33,7 +33,7 @@ fi
 #ulimit -n 1050
 
 # Name, Description (not essential)
-NAME=yaz-proxy
+NAME=yazproxy
 DESC="YAZ proxy"
 
 test -d $DIR || exit 0
