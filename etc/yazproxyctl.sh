@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: yazproxyctl.sh,v 1.1 2004-04-23 16:10:24 adam Exp $
+# $Id: yazproxyctl.sh,v 1.2 2004-09-15 20:31:25 adam Exp $
 # YAZ proxy start/stop init.d script.
 #
 PATH=/usr/local/bin:/bin:/usr/bin
@@ -50,7 +50,7 @@ case "$1" in
 	;;
   stop)
 	printf "%s" "Stopping $DESC: "
-
+	cd $DIR
 	if test -f $PIDFILE; then
 		kill `cat $PIDFILE`
 		rm -f $PIDFILE
@@ -60,18 +60,23 @@ case "$1" in
 	fi
 	;;
   reload)
+	printf "%s" "Reloading $DESC: "
+	cd $DIR
 	if test -f $PIDFILE; then
 		kill -HUP `cat $PIDFILE`
+		echo "$NAME."
+	else
+		echo "No PID $PIDFILE"
 	fi
-  ;;
+  	;;
   restart|force-reload)
 	printf "%s" "Restarting $DESC: "
+	cd $DIR
 	if test -f $PIDFILE; then
 		kill `cat $PIDFILE`
 		rm -f $PIDFILE
 	fi
 	sleep 1
-	cd $DIR
 	$DAEMON -l $LOGFILE -p $PIDFILE $ARGS @:$PORT &
 	echo "$NAME."
 	;;
