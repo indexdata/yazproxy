@@ -1,14 +1,14 @@
 <refmeta>
- <refentrytitle>yaz-proxy</refentrytitle>
+ <refentrytitle>yazproxy</refentrytitle>
  <manvolnum>8</manvolnum>
 </refmeta>
 <refnamediv>
- <refname>yaz-proxy</refname>
+ <refname>yazproxy</refname>
  <refpurpose>The YAZ toolkit's transparent Z39.50 proxy</refpurpose>
 </refnamediv>
 <refsynopsisdiv>
  <cmdsynopsis>
-  <command>yaz-proxy</command>
+  <command>yazproxy</command>
   <arg choice="opt">-a <replaceable>filename</replaceable></arg>
   <arg choice="opt">-l <replaceable>filename</replaceable></arg>
   <arg choice="opt">-m <replaceable>num</replaceable></arg>
@@ -27,7 +27,7 @@
    
 <refsect1><title>DESCRIPTION</title>
  <para>
-  <command>yaz-proxy</command> is a Z39.50 optimizing proxy daemon.
+  <command>yazproxy</command> is a Z39.50 optimizing proxy daemon.
   The listening port must be specified on the command-line. 
   <command>inetd</command> operation is not supported.
   The <replaceable>host</replaceable>:<replaceable>port</replaceable>
@@ -36,13 +36,13 @@
   to listen for connections coming from any address.
  </para>
  <para>
-  <command>yaz-proxy</command> can be configured using command-line
+  <command>yazproxy</command> can be configured using command-line
   options or a configuration file.
   Configuration file options override values specified
   on the command-line.
  </para>
  <para>
-  <command>yaz-proxy</command> rereads its configuration file and
+  <command>yazproxy</command> rereads its configuration file and
   reopens log files when it receives the hangup signal, SIGHUP.
  </para>
 </refsect1>
@@ -117,14 +117,14 @@
   </varlistentry>
   <varlistentry><term>-p <replaceable>pidfile</replaceable></term>
    <listitem><para>
-     When specified, yaz-proxy will create <replaceable>pidfile</replaceable>
+     When specified, yazproxy will create <replaceable>pidfile</replaceable>
      with the process ID of the proxy. The pidfile will be generated
      before the process changes identity (see option <literal>-u</literal>).
     </para></listitem>
   </varlistentry>
   <varlistentry><term>-u <replaceable>userid</replaceable></term>
    <listitem><para>
-     When specified, yaz-proxy will change identity to the user ID
+     When specified, yazproxy will change identity to the user ID
      specified, just after the proxy has started listening to a
      possibly privileged port and after the PID file has been created
      if specified by option <literal>-u</literal>.
@@ -147,7 +147,7 @@
   Congress bibliographic server:
     </para>
  <screen>
-  $ yaz-proxy -t z3950.loc.gov:7090 @:9000
+  $ yazproxy -t z3950.loc.gov:7090 @:9000
  </screen>
  <para>
   The LOC target is sometimes very slow.  You can connect to

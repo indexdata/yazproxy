@@ -48,7 +48,7 @@
     <literal>your.company.com</literal> like this:
    </para>
    <screen>
-    yaz-proxy -a - -t tcp:foo.bar.com:18398 tcp:@:9000
+    yazproxy -a - -t tcp:foo.bar.com:18398 tcp:@:9000
    </screen>
    <para>
     (The <literal>-a -</literal> option requests APDU logging on
@@ -281,10 +281,10 @@
     order for the config file facility to be enabled.
    </para>
    <tip>
-    <para>To check for a config file to be well-formed, the yaz-proxy may
+    <para>To check for a config file to be well-formed, the yazproxy may
      be invoked without specifying a listening port, i.e.
      <screen>
-      yaz-proxy -c myconfig.xml
+      yazproxy -c myconfig.xml
      </screen>
      If this does not produce errors, the file is well-formed.
     </para>
@@ -640,7 +640,7 @@
    <title>Proxy Usage</title>
    <para>
    </para>
-   <refentry id="yaz-proxy">
+   <refentry id="yazproxy-ref">
     &yaz-proxy-ref;
    </refentry>
   </section>
