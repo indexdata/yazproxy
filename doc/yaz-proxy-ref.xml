@@ -1,0 +1,218 @@
+<refmeta>
+ <refentrytitle>yaz-proxy</refentrytitle>
+ <manvolnum>8</manvolnum>
+</refmeta>
+<refnamediv>
+ <refname>yaz-proxy</refname>
+ <refpurpose>The YAZ toolkit's transparent Z39.50 proxy</refpurpose>
+</refnamediv>
+<refsynopsisdiv>
+ <cmdsynopsis>
+  <command>yaz-proxy</command>
+  <arg choice="opt">-a <replaceable>filename</replaceable></arg>
+  <arg choice="opt">-l <replaceable>filename</replaceable></arg>
+  <arg choice="opt">-m <replaceable>num</replaceable></arg>
+  <arg choice="opt">-v <replaceable>level</replaceable></arg>
+  <arg choice="opt">-t <replaceable>target</replaceable></arg>
+  <arg choice="opt">-U <replaceable>auth</replaceable></arg>
+  <arg choice="opt">-o <replaceable>level</replaceable></arg>
+  <arg choice="opt">-i <replaceable>seconds</replaceable></arg>
+  <arg choice="opt">-T <replaceable>seconds</replaceable></arg>
+  <arg choice="opt">-p <replaceable>pidfile</replaceable></arg>
+  <arg choice="opt">-u <replaceable>userid</replaceable></arg>
+  <arg choice="opt">-c <replaceable>config</replaceable></arg>
+  <arg choice="req"><replaceable>host</replaceable>:<replaceable>port</replaceable></arg>
+ </cmdsynopsis>
+</refsynopsisdiv>
+   
+<refsect1><title>DESCRIPTION</title>
+ <para>
+  <command>yaz-proxy</command> is a Z39.50 optimizing proxy daemon.
+  The listening port must be specified on the command-line. 
+  <command>inetd</command> operation is not supported.
+  The <replaceable>host</replaceable>:<replaceable>port</replaceable>
+  argument specifies host address to listen to, and the port to
+  listen on.  Use the host <literal>@</literal>
+  to listen for connections coming from any address.
+ </para>
+ <para>
+  <command>yaz-proxy</command> can be configured using command-line
+  options or a configuration file.
+  Configuration file options override values specified
+  on the command-line.
+ </para>
+ <para>
+  <command>yaz-proxy</command> rereads its configuration file and
+  reopens log files when it receives the hangup signal, SIGHUP.
+ </para>
+</refsect1>
+<refsect1><title>OPTIONS</title>
+ <variablelist>
+  <varlistentry><term>-a <replaceable>filename</replaceable></term>
+   <listitem><para>
+     Specifies the name of a file to which to write a log of the
+     APDUs (protocol packets) that pass through the proxy.  The
+     special filename <literal>-</literal> may be used to indicate
+     standard output.
+    </para></listitem>
+  </varlistentry>
+  <varlistentry><term>-l <replaceable>filename</replaceable></term>
+   <listitem><para>
+     Specifies the name of a file to which to write a log of the
+     YAZ proxy activity. This uses the logging facility as provided
+     by the YAZ toolkit. If this options is omitted, the output
+     directed to stderr.
+    </para></listitem>
+  </varlistentry>
+  <varlistentry><term>-m <replaceable>num</replaceable></term>
+   <listitem><para>
+     Specifies the maximum number of connections to be cached
+     [default 50].
+    </para></listitem>
+  </varlistentry>
+  <varlistentry><term>-v <replaceable>level</replaceable></term>
+   <listitem><para>
+     Sets the logging level. <replaceable>level</replaceable> is
+     a comma-separated list of members of the set
+     {<literal>fatal</literal>,<literal>debug</literal>,<literal>warn</literal>,<literal>log</literal>,<literal>malloc</literal>,<literal>all</literal>,<literal>none</literal>}.
+    </para></listitem>
+  </varlistentry>
+  <varlistentry><term>-t <replaceable>target</replaceable></term>
+   <listitem><para>
+     Specifies the default backend target to use when a client
+     connects that does not explicitly specify a target in its
+     <literal>initRequest</literal>.
+    </para></listitem>
+  </varlistentry>
+  <varlistentry><term>-U <replaceable>auth</replaceable></term>
+   <listitem><para>
+     Specifies authentication info to be sent to the backend target.
+     This is useful if you happen to have an internal target that
+     requires authentication, or if the client software does not allow
+     you to set it.
+    </para></listitem>
+  </varlistentry>
+  <varlistentry><term>-o <replaceable>level</replaceable></term>
+   <listitem><para>
+     Sets level for optimization. Use zero to disable; non-zero
+     to enable. Handling for this is not fully implemented;
+     we will probably use a bit mask to enable/disable specific
+     features. By default optimization is enabled (value 1).
+    </para></listitem>
+  </varlistentry>
+  <varlistentry><term>-i <replaceable>seconds</replaceable></term>
+   <listitem><para>
+     Specifies in seconds the idle time for communication between
+     client and proxy. If a connection is inactive for this long
+     it will be closed. Default: 600 seconds (10 minutes).
+    </para></listitem>
+  </varlistentry>
+  <varlistentry><term>-T <replaceable>seconds</replaceable></term>
+   <listitem><para>
+     Specifies in seconds the idle time for communication between
+     proxy and backend target.
+     If a connection is inactive for this long
+     it will be closed. Default: 600 seconds (10 minutes).
+    </para></listitem>
+  </varlistentry>
+  <varlistentry><term>-p <replaceable>pidfile</replaceable></term>
+   <listitem><para>
+     When specified, yaz-proxy will create <replaceable>pidfile</replaceable>
+     with the process ID of the proxy. The pidfile will be generated
+     before the process changes identity (see option <literal>-u</literal>).
+    </para></listitem>
+  </varlistentry>
+  <varlistentry><term>-u <replaceable>userid</replaceable></term>
+   <listitem><para>
+     When specified, yaz-proxy will change identity to the user ID
+     specified, just after the proxy has started listening to a
+     possibly privileged port and after the PID file has been created
+     if specified by option <literal>-u</literal>.
+    </para></listitem>
+  </varlistentry>
+  <varlistentry><term>-c <replaceable>config</replaceable></term>
+   <listitem><para>
+     Specifies config filename. Configuration is in XML
+     and is only supported if the YAZ proxy is compiled with
+     libxml2.
+    </para></listitem>
+  </varlistentry>
+ </variablelist>
+</refsect1>
+<refsect1>
+ <title>EXAMPLES</title>
+ <para>
+  The following command starts the proxy, listening on port
+  9000, with its default backend target set to the Library of
+  Congress bibliographic server:
+    </para>
+ <screen>
+  $ yaz-proxy -t z3950.loc.gov:7090 @:9000
+ </screen>
+ <para>
+  The LOC target is sometimes very slow.  You can connect to
+  it using yaz-client as follows:
+ </para>
+ <screen>
+  $ yaz-client localhost:9000/voyager
+  Connecting...Ok.
+  Sent initrequest.
+  Connection accepted by target.
+  ID     : 34
+  Name   : Voyager LMS - Z39.50 Server
+  Version: 1.13
+  Options: search present
+  Elapsed: 7.131197
+  Z> f computer
+  Sent searchRequest.
+  Received SearchResponse.
+  Search was a success.
+  Number of hits: 10000
+  records returned: 0
+  Elapsed: 6.695174
+  Z> f computer
+  Sent searchRequest.
+  Received SearchResponse.
+  Search was a success.
+  Number of hits: 10000
+  records returned: 0
+  Elapsed: 0.001417
+ </screen>
+ <para>
+  In this test, the second search was more than 4000 times faster
+  than the first, because the proxy cached the result of the first
+  search and noticed that the second was the same.
+ </para>
+ <para>
+  The YAZ command-line client,
+  <command>yaz-client</command>,
+  allows you to set the proxy address by specifying option -p. In
+  that case, the actual backend target is specified as part of the
+  Initialize Request.
+ </para>
+ <para>Suppose you have a proxy running on localhost,
+  port 9000 and wish to connect to Index Data's test target at
+  <literal>indexdata.dk:210/gils</literal> you could use:
+  <screen>
+   yaz-client -p localhost:9000 indexdata.dk:210/gils
+  </screen>
+  Since port 210 is the default, the port can be omitted:
+  <screen>
+   yaz-client -p localhost:9000 indexdata.dk/gils
+  </screen>
+ </para>
+</refsect1>
+ <!-- Keep this comment at the end of the file
+ Local variables:
+ mode: sgml
+ sgml-omittag:t
+ sgml-shorttag:t
+ sgml-minimize-attributes:nil
+ sgml-always-quote-attributes:t
+ sgml-indent-step:1
+ sgml-indent-data:t
+ sgml-parent-document: "proxy.xml"
+ sgml-local-catalogs: nil
+ sgml-namecase-general:t
+ End:
+ -->

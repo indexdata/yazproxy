@@ -1,0 +1,79 @@
+<?xml version="1.0"?>
+<!-- $Id: config.xml,v 1.1 2004-04-11 11:37:01 adam Exp $ -->
+<proxy>
+  <target name="bagel">
+    <url>indexdata.dk</url>
+    <target-timeout>240</target-timeout>
+    <client-timeout>180</client-timeout>
+    <keepalive>
+      <bandwidth>1000000</bandwidth>
+      <pdu>1000</pdu>
+    </keepalive>
+    <limit><!-- per minute limits .. -->
+      <bandwidth>2000000</bandwidth>
+      <pdu>50</pdu>
+      <retrieve>100</retrieve>
+    </limit>
+    <attribute type="1" value="1-11,13-1010"/>
+    <attribute type="1" value="*" error="114"/>
+    <syntax type="opac"/>
+    <syntax type="usmarc"/>
+    <syntax type="none"/>
+    <syntax type="xml" marcxml="1"/>
+    <syntax type="*" error="238"/>
+    <preinit>0</preinit>
+    <cql2rpn>pqf.properties</cql2rpn>
+    <zeerex>zeerex.xml</zeerex>
+  </target>
+  <target default="1" name="localhost">
+    <url>localhost:9999</url>
+    <target-timeout>300</target-timeout>
+    <client-timeout>180</client-timeout>
+    <keepalive/> <!-- keepalive enabled -->
+    <limit><!-- limits .. -->
+      <bandwidth>50000</bandwidth>
+      <pdu>60</pdu>
+      <retrieve>50</retrieve>
+    </limit>
+    <attribute type="1" value="1-1023"/>
+    <attribute type="1" value="*" error="114"/>
+    <syntax type="usmarc"/>
+    <syntax type="grs1"/>
+    <syntax type="xml" marcxml="1" stylesheet="MARC21slim2SRWDC.xsl"
+      identifier="info:srw/schema/1/dc-v1.1"
+	>
+      <name>dc</name>
+    </syntax>
+    <syntax type="xml" marcxml="1"
+      identifier="info:srw/schema/1/marcxml-v1.1"
+      >
+      <name>marcxml</name>
+    </syntax>
+    <syntax type="xml" marcxml="1" stylesheet="MARC21slim2MODS.xsl"
+      identifier="http://www.loc.gov/mods"
+      >
+      <name>mods2</name>
+    </syntax>
+    <syntax type="xml" marcxml="1" stylesheet="MARC21slim2MODS3.xsl"
+      identifier="info:srw/schema/1/mods-v3.0"
+      >
+      <name>mods3</name>
+    </syntax>
+    <syntax type="none"/>
+    <syntax type="*" error="238"/>
+    <preinit>2</preinit>
+    <cql2rpn>pqf.properties</cql2rpn>
+    <explain>
+      <serverInfo>
+	<host>indexdata.dk</host>
+	<port>9000</port>
+	<database>Default</database>
+      </serverInfo>
+    </explain>
+  </target>
+  <target name="*">
+    <!-- everything else -->
+  </target>
+  <max-clients>50</max-clients>
+  <log>client-requests server-requests</log>
+</proxy>

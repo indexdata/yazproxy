@@ -1,0 +1,78 @@
+YAZ proxy - A Z39.50/SRW/SRU proxy.
+
+$Id: README,v 1.1 2004-04-11 11:36:46 adam Exp $
+
+Introduction
+------------
+
+The proxy application and development library is covered by the
+GPL - see LICENSE.proxy for details.
+
+Documentation
+-------------
+
+The "doc" directory contains documentation in HTML and PDF.
+You can also read it online at http://www.indexdata.dk/yazproxy/
+
+Overview
+--------
+
+YAZ proxy builds a programmers' library libyazproxy.lib and the
+proxy application.
+
+Directory structure of the YAZ++ package:
+
+  -- src (C++ library)
+  -- include/yazproxy (C++ headers for proxy) 
+  -- lib (compiled libraries)
+  -- win (Windows build files)
+  -- doc (DocBook-format documentation)
+  -- etc (Proxy config + XSLT files)
+
+About the proxy
+---------------
+
+For the proxy the actual target is determined in by the OtherInfo
+part of the InitRequest. We've defined an OID for this which we call
+PROXY. The OID is 1.2.840.10003.10.1000.81.1. 
+
+  OtherInformation   ::= [201] IMPLICIT SEQUENCE OF SEQUENCE{
+    category           [1]   IMPLICIT InfoCategory OPTIONAL, 
+    information        CHOICE{
+      characterInfo            [2]  IMPLICIT InternationalString,
+      binaryInfo               [3]  IMPLICIT OCTET STRING,
+      externallyDefinedInfo    [4]  IMPLICIT EXTERNAL,
+      oid                      [5]  IMPLICIT OBJECT IDENTIFIER}}
+--
+  InfoCategory ::= SEQUENCE{
+      categoryTypeId   [1]   IMPLICIT OBJECT IDENTIFIER OPTIONAL,
+      categoryValue    [2]   IMPLICIT INTEGER}
+
+The InfoCategory is present with categoryTypeId set to the PROXY OID
+and categoryValue set to 0. The information in OtherInformation uses
+characterInfo to represent the target using the form target[:port][/db].
+
+For clients that don't set the PROXY OtherInformation, a default
+target can be specified using option -t for proxy.
+
+Example:
+  We start the proxy so that it listens on port 9000. The default
+  target is Bell Labs Library unless it is overridden by a client in
+  the InitRequest.
+
+     $ ./yaz-proxy -t z3950.bell-labs.com/books @:9000
+
+  The client is started and talks to the proxy without specifying
+  a target. Hence this client will talk to the Bell Labs server.
+
+     $ ./yaz-client localhost:9000
+
+  The client is started and it specifies the actual target itself.
+
+     $ ./yaz-client -p localhost:9000 bagel.indexdata.dk/gils
+
+  For ZAP the equivalent would be
+     proxy=localhost:9000
+     target=bagel.indexdata.dk/gils
+  Simple, huh!
+
