@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<!-- $Id: config-mafi2ma.xml,v 1.1 2004-12-03 14:28:18 adam Exp $ -->
+<proxy xmlns="http://indexdata.dk/yazproxy/schema/0.8/"
+ xmlns:xi="http://www.w3.org/2001/XInclude"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="http://indexdata.dk/yazproxy/schema/0.8/ yazproxy.xsd"
+>
+<!-- Config can be checked with xerces-c++: PParse -n -s config.xml -->
+  <target name="localhost" default="1">
+    <url>193.166.7.193:7590</url>
+    <target-timeout>30</target-timeout>
+    <client-timeout>60</client-timeout>
+    <keepalive>
+      <bandwidth>1000000</bandwidth>
+      <pdu>1000</pdu>
+    </keepalive>
+    <limit><!-- per minute limits .. -->
+      <bandwidth>2000000</bandwidth>
+      <pdu>50</pdu>
+      <retrieve>100</retrieve>
+    </limit>
+    <attribute type="1" value="1-11,13-1016"/>
+    <attribute type="1" value="*" error="114"/>
+    <syntax type="opac"/>
+    <syntax type="usmarc" backendtype="finmarc" usemarconstage1="mafi2ma/mafi2ma.ini"/>
+    <syntax type="none"/>
+    <syntax type="xml" marcxml="1" backendtype="finmarc" usemarconstage1="mafi2ma/mafi2ma.ini"/>
+    <syntax type="*" error="238"/>
+    <preinit>0</preinit>
+    <xi:include href="explain.xml"/>
+    <cql2rpn>pqf.properties</cql2rpn>
+  </target>
+  <target name="*">
+    <target-timeout>60</target-timeout>
+    <client-timeout>30</client-timeout>
+    <!-- everything else -->
+  </target>
+  <max-clients>50</max-clients>
+  <log>client-requests server-requests</log>
+</proxy>

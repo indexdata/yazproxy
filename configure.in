@@ -10,6 +10,7 @@ AM_PROG_LIBTOOL
 
 YAZPP_INIT(threads,1.0)
 YAZ_DOC
+USEMARCON_INIT
 
 AC_CHECK_FUNCS(setrlimit getrlimit gettimeofday)
 dnl

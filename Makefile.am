@@ -2,8 +2,7 @@ AUTOMAKE_OPTIONS = foreign
 
 SUBDIRS = src include etc doc 
 
-EXTRA_DIST= README LICENSE yazpp.m4 yaz.m4 buildconf.sh
-
+EXTRA_DIST= README LICENSE yazpp.m4 yaz.m4 usemarcon.m4 buildconf.sh
 
 dist-hook:
 	mkdir $(distdir)/win

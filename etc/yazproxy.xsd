@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!-- XML Schema for YAZ proxy config file.
-    $Id: yazproxy.xsd,v 1.6 2004-10-23 23:12:23 adam Exp $
+    $Id: yazproxy.xsd,v 1.7 2004-12-03 14:28:18 adam Exp $
 -->
 <xs:schema
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
@@ -90,6 +90,8 @@
    <xs:attribute name="stylesheet" type="xs:string" />
    <xs:attribute name="backendtype" type="xs:string" />
    <xs:attribute name="backendcharset" type="xs:string" />
+   <xs:attribute name="usemarconstage1" type="xs:string" />
+   <xs:attribute name="usemarconstage2" type="xs:string" />
   </xs:complexType>
  </xs:element>
 

@@ -1,4 +1,4 @@
-/* $Id: proxy.h,v 1.8 2004-10-23 23:12:24 adam Exp $
+/* $Id: proxy.h,v 1.9 2004-12-03 14:28:18 adam Exp $
    Copyright (c) 1998-2004, Index Data.
 
 This file is part of the yaz-proxy.
@@ -19,6 +19,9 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 02111-1307, USA.
  */
 
+#ifndef YAZ_PROXY_H_INCLUDED
+#define YAZ_PROXY_H_INCLUDED
+
 #include <yaz++/z-assoc.h>
 #include <yaz++/z-query.h>
 #include <yaz++/z-databases.h>
@@ -37,6 +40,7 @@ class Yaz_Proxy;
 
 struct Yaz_RecordCache_Entry;
 class Yaz_ProxyConfigP;
+class Yaz_usemarcon;
 
 class YAZ_EXPORT Yaz_ProxyConfig {
 public:
@@ -74,7 +78,9 @@ public:
     int check_syntax(ODR odr, const char *name,
 		     Odr_oid *syntax, Z_RecordComposition *comp,
 		     char **addinfo, char **stylesheet, char **schema,
-		     char **backend_type, char **backend_charset);
+		     char **backend_type, char **backend_charset,
+		     char **usemarcon_ini_stage1, char **usemarcon_ini_stage2
+	);
     char *get_explain_doc(ODR odr, const char *name, const char *db,
 			  int *len);
     const char *get_explain_name(const char *db, const char **backend_db);
@@ -259,6 +265,9 @@ class YAZ_EXPORT Yaz_Proxy : public Yaz_Z_Assoc {
     int m_lo_fd[NO_SPARE_SOLARIS_FD];
     void low_socket_open();
     void low_socket_close();
+    char *m_usemarcon_ini_stage1;
+    char *m_usemarcon_ini_stage2;
+    Yaz_usemarcon *m_usemarcon;
  public:
     Yaz_Proxy(IYaz_PDU_Observable *the_PDU_Observable,
 	      Yaz_Proxy *parent = 0);
@@ -291,3 +300,4 @@ class YAZ_EXPORT Yaz_Proxy : public Yaz_Z_Assoc {
     int handle_init_response_for_invalid_session(Z_APDU *apdu);
 };
 
+#endif

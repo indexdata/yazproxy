@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.12 2004-11-30 21:10:45 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.13 2004-12-03 14:28:18 adam Exp $
    Copyright (c) 1998-2004, Index Data.
 
 This file is part of the yaz-proxy.
@@ -38,16 +38,9 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include <yaz/yaz-iconv.h>
 #include <yaz/ylog.h>
 #include <yaz/diagbib1.h>
-#include <yazproxy/proxy.h>
+#include "proxyp.h"
 #include <yaz/pquery.h>
 #include <yaz/otherinfo.h>
-
-#if HAVE_XSLT
-#include <libxml/parser.h>
-#include <libxml/tree.h>
-#include <libxslt/xsltutils.h>
-#include <libxslt/transform.h>
-#endif
 
 static const char *apdu_name(Z_APDU *apdu)
 {
@@ -170,6 +163,9 @@ Yaz_Proxy::Yaz_Proxy(IYaz_PDU_Observable *the_PDU_Observable,
 #else
     m_time_tv = 0;
 #endif
+    m_usemarcon_ini_stage1 = 0;
+    m_usemarcon_ini_stage2 = 0;
+    m_usemarcon = new Yaz_usemarcon();
     if (!m_parent)
 	low_socket_open();
 }
@@ -196,6 +192,9 @@ Yaz_Proxy::~Yaz_Proxy()
     xfree (m_schema);
     xfree (m_backend_type);
     xfree (m_backend_charset);
+    xfree (m_usemarcon_ini_stage1);
+    xfree (m_usemarcon_ini_stage2);
+    delete m_usemarcon;
     if (m_s2z_odr_init)
 	odr_destroy(m_s2z_odr_init);
     if (m_s2z_odr_search)
@@ -756,6 +755,54 @@ void Yaz_Proxy::convert_to_frontend_type(Z_NamePlusRecordList *p)
 		Z_External *r = npr->u.databaseRecord;
 		if (r->which == Z_External_octet)
 		{
+#if HAVE_USEMARCON
+		    if (m_usemarcon_ini_stage1 && *m_usemarcon_ini_stage1)
+		    {
+			if (!m_usemarcon->m_stage1)
+			{
+			    m_usemarcon->m_stage1 = new CDetails();
+			}
+			m_usemarcon->m_stage1->SetIniFileName(m_usemarcon_ini_stage1);
+			m_usemarcon->m_stage1->SetMarcRecord((char*) r->u.octet_aligned->buf, r->u.octet_aligned->len);
+			int res = m_usemarcon->m_stage1->Start();
+			if (res == 0)
+			{
+			    char *converted;
+			    int convlen;
+			    m_usemarcon->m_stage1->GetMarcRecord(converted, convlen);
+			    if (m_usemarcon_ini_stage2 && *m_usemarcon_ini_stage2)
+			    {
+				if (!m_usemarcon->m_stage2)
+				{
+				    m_usemarcon->m_stage2 = new CDetails();
+				}
+				m_usemarcon->m_stage2->SetIniFileName(m_usemarcon_ini_stage2);
+				m_usemarcon->m_stage2->SetMarcRecord(converted, convlen);
+				res = m_usemarcon->m_stage2->Start();
+				if (res == 0)
+				{
+				    free(converted);
+				    m_usemarcon->m_stage2->GetMarcRecord(converted, convlen);
+				}
+				else
+				{
+				    yaz_log(YLOG_LOG, "%sUSEMARCON stage 2 error %d", m_session_str, res);
+				}
+			    }
+			    npr->u.databaseRecord =
+				z_ext_record(odr_encode(),
+					     m_frontend_type,
+				 	     converted,
+					     strlen(converted));
+			    free(converted);
+			}
+			else
+			{
+			    yaz_log(YLOG_LOG, "%sUSEMARCON stage 1 error %d", m_session_str, res);
+			}
+			continue;
+		    }
+#endif
 		    npr->u.databaseRecord =
 			z_ext_record(odr_encode(),
 				     m_frontend_type,
@@ -1107,7 +1154,11 @@ int Yaz_Proxy::send_to_client(Z_APDU *apdu)
 	{
 	    if (p && p->which == Z_Records_DBOSD)
 	    {
-		if (m_backend_type)
+		if (m_backend_type
+#if HAVE_USEMARCON
+		    || m_usemarcon_ini_stage1 || m_usemarcon_ini_stage2
+#endif
+		    )
 		    convert_to_frontend_type(p->u.databaseOrSurDiagnostics);
 		if (m_marcxml_flag)
 		    convert_to_marcxml(p->u.databaseOrSurDiagnostics,
@@ -1148,7 +1199,11 @@ int Yaz_Proxy::send_to_client(Z_APDU *apdu)
 	}
 	if (p && p->which == Z_Records_DBOSD)
 	{
-	    if (m_backend_type)
+	    if (m_backend_type 
+#if HAVE_USEMARCON
+		|| m_usemarcon_ini_stage1 || m_usemarcon_ini_stage2
+#endif
+		)
 		convert_to_frontend_type(p->u.databaseOrSurDiagnostics);
 	    if (m_marcxml_flag)
 		convert_to_marcxml(p->u.databaseOrSurDiagnostics,
@@ -1664,7 +1719,9 @@ Z_APDU *Yaz_Proxy::handle_syntax_validation(Z_APDU *apdu)
 				    m_default_target,
 				    sr->preferredRecordSyntax, rc,
 				    &addinfo, &stylesheet_name, &m_schema,
-				    &m_backend_type, &m_backend_charset);
+				    &m_backend_type, &m_backend_charset,
+                                    &m_usemarcon_ini_stage1,
+				    &m_usemarcon_ini_stage2);
 	if (stylesheet_name)
 	{
 	    m_parent->low_socket_close();
@@ -1738,7 +1795,10 @@ Z_APDU *Yaz_Proxy::handle_syntax_validation(Z_APDU *apdu)
 				    pr->preferredRecordSyntax,
 				    pr->recordComposition,
 				    &addinfo, &stylesheet_name, &m_schema,
-				    &m_backend_type, &m_backend_charset);
+				    &m_backend_type, &m_backend_charset,
+                                    &m_usemarcon_ini_stage1,
+				    &m_usemarcon_ini_stage2
+				    );
 	if (stylesheet_name)
 	{
 	    m_parent->low_socket_close();

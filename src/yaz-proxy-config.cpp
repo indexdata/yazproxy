@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy-config.cpp,v 1.10 2004-11-30 21:10:45 adam Exp $
+/* $Id: yaz-proxy-config.cpp,v 1.11 2004-12-03 14:28:18 adam Exp $
    Copyright (c) 1998-2004, Index Data.
 
 This file is part of the yaz-proxy.
@@ -21,15 +21,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 
 #include <ctype.h>
 #include <yaz/ylog.h>
-#include <yazproxy/proxy.h>
-
-#if HAVE_XSLT
-#include <libxml/parser.h>
-#include <libxml/tree.h>
-#include <libxml/xinclude.h>
-#include <libxslt/xsltutils.h>
-#include <libxslt/transform.h>
-#endif
+#include "proxyp.h"
 
 class Yaz_ProxyConfigP {
     friend class Yaz_ProxyConfig;
@@ -464,7 +456,10 @@ int Yaz_ProxyConfig::check_syntax(ODR odr, const char *name,
 				  char **addinfo,
 				  char **stylesheet, char **schema,
 				  char **backend_type,
-				  char **backend_charset)
+				  char **backend_charset,
+				  char **usemarcon_ini_stage1,
+				  char **usemarcon_ini_stage2
+				  )
 {
     if (stylesheet)
     {
@@ -486,6 +481,16 @@ int Yaz_ProxyConfig::check_syntax(ODR odr, const char *name,
 	xfree (*backend_charset);
 	*backend_charset = 0;
     }
+    if (usemarcon_ini_stage1)
+    {
+	xfree (*usemarcon_ini_stage1);
+	*usemarcon_ini_stage1 = 0;
+    }
+    if (usemarcon_ini_stage2)
+    {
+	xfree (*usemarcon_ini_stage2);
+	*usemarcon_ini_stage2 = 0;
+    }
 #if HAVE_XSLT
     int syntax_has_matched = 0;
     xmlNodePtr ptr;
@@ -506,6 +511,8 @@ int Yaz_ProxyConfig::check_syntax(ODR odr, const char *name,
 	    const char *match_identifier = 0;
 	    const char *match_backend_type = 0;
 	    const char *match_backend_charset = 0;
+	    const char *match_usemarcon_ini_stage1 = 0;
+	    const char *match_usemarcon_ini_stage2 = 0;
 	    struct _xmlAttr *attr;
 	    for (attr = ptr->properties; attr; attr = attr->next)
 	    {
@@ -531,6 +538,14 @@ int Yaz_ProxyConfig::check_syntax(ODR odr, const char *name,
 		if (!strcmp((const char *) attr->name, "backendcharset") &&
 		    attr->children && attr->children->type == XML_TEXT_NODE)
 		    match_backend_charset = (const char *)
+			attr->children->content;
+		if (!strcmp((const char *) attr->name, "usemarconstage1") &&
+		    attr->children && attr->children->type == XML_TEXT_NODE)
+		    match_usemarcon_ini_stage1 = (const char *)
+			attr->children->content;
+		if (!strcmp((const char *) attr->name, "usemarconstage2") &&
+		    attr->children && attr->children->type == XML_TEXT_NODE)
+		    match_usemarcon_ini_stage2 = (const char *)
 			attr->children->content;
 	    }
 	    if (match_type)
@@ -578,6 +593,16 @@ int Yaz_ProxyConfig::check_syntax(ODR odr, const char *name,
 		{
 		    xfree(*backend_charset);
 		    *backend_charset = xstrdup(match_backend_charset);
+		}
+		if (usemarcon_ini_stage1 && match_usemarcon_ini_stage1)
+		{
+		    xfree(*usemarcon_ini_stage1);
+		    *usemarcon_ini_stage1 = xstrdup(match_usemarcon_ini_stage1);
+		}
+		if (usemarcon_ini_stage1 && match_usemarcon_ini_stage2)
+		{
+		    xfree(*usemarcon_ini_stage2);
+		    *usemarcon_ini_stage2 = xstrdup(match_usemarcon_ini_stage2);
 		}
 		if (match_marcxml)
 		{
