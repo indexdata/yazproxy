@@ -1,5 +1,5 @@
 <chapter id="installation">
-  <!-- $Id: installation.xml,v 1.5 2004-04-22 07:52:51 adam Exp $ -->
+  <!-- $Id: installation.xml,v 1.6 2004-04-23 16:10:24 adam Exp $ -->
   <title>Installation</title>
   <para>
    You need a C++ compiler to compile and use YAZ proxy.
@@ -117,8 +117,11 @@
      <varlistentry>
       <term><literal>etc</literal></term> 
       <listitem><para>
-	Various files that may be read by YAZ proxy - including
-	configuration file, XSLT files, CQL to RPN conversion.
+	Various files such as
+	configuration files, XSLT files, CQL to RPN conversion files,
+	a sample start/stop control script
+	<filename>yazproxy.ctl.sh</filename> that can be used as
+	template for an <filename>/etc/init.d</filename> script.
 	These files are installed in the YAZ proxy's data area
 	(<parameter>prefix</parameter><literal>/share/yazproxy</literal>).
        </para></listitem>

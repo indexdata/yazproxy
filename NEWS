@@ -1,5 +1,9 @@
 
 --- 0.8 not yet released
 
+YAZ proxy control script renamed from yaz-proxy.sh to yazproxyctl.sh.
+
+YAZ proxy executable renamed from yaz-proxy to yaz-proxy.
+
 Older versions of YAZ proxy was part of YAZ++. We've split the
 YAZ proxy into a separate project.

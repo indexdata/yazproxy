@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.2 2004-04-19 13:42:52 adam Exp $
+# $Id: Makefile.am,v 1.3 2004-04-23 16:10:24 adam Exp $
 
 proxydatadir=$(datadir)/yazproxy
 proxydata_DATA = \
@@ -13,8 +13,8 @@ proxydata_DATA = \
  pqf.properties \
  yazproxy.xsd \
  zeerex-2.0.xsd \
- yaz-proxy.sh
+ yazproxyctl.sh
 
 EXTRA_DIST = $(proxydata_DATA)
 
-noinst_SCRIPTS = yaz-proxy.sh
+noinst_SCRIPTS = yazproxyctl.sh
