@@ -27,7 +27,7 @@ Description: YAZ Proxy libraries.
 Package: libyazproxy-dev
 Section: devel
 Architecture: any
-Depends: libyazproxy (= ${Source-Version}), libxml2-dev, libxslt1-dev
+Depends: libyazproxy (= ${Source-Version}), libxml2-dev, libxslt1-dev, libyaz++-dev, libyaz-dev
 Description: YAZ Proxy development libraries.
  YAZ proxy is a daemon that accepts Z39.50/SRW/SRU incoming requests and
  converts them to Z39.50 client requests. The proxy has several facilities
