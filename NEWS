@@ -1,5 +1,5 @@
 
---- 0.8 not yet released
+--- 0.8 2004/04/23
 
 YAZ proxy control script renamed from yaz-proxy.sh to yazproxyctl.sh.
 

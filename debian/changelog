@@ -2,5 +2,5 @@ yazproxy (0.8-1) unstable; urgency=low
 
   * Separate YAZ proxy.
 
- -- Adam Dickmeiss <adam@indexdata.dk>  Sun, 11 Apr 2004 16:12:54 +0200
+ -- Adam Dickmeiss <adam@indexdata.dk>  Fri, 23 Apr 2004 21:06:01 +0200
 
