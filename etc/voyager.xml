@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<!-- $Id: voyager.xml,v 1.1 2004-04-11 11:37:01 adam Exp $ -->
-<proxy>
+<!-- $Id: voyager.xml,v 1.2 2004-04-19 13:42:52 adam Exp $ -->
+<proxy xmlns="http://indexdata.dk/yazproxy/schema/0.8/">
   <!-- define default target and name it voyager -->
   <target default="1" name="voyager">
     <!-- all backend addresses as seen from this proxy .. -->

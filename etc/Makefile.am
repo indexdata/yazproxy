@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.1 2004-04-11 11:37:00 adam Exp $
+# $Id: Makefile.am,v 1.2 2004-04-19 13:42:52 adam Exp $
 
 proxydatadir=$(datadir)/yazproxy
 proxydata_DATA = \
@@ -11,6 +11,8 @@ proxydata_DATA = \
  config.xml \
  voyager.xml \
  pqf.properties \
+ yazproxy.xsd \
+ zeerex-2.0.xsd \
  yaz-proxy.sh
 
 EXTRA_DIST = $(proxydata_DATA)

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<!-- $Id: config.xml,v 1.1 2004-04-11 11:37:01 adam Exp $ -->
-<proxy>
+<!-- $Id: config.xml,v 1.2 2004-04-19 13:42:52 adam Exp $ -->
+<proxy xmlns="http://indexdata.dk/yazproxy/schema/0.8/">
   <target name="bagel">
     <url>indexdata.dk</url>
     <target-timeout>240</target-timeout>
@@ -22,8 +22,14 @@
     <syntax type="xml" marcxml="1"/>
     <syntax type="*" error="238"/>
     <preinit>0</preinit>
+    <explain xmlns="http://explain.z3950.org/dtd/2.0/">
+       <serverInfo>
+       <host>indexdata.dk</host>
+       <port>9000</port>
+       <database>Default</database>
+       </serverInfo>
+    </explain>
     <cql2rpn>pqf.properties</cql2rpn>
-    <zeerex>zeerex.xml</zeerex>
   </target>
   <target default="1" name="localhost">
     <url>localhost:9999</url>
@@ -63,13 +69,6 @@
     <syntax type="*" error="238"/>
     <preinit>2</preinit>
     <cql2rpn>pqf.properties</cql2rpn>
-    <explain>
-      <serverInfo>
-	<host>indexdata.dk</host>
-	<port>9000</port>
-	<database>Default</database>
-      </serverInfo>
-    </explain>
   </target>
   <target name="*">
     <!-- everything else -->

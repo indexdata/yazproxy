@@ -1,0 +1,95 @@
+<?xml version="1.0"?>
+<!-- XML Schema for YAZ proxy config file.
+    $Id: yazproxy.xsd,v 1.1 2004-04-19 13:42:52 adam Exp $
+-->
+<xs:schema
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns:exp="http://explain.z3950.org/dtd/2.0/"
+  xmlns="http://indexdata.dk/yazproxy/schema/0.8/"
+  targetNamespace="http://indexdata.dk/yazproxy/schema/0.8/"
+  >
+ <xs:import namespace="http://explain.z3950.org/dtd/2.0/" 
+      schemaLocation="zeerex-2.0.xsd"/>
+ <xs:element name="proxy">
+  <xs:complexType>
+   <xs:sequence>
+    <xs:element ref="target" minOccurs="0" maxOccurs="unbounded"/>
+    <xs:element ref="max-clients" minOccurs="0"/>
+    <xs:element ref="log" minOccurs="0"/>
+   </xs:sequence>
+  </xs:complexType>
+ </xs:element>
+
+ <xs:element name="target">
+  <xs:complexType>
+   <xs:sequence>
+     <xs:element ref="url" minOccurs="0" maxOccurs="unbounded"/>
+     <xs:element ref="target-timeout" minOccurs="0"/>
+     <xs:element ref="client-timeout" minOccurs="0"/>
+     <xs:element ref="keepalive" minOccurs="0"/>
+     <xs:element ref="limit" minOccurs="0"/>
+     <xs:element ref="attribute" minOccurs="0" maxOccurs="unbounded"/>
+     <xs:element ref="syntax" minOccurs="0" maxOccurs="unbounded"/>
+     <xs:element ref="preinit" minOccurs="0"/>
+     <xs:element name="exp:explain" minOccurs="0"/>
+     <xs:element ref="cql2rpn" minOccurs="0"/>
+   </xs:sequence>
+   <xs:attribute name="default" type="xs:string" use="optional"/>
+   <xs:attribute name="name" type="xs:string"/>
+  </xs:complexType>
+ </xs:element>
+
+ <xs:element name="url" type="xs:string"/>
+ <xs:element name="target-timeout" type="xs:integer"/>
+ <xs:element name="client-timeout" type="xs:integer"/>
+ <xs:element name="bandwidth" type="xs:integer"/>
+ <xs:element name="pdu" type="xs:integer"/>
+ <xs:element name="retrieve" type="xs:integer"/>
+ <xs:element name="preinit" type="xs:integer"/>
+ <xs:element name="cql2rpn" type="xs:string"/>
+
+ <xs:element name="keepalive">
+  <xs:complexType>
+   <xs:sequence>
+    <xs:element ref="bandwidth" minOccurs="0"/>
+    <xs:element ref="pdu" minOccurs="0"/>
+   </xs:sequence>
+  </xs:complexType>
+ </xs:element>
+ <xs:element name="limit">
+  <xs:complexType>
+   <xs:sequence>
+    <xs:element ref="bandwidth" minOccurs="0"/>
+    <xs:element ref="pdu" minOccurs="0"/>
+    <xs:element ref="retrieve" minOccurs="0"/>
+   </xs:sequence>
+  </xs:complexType>
+ </xs:element>
+ 
+ <xs:element name="attribute">
+  <xs:complexType>
+   <xs:attribute name="type" type="xs:string"/>
+   <xs:attribute name="value" type="xs:string"/>
+   <xs:attribute name="error" type="xs:integer"/>
+  </xs:complexType>
+ </xs:element>
+
+ <xs:element name="syntax">
+  <xs:complexType>
+   <xs:sequence>
+    <xs:element name="title" type="xs:string" minOccurs="0"/>
+    <xs:element name="name" type="xs:string" minOccurs="0"
+                                             maxOccurs="unbounded"/>
+   </xs:sequence>
+   <xs:attribute name="error" type="xs:string" minOccurs="0"/>
+   <xs:attribute name="type" type="xs:string" minOccurs="0"/>
+   <xs:attribute name="marcxml" type="xs:string" minOccurs="0"/>
+   <xs:attribute name="identifier" type="xs:string" minOccurs="0"/>
+   <xs:attribute name="stylesheet" type="xs:string" minOccurs="0"/>
+  </xs:complexType>
+ </xs:element>
+
+ <xs:element name="max-clients" type="xs:integer"/>
+ <xs:element name="log" type="xs:string"/>
+
+</xs:schema>
