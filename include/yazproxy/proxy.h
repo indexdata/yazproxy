@@ -1,4 +1,4 @@
-/* $Id: proxy.h,v 1.7 2004-10-18 22:10:57 adam Exp $
+/* $Id: proxy.h,v 1.8 2004-10-23 23:12:24 adam Exp $
    Copyright (c) 1998-2004, Index Data.
 
 This file is part of the yaz-proxy.
@@ -56,7 +56,8 @@ public:
 		      int *keepalive_limit_bw,
 		      int *keepalive_limit_pdu,
 		      int *pre_init,
-		      const char **cql2rpn);
+		      const char **cql2rpn,
+		      const char **authentication);
     
     void get_generic_info(int *log_mask, int *max_clients);
 
@@ -66,7 +67,8 @@ public:
 			 int *max_clients,
 			 int *keepalive_limit_bw, int *keepalive_limit_pdu,
 			 int *pre_init,
-			 const char **cql2rpn);
+			 const char **cql2rpn,
+			 const char **authentication);
 
     int check_query(ODR odr, const char *name, Z_Query *query, char **addinfo);
     int check_syntax(ODR odr, const char *name,

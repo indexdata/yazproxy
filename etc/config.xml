@@ -1,14 +1,14 @@
 <?xml version="1.0"?>
-<!-- $Id: config.xml,v 1.5 2004-10-18 21:49:21 adam Exp $ -->
+<!-- $Id: config.xml,v 1.6 2004-10-23 23:12:23 adam Exp $ -->
 <proxy xmlns="http://indexdata.dk/yazproxy/schema/0.8/"
  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
  xsi:schemaLocation="http://indexdata.dk/yazproxy/schema/0.8/ yazproxy.xsd"
 >
 <!-- Config can be checked with xerces-c++: PParse -n -s config.xml -->
-  <target name="bagel" default="1">
-    <url>indexdata.dk</url>
-    <target-timeout>240</target-timeout>
-    <client-timeout>180</client-timeout>
+  <target name="localhost" default="1">
+    <url>localhost:9999</url>
+    <target-timeout>30</target-timeout>
+    <client-timeout>60</client-timeout>
     <keepalive>
       <bandwidth>1000000</bandwidth>
       <pdu>1000</pdu>
@@ -34,54 +34,11 @@
        </serverInfo>
     </explain>
     <cql2rpn>pqf.properties</cql2rpn>
-  </target>
-  <target name="localhost">
-    <url>localhost:9999</url>
-    <target-timeout>300</target-timeout>
-    <client-timeout>180</client-timeout>
-    <keepalive/> <!-- keepalive enabled -->
-    <limit><!-- limits .. -->
-      <bandwidth>50000</bandwidth>
-      <pdu>60</pdu>
-      <retrieve>50</retrieve>
-    </limit>
-    <attribute type="1" value="1-1023"/>
-    <attribute type="1" value="*" error="114"/>
-    <syntax type="usmarc"/>
-    <syntax type="grs1"/>
-    <syntax type="xml" marcxml="1" stylesheet="MARC21slim2SRWDC.xsl"
-      identifier="info:srw/schema/1/dc-v1.1"
-	>
-      <name>dc</name>
-    </syntax>
-    <syntax type="xml" marcxml="1"
-      identifier="info:srw/schema/1/marcxml-v1.1"
-      >
-      <name>marcxml</name>
-    </syntax>
-    <syntax type="xml" marcxml="1" stylesheet="MARC21slim2MODS.xsl"
-      identifier="http://www.loc.gov/mods"
-      >
-      <name>mods2</name>
-    </syntax>
-    <syntax type="xml" marcxml="1" stylesheet="MARC21slim2MODS3.xsl"
-      identifier="info:srw/schema/1/mods-v3.0"
-      >
-      <name>mods3</name>
-    </syntax>
-    <syntax type="none"/>
-    <syntax type="*" error="238"/>
-    <preinit>2</preinit>
-    <explain xmlns="http://explain.z3950.org/dtd/2.0/">
-       <serverInfo>
-       <host>localhost</host>
-       <port>9000</port>
-       <database>Default</database>
-       </serverInfo>
-    </explain>
-    <cql2rpn>pqf.properties</cql2rpn>
+    <authentication>adam/x</authentication>
   </target>
   <target name="*">
+    <target-timeout>60</target-timeout>
+    <client-timeout>30</client-timeout>
     <!-- everything else -->
   </target>
   <max-clients>50</max-clients>

@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.9 2004-10-20 20:35:33 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.10 2004-10-23 23:12:24 adam Exp $
    Copyright (c) 1998-2004, Index Data.
 
 This file is part of the yaz-proxy.
@@ -395,6 +395,7 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
 	proxy_host = m_default_target;
 	int client_idletime = -1;
 	const char *cql2rpn_fname = 0;
+	const char *authentication = 0;
 	url[0] = m_default_target;
 	url[1] = 0;
 	if (cfg)
@@ -407,7 +408,8 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
 				 &m_keepalive_limit_bw,
 				 &m_keepalive_limit_pdu,
 				 &pre_init,
-				 &cql2rpn_fname);
+				 &cql2rpn_fname,
+				 &authentication);
 	}
 	if (client_idletime != -1)
 	{
@@ -416,6 +418,8 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
 	}
 	if (cql2rpn_fname)
 	    m_cql2rpn.set_pqf_file(cql2rpn_fname);
+	if (authentication)
+	    set_proxy_authentication(authentication);
 	if (!url[0])
 	{
 	    yaz_log(LOG_LOG, "%sNo default target", m_session_str);
@@ -473,15 +477,17 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
 	    }
 	}
     }
-    else if (!c)
+    else if (!c && apdu->which == Z_APDU_initRequest
+	     && apdu->u.initRequest->idAuthentication == 0)
     {
-	// don't have a client session yet. Search in session w/o cookie
+	// anonymous sessions without cookie.
+	// if authentication is set it is NOT anonymous se we can't share them.
 	for (c = parent->m_clientPool; c; c = c->m_next)
 	{
-	    assert (c->m_prev);
-	    assert (*c->m_prev == c);
+	    assert(c->m_prev);
+	    assert(*c->m_prev == c);
 	    if (c->m_server == 0 && c->m_cookie == 0 && 
-		c->m_waiting == 0 &&
+		c->m_waiting == 0 && 
 		!strcmp(m_proxyTarget, c->get_hostname()))
 	    {
 		// found it in cache
@@ -528,6 +534,12 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
                     odr_strdup (odr_encode(), m_proxy_authentication);
             }
         }
+	else
+	{
+	    // the client use authentication. We set the keepalive PDU
+	    // to 0 so we don't cache it in releaseClient
+	    m_keepalive_limit_pdu = 0;
+	}
 	// go through list of clients - and find the lowest/oldest one.
 	Yaz_ProxyClient *c_min = 0;
 	int min_seq = -1;
@@ -2291,7 +2303,6 @@ void Yaz_Proxy::releaseClient()
         assert (m_client->m_waiting != 2);
 	// Tell client (if any) that no server connection is there..
 	m_client->m_server = 0;
-	m_invalid_session = 0;
 	m_client = 0;
     }
     else if (m_client)
@@ -2423,6 +2434,7 @@ void Yaz_Proxy::pre_init()
     int keepalive_limit_bw, keepalive_limit_pdu;
     int pre_init;
     const char *cql2rpn = 0;
+    const char *authentication = 0;
 
     Yaz_ProxyConfig *cfg = check_reconfigure();
 
@@ -2440,7 +2452,8 @@ void Yaz_Proxy::pre_init()
 					  &keepalive_limit_bw,
 					  &keepalive_limit_pdu,
 					  &pre_init,
-					  &cql2rpn) ; i++)
+					  &cql2rpn,
+					  &authentication) ; i++)
     {
 	if (pre_init)
 	{

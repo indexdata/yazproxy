@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy-config.cpp,v 1.7 2004-10-18 22:10:57 adam Exp $
+/* $Id: yaz-proxy-config.cpp,v 1.8 2004-10-23 23:12:24 adam Exp $
    Copyright (c) 1998-2004, Index Data.
 
 This file is part of the yaz-proxy.
@@ -47,7 +47,8 @@ class Yaz_ProxyConfigP {
 			    int *limit_bw, int *limit_pdu, int *limit_req,
 			    int *target_idletime, int *client_idletime,
 			    int *keepalive_limit_bw, int *keepalive_limit_pdu,
-			    int *pre_init, const char **cql2rpn);
+			    int *pre_init, const char **cql2rpn,
+			    const char **authentication);
     void return_limit(xmlNodePtr ptr,
 		      int *limit_bw, int *limit_pdu, int *limit_req);
     int check_type_1(ODR odr, xmlNodePtr ptr, Z_RPNQuery *query,
@@ -176,7 +177,8 @@ void Yaz_ProxyConfigP::return_target_info(xmlNodePtr ptr,
 					  int *keepalive_limit_bw,
 					  int *keepalive_limit_pdu,
 					  int *pre_init,
-					  const char **cql2rpn)
+					  const char **cql2rpn,
+					  const char **authentication)
 {
     *pre_init = 0;
     int no_url = 0;
@@ -239,6 +241,13 @@ void Yaz_ProxyConfigP::return_target_info(xmlNodePtr ptr,
 	    const char *t = get_text(ptr);
 	    if (t)
 		*cql2rpn = t;
+	}
+	if (ptr->type == XML_ELEMENT_NODE 
+	    && !strcmp((const char *) ptr->name, "authentication"))
+	{
+	    const char *t = get_text(ptr);
+	    if (t)
+		*authentication = t;
 	}
     }
 }
@@ -680,7 +689,8 @@ int Yaz_ProxyConfig::get_target_no(int no,
 				   int *keepalive_limit_bw,
 				   int *keepalive_limit_pdu,
 				   int *pre_init,
-				   const char **cql2rpn)
+				   const char **cql2rpn,
+				   const char **authentication)
 {
 #if HAVE_XSLT
     xmlNodePtr ptr;
@@ -707,7 +717,7 @@ int Yaz_ProxyConfig::get_target_no(int no,
 		    limit_bw, limit_pdu, limit_req,
 		    target_idletime, client_idletime,
 		    keepalive_limit_bw, keepalive_limit_pdu,
-		    pre_init, cql2rpn);
+		    pre_init, cql2rpn, authentication);
 		return 1;
 	    }
 	    i++;
@@ -904,7 +914,8 @@ void Yaz_ProxyConfig::get_target_info(const char *name,
 				      int *keepalive_limit_bw,
 				      int *keepalive_limit_pdu,
 				      int *pre_init,
-				      const char **cql2rpn)
+				      const char **cql2rpn,
+				      const char **authentication)
 {
 #if HAVE_XSLT
     xmlNodePtr ptr;
@@ -940,7 +951,7 @@ void Yaz_ProxyConfig::get_target_info(const char *name,
 	m_cp->return_target_info(ptr, url, limit_bw, limit_pdu, limit_req,
 				 target_idletime, client_idletime,
 				 keepalive_limit_bw, keepalive_limit_pdu,
-				 pre_init, cql2rpn);
+				 pre_init, cql2rpn, authentication);
     }
 #else
     *url = name;
