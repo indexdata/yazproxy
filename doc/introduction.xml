@@ -1,4 +1,4 @@
-<!-- $Id: introduction.xml,v 1.3 2004-04-15 12:04:01 adam Exp $ -->
+<!-- $Id: introduction.xml,v 1.4 2004-04-21 08:16:42 adam Exp $ -->
  <chapter id="introduction"><title>Introduction</title>
   <para>
    The <ulink url="http://www.indexdata.dk/yazproxy/">YAZ Proxy</ulink> is
@@ -78,7 +78,7 @@
    <para>
     Configuration and installation assistance and ongoing support is
     available for the YAZ Proxy.
-    For futher information about support or licensing options, please
+    For further information about support or licensing options, please
     contact David Dorman in the
     US (dorman at indexdata.com, 860-346-1237 or toll free 866-489-1568)
     or Sebastian Hammer in Denmark (quinn a indexdata.com, or +45 3341 0100)   
