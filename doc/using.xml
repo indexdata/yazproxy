@@ -129,7 +129,7 @@
     be achieved by creating a configuration with the following contents:
     <screen><![CDATA[
      <?xml version="1.0"?>
-     <proxy xmlns="http://indexdata.dk/yazproxy/schema/0.8/">
+     <proxy xmlns="http://indexdata.dk/yazproxy/schema/0.9/">
        <target name="foo" default="1">
          <url>foo.bar.com:18398</url>
          <log>client-apdu</log>
@@ -186,8 +186,8 @@
    </para>
     <screen><![CDATA[
 <?xml version="1.0"?>
-<!-- $Id: using.xml,v 1.5 2004-07-06 10:34:11 mike Exp $ -->
-<proxy xmlns="http://indexdata.dk/yazproxy/schema/0.8/">
+<!-- $Id: using.xml,v 1.6 2005-03-14 13:16:03 adam Exp $ -->
+<proxy xmlns="http://indexdata.dk/yazproxy/schema/0.9/">
   <target name="bagel">
     <url>indexdata.dk</url>
     <target-timeout>240</target-timeout>
