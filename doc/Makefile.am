@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.5 2004-04-15 12:04:01 adam Exp $
+## $Id: Makefile.am,v 1.6 2004-04-20 23:52:50 adam Exp $
 docdir=$(datadir)/doc/@PACKAGE@
 
 SUPPORTFILES = \
@@ -19,7 +19,7 @@ XMLFILES = \
  
 TOP=yazproxy.xml
 MANFILES=yazproxy.8
-HTMLFILES = \
+HTMLFILES =  \
  installation.html \
  introduction.html \
  license.html \
@@ -38,7 +38,8 @@ HTMLFILES = \
  using.html \
  windows.html \
  yazproxy-man.html \
- yazproxy.html 
+ yazproxy-schema.html \
+ yazproxy.html
 
 doc_DATA = $(HTMLFILES) yazproxy.pdf id.png yaz.css
 
