@@ -1,5 +1,5 @@
-/* $Id: yaz-proxy-main.cpp,v 1.7 2004-12-13 20:52:33 adam Exp $
-   Copyright (c) 1998-2004, Index Data.
+/* $Id: yaz-proxy-main.cpp,v 1.8 2005-01-11 20:50:28 adam Exp $
+   Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
 
@@ -19,20 +19,23 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 02111-1307, USA.
  */
 
-#ifdef WIN32
-#else
 #include <signal.h>
+#if HAVE_UNISTD_H
 #include <unistd.h>
-#include <pwd.h>
 #endif
+#if HAVE_SYS_TYPES_H
 #include <sys/types.h>
-
-#include <stdarg.h>
-
-#if HAVE_GETRLIMIT
+#endif
+#if HAVE_SYS_TIME_H
 #include <sys/time.h>
+#endif
+#if HAVE_SYS_RESOURCE_H
 #include <sys/resource.h>
 #endif
+
+#include <pwd.h>
+
+#include <stdarg.h>
 
 #include <yaz/log.h>
 #include <yaz/options.h>
