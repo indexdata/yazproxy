@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy-main.cpp,v 1.4 2004-04-22 07:46:21 adam Exp $
+/* $Id: yaz-proxy-main.cpp,v 1.5 2004-10-23 23:15:48 adam Exp $
    Copyright (c) 1998-2004, Index Data.
 
 This file is part of the yaz-proxy.
@@ -210,8 +210,8 @@ static void child_run(Yaz_SocketManager *m, int run)
 	limit_data.rlim_cur = no_limit_files;
 	limit_data.rlim_max = no_limit_files;
 	
-	yaz_log(LOG_LOG, "0 setrlimit NOFILE cur=%d max=%d",
-		limit_data.rlim_cur, limit_data.rlim_max);
+	yaz_log(LOG_LOG, "0 setrlimit NOFILE cur=%ld max=%ld",
+		(long) limit_data.rlim_cur, (long) limit_data.rlim_max);
 	if (setrlimit(RLIMIT_NOFILE, &limit_data))
 	    yaz_log(LOG_ERRNO|LOG_WARN, "setrlimit");
 #else
@@ -257,8 +257,8 @@ static void child_run(Yaz_SocketManager *m, int run)
 #if HAVE_GETRLIMIT
     struct rlimit limit_data;
     getrlimit(RLIMIT_NOFILE, &limit_data);
-    yaz_log(LOG_LOG, "0 getrlimit NOFILE cur=%d max=%d",
-	    limit_data.rlim_cur, limit_data.rlim_max);
+    yaz_log(LOG_LOG, "0 getrlimit NOFILE cur=%ld max=%ld",
+	    (long) limit_data.rlim_cur, (long) limit_data.rlim_max);
 #endif
     
     while (m->processEvent() > 0)
