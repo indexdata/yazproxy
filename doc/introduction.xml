@@ -1,4 +1,4 @@
-<!-- $Id: introduction.xml,v 1.4 2004-04-21 08:16:42 adam Exp $ -->
+<!-- $Id: introduction.xml,v 1.5 2004-04-23 16:25:18 adam Exp $ -->
  <chapter id="introduction"><title>Introduction</title>
   <para>
    The <ulink url="http://www.indexdata.dk/yazproxy/">YAZ Proxy</ulink> is
@@ -9,13 +9,8 @@
    <itemizedlist>
     <listitem>
      <para>
-      Configurable logging
-     </para>
-    </listitem>
-
-    <listitem>
-     <para>
-      SRU/SRW server function, to allow any Z39.50 server to also support
+      <ulink url="http://www.loc.gov/z3950/agency/zing/srw/">SRW/SRU</ulink>
+      server function, to allow any Z39.50 server to also support
       the <ulink url="http://www.loc.gov/z3950/agency/zing/">ZiNG</ulink>
       protocols
      </para>
@@ -43,9 +38,11 @@
 
     <listitem>
      <para>
-      XML support -- MARC records can be converted to MARCXML, and
-      XSLT-transformations allow the proxy to support arbitrary
-      retrieval schemas in XML
+      <ulink url="http://www.w3.org/XML/">XML</ulink> support -- 
+      MARC records can be converted to 
+      <ulink url="http://www.loc.gov/standards/marcxml/">MARCXML</ulink>, and
+      <ulink url="http://www.w3.org/TR/xslt">XSLT</ulink>-transformations
+      allow the proxy to support arbitrary retrieval schemas in XML
      </para>
     </listitem>
 
@@ -53,6 +50,12 @@
      <para>
       Load governor function limits requests from aggressive
       batch-mode clients
+     </para>
+    </listitem>
+
+    <listitem>
+     <para>
+      Configurable logging
      </para>
     </listitem>
 

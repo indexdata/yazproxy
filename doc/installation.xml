@@ -1,9 +1,10 @@
 <chapter id="installation">
-  <!-- $Id: installation.xml,v 1.6 2004-04-23 16:10:24 adam Exp $ -->
+  <!-- $Id: installation.xml,v 1.7 2004-04-23 16:25:17 adam Exp $ -->
   <title>Installation</title>
   <para>
    You need a C++ compiler to compile and use YAZ proxy.
-   The software was implemented using GCC so we know that works
+   The software was implemented using
+   <ulink url="http://gcc.gnu.org/">GCC</ulink> so we know that works
    well with YAZ proxy. From time to time the software has been
    compiled on Windows using Visual C++. Other compilers should
    work too. Let us know of portability problems, etc. with
@@ -15,14 +16,16 @@
    <ulink url="http://indexdata.dk/yazplusplus/">YAZ++</ulink>
    toolkits.
    You need to install these first.
-   For some platforms there are binary packages for YAZ/YAZ++.
+   For some platforms there are binary packages available for YAZ/YAZ++.
   </para>
   <para>
    We also highly recommend that
    <ulink url="http://xmlsoft.org/">libxml2</ulink> and
    <ulink url="http://xmlsoft.org/XSLT/">libXSLT</ulink> are installed.
    YAZ must be configured with libxml2 support.
-   If not, SRW/SRU is not supported.
+   If not, 
+   <ulink url="http://www.loc.gov/z3950/agency/zing/srw/">SRW/SRU</ulink>
+   is not supported.
    The YAZ Proxy uses libXSLT for record conversions via XSLT.
   </para>
   <section id="unix">
