@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- $Id: config.xml,v 1.4 2004-07-02 12:37:56 adam Exp $ -->
+<!-- $Id: config.xml,v 1.5 2004-10-18 21:49:21 adam Exp $ -->
 <proxy xmlns="http://indexdata.dk/yazproxy/schema/0.8/"
  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
  xsi:schemaLocation="http://indexdata.dk/yazproxy/schema/0.8/ yazproxy.xsd"
@@ -28,9 +28,9 @@
     <preinit>0</preinit>
     <explain xmlns="http://explain.z3950.org/dtd/2.0/">
        <serverInfo>
-       <host>indexdata.dk</host>
+       <host>localhost</host>
        <port>9000</port>
-       <database>Default</database>
+       <database>gils</database>
        </serverInfo>
     </explain>
     <cql2rpn>pqf.properties</cql2rpn>
@@ -72,6 +72,13 @@
     <syntax type="none"/>
     <syntax type="*" error="238"/>
     <preinit>2</preinit>
+    <explain xmlns="http://explain.z3950.org/dtd/2.0/">
+       <serverInfo>
+       <host>localhost</host>
+       <port>9000</port>
+       <database>Default</database>
+       </serverInfo>
+    </explain>
     <cql2rpn>pqf.properties</cql2rpn>
   </target>
   <target name="*">

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!-- XML Schema for YAZ proxy config file.
-    $Id: yazproxy.xsd,v 1.4 2004-08-29 13:01:43 adam Exp $
+    $Id: yazproxy.xsd,v 1.5 2004-10-18 21:49:22 adam Exp $
 -->
 <xs:schema
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
@@ -36,6 +36,7 @@
    </xs:sequence>
    <xs:attribute name="default" type="xs:string" use="optional"/>
    <xs:attribute name="name" type="xs:string"/>
+   <xs:attribute name="database" type="xs:string"/>
   </xs:complexType>
  </xs:element>
 
