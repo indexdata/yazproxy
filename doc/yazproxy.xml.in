@@ -3,11 +3,12 @@
                     "@DTD_DIR@/docbookx.dtd" [
      <!ENTITY chap-introduction SYSTEM "introduction.xml">
      <!ENTITY chap-installation SYSTEM "installation.xml">
-     <!ENTITY chap-proxy SYSTEM "proxy.xml">
+     <!ENTITY chap-using SYSTEM "using.xml">
+     <!ENTITY chap-reference SYSTEM "reference.xml">
      <!ENTITY yaz-proxy-ref SYSTEM "yaz-proxy-ref.xml">
      <!ENTITY app-license SYSTEM "license.xml">
 ]>
-<!-- $Id: yazproxy.xml.in,v 1.2 2004-04-11 11:58:34 adam Exp $ -->
+<!-- $Id: yazproxy.xml.in,v 1.3 2004-04-15 12:04:01 adam Exp $ -->
 <book id="yazproxy">
  <bookinfo>
   <title>YAZ proxy User's Guide and Reference</title>
@@ -33,7 +34,7 @@
     This manual covers version @VERSION@.
     </simpara>
    <simpara>
-    CVS ID: $Id: yazproxy.xml.in,v 1.2 2004-04-11 11:58:34 adam Exp $
+    CVS ID: $Id: yazproxy.xml.in,v 1.3 2004-04-15 12:04:01 adam Exp $
    </simpara>
    <simpara>
     <inlinemediaobject>
@@ -47,7 +48,8 @@
  
  &chap-introduction;
  &chap-installation;
- &chap-proxy;
+ &chap-using;
+ &chap-reference;
  &app-license;
 </book>
 

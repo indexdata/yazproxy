@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.4 2004-04-11 14:58:02 adam Exp $
+## $Id: Makefile.am,v 1.5 2004-04-15 12:04:01 adam Exp $
 docdir=$(datadir)/doc/@PACKAGE@
 
 SUPPORTFILES = \
@@ -10,7 +10,8 @@ SUPPORTFILES = \
 XMLFILES = \
  introduction.xml \
  installation.xml \
- proxy.xml \
+ reference.xml \
+ using.xml \
  yaz-proxy-ref.xml \
  yaz-proxy-man.sgml \
  license.xml \
@@ -26,16 +27,18 @@ HTMLFILES = \
  otherinfo-encoding.html \
  proxy-config-file.html \
  proxy-keepalive.html \
+ proxy-reference.html \
  proxy-target.html \
  proxy-usage.html \
- proxy.html \
  query-cache.html \
  query-validation.html \
  record-cache.html \
  record-validation.html \
+ support.html \
+ using.html \
  windows.html \
- yazproxy-ref.html \
- yazproxy.html
+ yazproxy-man.html \
+ yazproxy.html 
 
 doc_DATA = $(HTMLFILES) yazproxy.pdf id.png yaz.css
 

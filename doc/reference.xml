@@ -1,139 +1,26 @@
- <chapter id="proxy">
-  <title>The YAZ Proxy</title>
-  <para>
-   The YAZ proxy is a transparent SRW/SRU/Z39.50-to-Z39.50 gateway.
-   That is, it is a SRW/SRU/Z39.50 server which has as its back-end a
-   Z39.50 client that forwards requests on to another server (known as 
-   the <firstterm>backend target</firstterm>.)
-  </para>
-  <para>
-   -- All config directives --
-   -- SRW/SRU ..
-   -- Example config
-   -- Mention XSLT conversion
-  </para>
-  <para>
-   The YAZ Proxy is useful for debugging SRW/SRU/Z39.50 software, logging
-   APDUs, redirecting Z39.50 packages through firewalls, etc.
-   Furthermore, it offers facilities that often
-   boost performance for connectionless Z39.50 clients such
-   as web gateways.
-  </para>
-  <para>
-   Unlike most other server software, the proxy runs single-threaded,
-   single-process. Every I/O operation
-   is non-blocking so it is very lightweight and extremely fast.
-   It does not store any state information on the hard drive,
-   except any log files you ask for.
-  </para>
-
-  <section id="proxy-example">
-   <title>Example: Using the Proxy to Log APDUs</title>
+ <chapter id="proxy-reference">
+  <title>Proxy Reference</title>
+  <section id="proxy-operation">
+   <title>Operating Environment</title>
    <para>
-    Suppose you use a commercial Z39.50 client for which you do not
-    have source code, and it's not behaving how you think it should
-    when running against some specific server that you have no control
-    over.  One way to diagnose the problem is to find out what packets
-    (APDUs) are being sent and received, but not all client
-    applications have facilities to do APDU logging.
+    The YAZ proxy is a single program. After startup it spawns 
+    a child process (except on Windows or if option -X is given). 
+    The child process is the core of the proxy and it handles all
+    communication with clients and servers. The parent process
+    will restart the child process if it dies unexpectedly and report
+    the reason. For options for YAZ proxy,
+    see <xref linkend="proxy-usage"/>.
    </para>
    <para>
-    No problem.  Run the proxy on a friendly machine, get it to log
-    APDUs, and point the errant client at the proxy instead of
-    directly at the server that's causing it problems.
+    As an option the proxy may change user identity to a less priviledged
+    user.
    </para>
-   <para>
-    Suppose the server is running on <literal>foo.bar.com</literal>,
-    port 18398.  Run the proxy on the machine of your choice, say
-    <literal>your.company.com</literal> like this:
-   </para>
-   <screen>
-    yazproxy -a - -t tcp:foo.bar.com:18398 tcp:@:9000
-   </screen>
-   <para>
-    (The <literal>-a -</literal> option requests APDU logging on
-    standard output, <literal>-t tcp:foo.bar.com:18398</literal>
-    specifies where the backend target is, and
-    <literal>tcp:@:9000</literal> tells the proxy to listen on port
-    9000 and accept connections from any machine.)
-   </para>
-   <para>
-    Now change your client application's configuration so that instead
-    of connecting to <literal>foo.bar.com</literal> port 18398, it
-    connects to <literal>your.company.com</literal> port 9000, and
-    start it up.  It will work exactly as usual, but all the packets
-    will be sent via the proxy, which will generate a log like this:
-   </para>
-   <screen><![CDATA[
-    decode choice
-    initRequest {
-        referenceId OCTETSTRING(len=4) 69 6E 69 74
-        protocolVersion BITSTRING(len=1)
-        options BITSTRING(len=2)
-        preferredMessageSize 1048576
-        maximumRecordSize 1048576
-        implementationId 'Mike Taylor (id=169)'
-        implementationName 'Net::Z3950.pm (Perl)'
-        implementationVersion '0.31'
-    }
-    encode choice
-    initResponse {
-        referenceId OCTETSTRING(len=4) 69 6E 69 74
-        protocolVersion BITSTRING(len=1)
-        options BITSTRING(len=2)
-        preferredMessageSize 1048576
-        maximumRecordSize 1048576
-        result TRUE
-        implementationId '81'
-        implementationName 'GFS/YAZ / Zebra Information Server'
-        implementationVersion 'YAZ 1.9.1 / Zebra 1.3.3'
-    }
-    decode choice
-    searchRequest {
-        referenceId OCTETSTRING(len=1) 30
-        smallSetUpperBound 0
-        largeSetLowerBound 1
-        mediumSetPresentNumber 0
-        replaceIndicator TRUE
-        resultSetName 'default'
-        databaseNames {
-            'gils'
-        }
-        {
-            smallSetElementSetNames choice
-            generic 'F'
-        }
-        {
-            mediumSetElementSetNames choice
-            generic 'B'
-        }
-        preferredRecordSyntax OID: 1 2 840 10003 5 10
-        {
-            query choice
-            type_1 {
-                attributeSetId OID: 1 2 840 10003 3 1
-                RPNStructure choice
-                {
-                    simple choice
-                    attributesPlusTerm {
-                        attributes {
-                        }
-                        term choice
-                        general OCTETSTRING(len=7) 6D 69 6E 65 72 61 6C
-                    }
-                }
-            }
-        }
-    }
-]]>
-   </screen>
   </section>
-  
   <section id="proxy-target">
-   <title>Specifying the Backend Target</title>
+   <title>Specifying the Backend Server</title>
    <para>
     When the proxy receives a Z39.50 Initialize Request from a Z39.50
-    client, it determines the backend target by the following rules:
+    client, it determines the backend server by the following rules:
     <orderedlist>
      <listitem>
       <para>If the <literal>InitializeRequest</literal> PDU from the
@@ -141,7 +28,7 @@
        <link linkend="otherinfo-encoding"><literal>otherInfo</literal></link>
        element with OID
        <literal>1.2.840.10003.10.1000.81.1</literal>, then the
-       contents of that element specify the target to be used, in the
+       contents of that element specify the server to be used, in the
        usual YAZ address format (typically
        <literal>tcp:<parameter>hostname</parameter>:<parameter>port</parameter></literal>)
        as described in
@@ -149,11 +36,18 @@
 	>the Addresses section of the YAZ manual</ulink>.
       </para>
      </listitem>
+
      <listitem>
-      <para>Otherwise, the Proxy uses the default target, if one was
+      <para>Otherwise, the Proxy uses the default server, if one was
+       specified in the proxy configuration file. See
+       <xref linkend="proxy-config-target"/>.
+      </para>
+     </listitem>
+
+     <listitem>
+      <para>Otherwise, the Proxy uses the default server, if one was
        specified on the command-line with the <literal>-t</literal>
-       option. A default target can also be specified in the 
-       XML Config file.
+       option.
       </para>
      </listitem>
      <listitem>
@@ -168,7 +62,7 @@
    <title>Keep-alive Facility</title>
    <para>
     The keep-alive is a facility where the proxy keeps the connection to the
-    backend - even if the client closes the connection to the proxy.
+    backend server - even if the client closes the connection to the proxy.
    </para>
    <para>
     If a new or another client connects to the proxy again and requests the
@@ -192,6 +86,432 @@
     Clients that do not send a cookie as part of the initialize request
     may still better performance, since the init handshake is saved.
    </para>
+   <para>
+    Refer to <xref linkend="proxy-config-keepalive"/> on how to setup
+    configuration parameters for keepalive.
+    </para>
+  </section>
+  
+  <section id="proxy-config-file">
+   <title>Proxy Configuration File</title>
+   <para>
+    The Proxy may read a configuration file using option
+    <literal>-c</literal> followed by the filename of a config file.
+   </para>
+   <para>
+    The config file is XML based. The YAZ proxy must be compiled 
+    with <ulink url="http://www.xmlsoft.org/">libxml2</ulink> and
+    <ulink url="http://xmlsoft.org/XSLT/">libXSLT</ulink> support in
+    order for the config file facility to be enabled.
+   </para>
+   <tip>
+    <para>To check for a config file to be well-formed, the yazproxy may
+     be invoked without specifying a listening port, i.e.
+     <screen>
+      yazproxy -c myconfig.xml
+     </screen>
+     If this does not produce errors, the file is well-formed.
+    </para>
+   </tip>
+   <section id="proxy-config-header">
+    <title>Proxy Configuration Header</title>
+    <para>
+     The proxy config file must have a root element called
+     <literal>proxy</literal>. All information except an optional XML
+     header must be stored within the <literal>proxy</literal> element.
+    </para>
+    <screen>
+     &lt;?xml version="1.0"?>
+      &lt;proxy>
+       &lt;!-- content here .. -->
+      &lt;/proxy>
+    </screen>
+   </section>
+   <section id="proxy-config-target">
+    <title>target</title>
+    <para>
+     The element <literal>target</literal> which may be repeated zero
+     or more times with parent element <literal>proxy</literal> contains
+     information about each backend target.
+     The <literal>target</literal> element have two attributes:
+     <literal>name</literal> which holds the logical name of the backend
+     target (required) and <literal>default</literal> (optional) which
+     (when given) specifies that the backend target is the default target -
+     equivalent to command line option <literal>-t</literal>.
+    </para>
+    <para>
+     <screen>
+     &lt;?xml version="1.0"?>
+     &lt;proxy>
+      &lt;target name="server1" default="1">
+       &lt;!-- description of server1 .. -->
+      &lt;/target>
+      &lt;target name="server2">
+       &lt;!-- description of server2 .. -->
+      &lt;/target>
+     &lt;/proxy>
+     </screen>
+    </para>
+   </section>
+   <section id="proxy-config-url">
+    <title>url</title>
+    <para>
+     The <literal>url</literal> which may be repeated one or more times
+     should be the child of the <literal>target</literal> element.
+     The CDATA of <literal>url</literal> is the Z-URL of the backend.
+    </para>
+    <para>
+     Multiple <literal>url</literal> element may be used. In that case, then
+     a client initiates a session, the proxy chooses the URL with the lowest
+     number of active sessions, thereby distributing the load. It is
+     assumed that each URL represents the same database (data).
+    </para>
+   </section>
+
+   <section id="proxy-config-target-timeout">
+    <title>target-timeout</title>
+    <para>
+     The element <literal>target-timeout</literal> is the child of element
+     <literal>target</literal> and specifies the amount in seconds before
+     a target session is shut down.
+    </para>
+    <para>
+     This can also be specified on the command line by using option
+     <literal>-T</literal>. Refer to OPTIONS.
+    </para>
+   </section>
+
+   <section id="proxy-config-client-timeout">
+    <title>client-timeout</title>
+    <para>
+     The element <literal>client-timeout</literal> is the child of element
+     <literal>target</literal> and specifies the amount in seconds before
+     a client session is shut down.
+     </para>
+    <para>
+     This can also be specified on the command line by using option
+     <literal>-i</literal>. Refer to OPTIONS.
+    </para>
+   </section>
+
+   <section id="proxy-config-keepalive">
+    <title>keepalive</title>
+    <para>The <literal>keepalive</literal> element holds information about
+     the keepalive Z39.50 sessions. Keepalive sessions are proxy-to-backend
+     sessions that is no longer associated with a client session.
+    </para>
+    <para>The <literal>keepalive</literal> element which is the child of
+     the <literal>target</literal>holds two elements:
+     <literal>bandwidth</literal> and <literal>pdu</literal>.
+     The <literal>bandwidth</literal> is the maximum total bytes
+     transferred to/from the target. If a target session exceeds this
+     limit, it is shut down (and no longer kept alive). 
+     The <literal>pdu</literal> is the maximum number of requests sent
+     to the target. If a target session exceeds this limit, it is
+     shut down. The idea of these two limits is that avoid very long
+     sessions that use resources in a backend (that leaks!).
+    </para>
+    <para>
+     The following sets maximum number of bytes transferred in a
+     target session to 1 MB and maxinum of requests to 400.
+     <screen>
+      &lt;keepalive>
+       &lt;bandwidth>1048576&lt;/bandwidth>
+       &lt;retrieve>400&lt;/retrieve>
+      &lt;/keepalive>
+     </screen>
+    </para>
+   </section>
+   <section id="proxy-config-limit">
+    <title>limit</title>
+    <para>
+     The <literal>limit</literal> section specifies bandwidth/pdu requests
+     limits for an active session.
+     The proxy records bandwidth/pdu requests during the last 60 seconds
+     (1 minute). The <literal>limit</literal> may include the
+     elements <literal>bandwidth</literal>, <literal>pdu</literal>,
+     and <literal>retrieve</literal>. The <literal>bandwidth</literal>
+     measures the number of bytes transferred within the last minute.
+     The <literal>pdu</literal> is the number of requests in the last
+     minute. The <literal>retrieve</literal> holds the maximum records to
+     be retrieved in one Present Request.
+    </para>
+    <para>
+     If a bandwidth/pdu limit is reached the proxy will postpone the
+     requests to the target and wait one or more seconds. The idea of the
+     limit is to ensure that clients that downloads hundreds or thousands of
+     records do not hurt other users.
+    </para>
+    <para>
+     The following sets maximum number of bytes transferred per minute to
+     500Kbytes and maximum number of requests to 40.
+     <screen>
+      &lt;limit>
+       &lt;bandwidth>524288&lt;/bandwidth>
+       &lt;retrieve>40&lt;/retrieve>
+      &lt;/limit>
+     </screen>
+    </para>
+    <note>
+     <para>
+      Typically the limits for keepalive are much higher than
+      those for session minute average.
+     </para>
+    </note>
+   </section>
+   
+   <section id="proxy-config-attribute">
+    <title>attribute</title>
+    <para>
+     The <literal>attribute</literal> element specifies accept or reject
+     or a particular attribute type, value pair.
+     Well-behaving targets will reject unsupported attributes on their
+     own. This feature is useful for targets that do not gracefully
+     handle unsupported attributes.
+    </para>
+    <para>
+     Attribute elements may be repeated. The proxy inspects the attribute
+     specifications in the order as specified in the configuration file.
+     When a given attribute specification matches a given attribute list
+     in a query, the proxy takes appropriate action (reject, accept).
+    </para>
+    <para>
+     If no attribute specifications matches the attribute list in a query,
+     it is accepted.
+    </para>
+    <para>
+     The <literal>attribute</literal> element has two required attributes:
+     <literal>type</literal> which is the Attribute Type-1 type, and
+     <literal>value</literal> which is the Attribute Type-1 value.
+     The special value/type <literal>*</literal> matches any attribute
+     type/value. A value may also be specified as a list with each
+     value separated by comma, a value may also be specified as a
+     list: low value - dash - high value.
+    </para>
+    <para>
+     If attribute <literal>error</literal> is given, that holds a 
+     Bib-1 diagnostic which is sent to the client if the particular
+     type, value is part of a query.
+    </para>
+    <para>
+     If attribute <literal>error</literal> is not given, the attribute
+     type, value is accepted and passed to the backend target.
+    </para>
+    <para>
+     A target that supports use attributes 1,4, 1000 through 1003 and
+     no other use attributes, could use the following rules:
+     <screen>
+      &lt;attribute type="1" value="1,4,1000-1003">
+      &lt;attribute type="1" value="*" error="114"/>
+     </screen>
+    </para>
+   </section>
+
+   <!-- TODO -->
+   <!--
+
+    <syntax type="xml" marcxml="1" stylesheet="MARC21slim2MODS.xsl"
+      identifier="http://www.loc.gov/mods"
+      >
+      <title>MODS v2</title>
+      <name>mods2</name>
+    </syntax>
+
+
+-->
+   <section id="proxy-config-syntax">
+    <title>syntax</title>
+    <para>
+     The <literal>syntax</literal> element specifies accept or reject
+     or a particular record syntax request from the client.
+    </para>
+    <para>
+     The <literal>syntax</literal> has one required attribute:
+     <literal>type</literal> which is the Preferred Record Syntax.
+    </para>
+    <para>
+     If attribute <literal>error</literal> is given, that holds a 
+     Bib-1 diagnostic which is sent to the client if the particular
+     record syntax is part of a present - or search request.
+    </para>
+    <para>
+     If attribute <literal>error</literal> is not given, the record syntax
+     is accepted and passed to the backend target.
+    </para>
+    <para>
+     If attribute <literal>marcxml</literal> is given, the proxy will
+     perform MARC21 to MARCXML conversion. In this case the
+     <literal>type</literal> should be XML. The proxy will use
+     preferred record syntax USMARC/MARC21 against the backend target.
+    </para>
+    <para>To accept USMARC and offer MARCXML XML records but reject
+     all other requests the following configuration could be used:
+     <screen>
+      &lt;proxy>
+       &lt;target name="mytarget">
+       &lt;syntax type="usmarc"/>
+        &lt;syntax type="xml" marcxml="1"/>
+        &lt;syntax type="*" error="238"/>
+       &lt;/target>
+      &lt;/proxy>
+     </screen>
+    </para>
+   </section>
+
+   <section id="proxy-config-explain">
+    <title>explain</title>
+    <para>
+     The <literal>explain</literal> element includes Explain information
+     for SRW/SRU about the server in the target section. This
+     information must have a <literal>serverInfo</literal> element
+     with a database that this target must be available as (URL path).
+     For example,
+     <screen><![CDATA[
+      <explain xmlns="http://explain.z3950.org/dtd/2.0/">     
+        <serverInfo>
+          <host>myhost.org</host>
+          <port>8000</port>
+          <database>mydatabase</database>
+        </serverInfo>
+        <!-- remaining Explain stuff -->
+      </explain>
+      ]]>
+     </screen>
+     In the above case, the SRW/SRU service is available as
+     <literal>http://myhost.org:8000/mydatabase</literal>.
+    </para>
+    
+   </section>
+
+   <section id="proxy-config-cql2rpn">
+    <title>cql2rpn</title>
+    <para>
+     The CDATA of <literal>cql2rpn</literal> refers to CQL to a RPN conversion
+     file - for the server in the target section. This element
+     is required for SRW/SRU searches to operate against a Z39.50
+     server that doesn't support CQL. Most Z39.50 servers only support
+     Type-1/RPN so this is usually required.
+     See YAZ documentation for more information about the
+     <ulink url="http://indexdata.dk/yaz/doc/tools.tkl#tools.cql.pqf">CQL
+      to PQF</ulink> conversion. See also the
+     <filename>pqf.properties</filename> in the <filename>etc</filename> 
+     (or <replaceable>prefix/share/yazproxy</replaceable>)
+     directory of the YAZ proxy.
+    </para>
+   </section>
+   
+   <section id="proxy-config-preinit">
+    <title>preinit</title>
+    <para>
+     The element <literal>preinit</literal> is the child of element
+     <literal>target</literal> and specifies the number of spare
+     connection to a target. By default no spare connection are
+     created by the proxy. If the proxy uses a target exclusive or
+     a lot, the preinit session will ensure that target sessions
+     have been made before the client makes a connection and will therefore
+     reduce the connect-init handshake dramatically. Never set this to
+     more than 5.
+    </para>
+   </section>
+
+   <section id="proxy-config-max-clients">
+    <title>max-clients</title>
+    <para>
+     The element <literal>max-clients</literal> is the child of element
+     <literal>proxy</literal> and specifies the total number of
+     allowed connections to targets (all targets). If this limit
+     is reached the proxy will close the least recently used connection.
+    </para>
+    <para>
+     Note, that many Unix systems impose a system on the number of
+     open files allowed in a single process, typically in the 
+     range 256 (Solaris) to 1024 (Linux).
+     The proxy uses 2 sockets per session + a few files
+     for logging. As a rule of thumb, ensure that 2*max-clients + 5
+     can be opened by the proxy process.
+    </para>
+    <tip>
+     <para>
+      Using the <ulink url="http://www.gnu.org/software/bash/bash.html">
+       bash</ulink> shell, you can set the limit with
+      <literal>ulimit -n</literal><replaceable>no</replaceable>. 
+       Use <literal>ulimit -a</literal> to display limits.
+     </para>
+     </tip>
+   </section>
+
+   <section id="proxy-config-log">
+    <title>log</title>
+    <para>
+     The element <literal>log</literal> is the child of element
+     <literal>proxy</literal> and specifies what to be logged by the
+     proxy.
+     </para>
+    <para>
+     Specify the log file with command-line option <literal>-l</literal>.
+    </para>
+    <para>
+     The text of the <literal>log</literal> element is a sequence of
+     options separated by white space. See the table below:
+     <table frame="top"><title>Logging options</title>
+      <tgroup cols="2">
+       <colspec colwidth="1*"/>
+       <colspec colwidth="2*"/><thead>
+	<row>
+	 <entry>Option</entry>
+	 <entry>Description</entry>
+	</row>
+       </thead>
+       <tbody>
+	<row>
+	 <entry><literal>client-apdu</literal></entry>
+	 <entry>
+	  Log APDUs as reported by YAZ for the
+	  communication between the client and the proxy.
+	  This facility is equivalent to the APDU logging that
+	  happens when using option <literal>-a</literal>, however
+	  this tells the proxy to log in the same file as given
+	  by <literal>-l</literal>.
+	 </entry>
+	</row>
+	<row>
+	 <entry><literal>server-apdu</literal></entry>
+	 <entry>
+	  Log APDUs as reported by YAZ for the
+	  communication between the proxy and the server (backend).
+	 </entry>
+	</row>
+	<row>
+	 <entry><literal>clients-requests</literal></entry>
+	 <entry>
+	  Log a brief description about requests transferred between
+	  the client and the proxy. The name of the request and the size
+	  of the APDU is logged.
+	 </entry>
+	</row>
+	<row>
+	 <entry><literal>server-requests</literal></entry>
+	 <entry>
+	  Log a brief description about requests transferred between
+	  the proxy and the server (backend). The name of the request
+	  and the size of the APDU is logged.
+	 </entry>
+	</row>
+       </tbody>
+      </tgroup>
+     </table>
+    </para>
+    <para>
+     To log communication in details between the proxy and the backend, th
+     following configuration could be used:
+     <screen><![CDATA[
+      <target name="mytarget">
+       <log>server-apdu server-requests</log>
+      </target>
+      ]]>
+     </screen>
+    </para>
+   </section>
   </section>
   
   <section id="query-cache">
@@ -242,7 +562,7 @@
    </para>
   </section>
   
-  <section id="record-validation">
+   <section id="record-validation">
    <title>Record Syntax Validation</title>
    <para>
     The proxy may be configured to accept, reject or convert records.
@@ -267,384 +587,16 @@
     but this has not yet been implemented.
    </para>
   </section>
-
-  <section id="proxy-config-file">
-   <title>Proxy Configuration File</title>
-   <para>
-    The Proxy may read a configuration file using option
-    <literal>-c</literal> followed by the filename of a config file.
-    </para>
-   <para>
-    The config file is XML based. The YAZ proxy must be compiled 
-    with <ulink url="http://www.xmlsoft.org/">libxml2</ulink> and
-    <ulink url="http://xmlsoft.org/XSLT/">libXSLT</ulink> support in
-    order for the config file facility to be enabled.
-   </para>
-   <tip>
-    <para>To check for a config file to be well-formed, the yazproxy may
-     be invoked without specifying a listening port, i.e.
-     <screen>
-      yazproxy -c myconfig.xml
-     </screen>
-     If this does not produce errors, the file is well-formed.
-    </para>
-   </tip>
-   <section id="proxy-config-header">
-    <title>Proxy Configuration Header</title>
-    <para>
-     The proxy config file must have a root element called
-     <literal>proxy</literal>. All information except an optional XML
-     header must be stored within the <literal>proxy</literal> element.
-    </para>
-    <screen>
-     &lt;?xml version="1.0"?>
-     &lt;proxy>
-      &lt;!-- content here .. -->
-     &lt;/proxy>
-    </screen>
-    </section>
-   <section id="proxy-config-target">
-    <title>Configuration: target</title>
-    <para>
-     The element <literal>target</literal> which may be repeated zero
-     or more times with parent element <literal>proxy</literal> contains
-     information about each backend target.
-     The <literal>target</literal> element have two attributes:
-     <literal>name</literal> which holds the logical name of the backend
-     target (required) and <literal>default</literal> (optional) which
-     (when given) specifies that the backend target is the default target -
-     equivalent to command line option <literal>-t</literal>.
-    </para>
-    <para>
-     <screen>
-     &lt;?xml version="1.0"?>
-     &lt;proxy>
-      &lt;target name="server1" default="1">
-       &lt;!-- description of server1 .. -->
-      &lt;/target>
-      &lt;target name="server2">
-       &lt;!-- description of server2 .. -->
-      &lt;/target>
-     &lt;/proxy>
-     </screen>
-    </para>
-   </section>
-   <section id="proxy-config-url">
-    <title>Configuration:url</title>
-    <para>
-     The <literal>url</literal> which may be repeated one or more times
-     should be the child of the <literal>target</literal> element.
-     The CDATA of <literal>url</literal> is the Z-URL of the backend.
-    </para>
-    <para>
-     Multiple <literal>url</literal> element may be used. In that case, then
-     a client initiates a session, the proxy chooses the URL with the lowest
-     number of active sessions, thereby distributing the load. It is
-     assumed that each URL represents the same database (data).
-    </para>
-   </section>
-   <section id="proxy-config-keepalive">
-    <title>Configuration: keepalive</title>
-    <para>The <literal>keepalive</literal> element holds information about
-     the keepalive Z39.50 sessions. Keepalive sessions are proxy-to-backend
-     sessions that is no longer associated with a client session.
-    </para>
-    <para>The <literal>keepalive</literal> element which is the child of
-     the <literal>target</literal>holds two elements:
-     <literal>bandwidth</literal> and <literal>pdu</literal>.
-     The <literal>bandwidth</literal> is the maximum total bytes
-     transferred to/from the target. If a target session exceeds this
-     limit, it is shut down (and no longer kept alive). 
-     The <literal>pdu</literal> is the maximum number of requests sent
-     to the target. If a target session exceeds this limit, it is
-     shut down. The idea of these two limits is that avoid very long
-     sessions that use resources in a backend (that leaks!).
-    </para>
-    <para>
-     The following sets maximum number of bytes transferred in a
-     target session to 1 MB and maxinum of requests to 400.
-     <screen>
-      &lt;keepalive>
-       &lt;bandwidth>1048576&lt;/bandwidth>
-       &lt;retrieve>400&lt;/retrieve>
-      &lt;/keepalive>
-     </screen>
-    </para>
-   </section>
-   <section id="proxy-config-limit">
-    <title>Configuration: limit</title>
-    <para>
-     The <literal>limit</literal> section specifies bandwidth/pdu requests
-     limits for an active session.
-     The proxy records bandwidth/pdu requests during the last 60 seconds
-     (1 minute). The <literal>limit</literal> may include the
-     elements <literal>bandwidth</literal>, <literal>pdu</literal>,
-     and <literal>retrieve</literal>. The <literal>bandwidth</literal>
-     measures the number of bytes transferred within the last minute.
-     The <literal>pdu</literal> is the number of requests in the last
-     minute. The <literal>retrieve</literal> holds the maximum records to
-     be retrieved in one Present Request.
-    </para>
-    <para>
-     If a bandwidth/pdu limit is reached the proxy will postpone the
-     requests to the target and wait one or more seconds. The idea of the
-     limit is to ensure that clients that downloads hundreds or thousands of
-     records do not hurt other users.
-    </para>
-    <para>
-     The following sets maximum number of bytes transferred per minute to
-     500Kbytes and maximum number of requests to 40.
-     <screen>
-      &lt;limit>
-       &lt;bandwidth>524288&lt;/bandwidth>
-       &lt;retrieve>40&lt;/retrieve>
-      &lt;/limit>
-     </screen>
-    </para>
-    <note>
-     <para>
-      Typically the limits for keepalive are much higher than
-      those for session minute average.
-     </para>
-    </note>
-   </section>
    
-   <section id="proxy-config-attribute">
-    <title>Configuration: attribute</title>
-    <para>
-     The <literal>attribute</literal> element specifies accept or reject
-     or a particular attribute type, value pair.
-     Well-behaving targets will reject unsupported attributes on their
-     own. This feature is useful for targets that do not gracefully
-     handle unsupported attributes.
-    </para>
-    <para>
-     Attribute elements may be repeated. The proxy inspects the attribute
-     specifications in the order as specified in the configuration file.
-     When a given attribute specification matches a given attribute list
-     in a query, the proxy takes appropriate action (reject, accept).
-    </para>
-    <para>
-     If no attribute specifications matches the attribute list in a query,
-     it is accepted.
-    </para>
-    <para>
-     The <literal>attribute</literal> element has two required attributes:
-     <literal>type</literal> which is the Attribute Type-1 type, and
-     <literal>value</literal> which is the Attribute Type-1 value.
-     The special value/type <literal>*</literal> matches any attribute
-     type/value. A value may also be specified as a list with each
-     value separated by comma, a value may also be specified as a
-     list: low value - dash - high value.
-    </para>
-    <para>
-     If attribute <literal>error</literal> is given, that holds a 
-     Bib-1 diagnostic which is sent to the client if the particular
-     type, value is part of a query.
-    </para>
-    <para>
-     If attribute <literal>error</literal> is not given, the attribute
-     type, value is accepted and passed to the backend target.
-    </para>
-    <para>
-     A target that supports use attributes 1,4, 1000 through 1003 and
-     no other use attributes, could use the following rules:
-     <screen>
-      &lt;attribute type="1" value="1,4,1000-1003">
-      &lt;attribute type="1" value="*" error="114"/>
-     </screen>
-    </para>
-   </section>
-
-   <section id="proxy-config-syntax">
-    <title>Configuration: syntax</title>
-    <para>
-     The <literal>syntax</literal> element specifies accept or reject
-     or a particular record syntax request from the client.
-    </para>
-    <para>
-     The <literal>syntax</literal> has one required attribute:
-     <literal>type</literal> which is the Preferred Record Syntax.
-    </para>
-    <para>
-     If attribute <literal>error</literal> is given, that holds a 
-     Bib-1 diagnostic which is sent to the client if the particular
-     record syntax is part of a present - or search request.
-    </para>
-    <para>
-     If attribute <literal>error</literal> is not given, the record syntax
-     is accepted and passed to the backend target.
-    </para>
-    <para>
-     If attribute <literal>marcxml</literal> is given, the proxy will
-     perform MARC21 to MARCXML conversion. In this case the
-     <literal>type</literal> should be XML. The proxy will use
-     preferred record syntax USMARC/MARC21 against the backend target.
-    </para>
-    <para>To accept USMARC and offer MARCXML XML records but reject
-     all other requests the following configuration could be used:
-     <screen>
-      &lt;proxy>
-       &lt;target name="mytarget">
-        &lt;syntax type="usmarc"/>
-        &lt;syntax type="xml" marcxml="1"/>
-        &lt;syntax type="*" error="238"/>
-       &lt;/target>
-      &lt;/proxy>
-     </screen>
-    </para>
-   </section>
-   
-   <section id="proxy-config-target-timeout">
-    <title>Configuration: target-timeout</title>
-    <para>
-     The element <literal>target-timeout</literal> is the child of element
-     <literal>target</literal> and specifies the amount in seconds before
-     a target session is shut down.
-    </para>
-    <para>
-     This can also be specified on the command line by using option
-     <literal>-T</literal>. Refer to <xref linkend="proxy-usage"/>.
-    </para>
-   </section>
-
-   <section id="proxy-config-client-timeout">
-    <title>Configuration: client-timeout</title>
-    <para>
-     The element <literal>client-timeout</literal> is the child of element
-     <literal>target</literal> and specifies the amount in seconds before
-     a client session is shut down.
-     </para>
-    <para>
-     This can also be specified on the command line by using option
-     <literal>-i</literal>. Refer to <xref linkend="proxy-usage"/>.
-    </para>
-   </section>
-   
-   <section id="proxy-config-preinit">
-    <title>Configuration: preinit</title>
-    <para>
-     The element <literal>preinit</literal> is the child of element
-     <literal>target</literal> and specifies the number of spare
-     connection to a target. By default no spare connection are
-     created by the proxy. If the proxy uses a target exclusive or
-     a lot, the preinit session will ensure that target sessions
-     have been made before the client makes a connection and will therefore
-     reduce the connect-init handshake dramatically. Never set this to
-     more than 5.
-    </para>
-   </section>
-
-   <section id="proxy-config-max-clients">
-    <title>Configuration: max-clients</title>
-    <para>
-     The element <literal>max-clients</literal> is the child of element
-     <literal>proxy</literal> and specifies the total number of
-     allowed connections to targets (all targets). If this limit
-     is reached the proxy will close the least recently used connection.
-    </para>
-    <para>
-     Note, that many Unix systems impose a system on the number of
-     open files allowed in a single process, typically in the 
-     range 256 (Solaris) to 1024 (Linux).
-     The proxy uses 2 sockets per session + a few files
-     for logging. As a rule of thumb, ensure that 2*max-clients + 5
-     can be opened by the proxy process.
-    </para>
-    <tip>
-     <para>
-      Using the <ulink url="http://www.gnu.org/software/bash/bash.html">
-       bash</ulink> shell, you can set the limit with
-      <literal>ulimit -n</literal><replaceable>no</replaceable>. 
-       Use <literal>ulimit -a</literal> to display limits.
-     </para>
-     </tip>
-   </section>
-
-   <section id="proxy-config-log">
-    <title>Configuration: log</title>
-    <para>
-     The element <literal>log</literal> is the child of element
-     <literal>proxy</literal> and specifies what to be logged by the
-     proxy.
-     </para>
-    <para>
-     Specify the log file with command-line option <literal>-l</literal>.
-    </para>
-    <para>
-     The text of the <literal>log</literal> element is a sequence of
-     options separated by white space. See the table below:
-     <table frame="top"><title>Logging options</title>
-      <tgroup cols="2">
-       <colspec colwidth="1*" colname="option"/>
-       <colspec colwidth="2*" colname="description"/>
-       <thead>
-	<row>
-	 <entry>Option</entry>
-	 <entry>Description</entry>
-	</row>
-       </thead>
-       <tbody>
-	<row>
-	 <entry><literal>client-apdu</literal></entry>
-	 <entry>
-	  Log APDUs as reported by YAZ for the
-	  communication between the client and the proxy.
-	  This facility is equivalent to the APDU logging that
-	  happens when using option <literal>-a</literal>, however
-	  this tells the proxy to log in the same file as given
-	  by <literal>-l</literal>.
-	 </entry>
-	</row>
-	<row>
-	 <entry><literal>server-apdu</literal></entry>
-	 <entry>
-	  Log APDUs as reported by YAZ for the
-	  communication between the proxy and the server (backend).
-	 </entry>
-	</row>
-	<row>
-	 <entry><literal>clients-requests</literal></entry>
-	 <entry>
-	  Log a brief description about requests transferred between
-	  the client and the proxy. The name of the request and the size
-	  of the APDU is logged.
-	 </entry>
-	</row>
-	<row>
-	 <entry><literal>server-requests</literal></entry>
-	 <entry>
-	  Log a brief description about requests transferred between
-	  the proxy and the server (backend). The name of the request
-	  and the size of the APDU is logged.
-	 </entry>
-	</row>
-       </tbody>
-      </tgroup>
-     </table>
-    </para>
-    <para>
-     To log communication in details between the proxy and the backend, th
-     following configuration could be used:
-    <screen><![CDATA[
-     <target name="mytarget">
-      <log>server-apdu server-requests</log>
-     </target>
-]]>
-     </screen>
-    </para>
-   </section>
-
-  </section>
   <section id="proxy-usage">
-   <title>Proxy Usage</title>
-   <para>
-   </para>
-   <refentry id="yazproxy-ref">
+   <title>Proxy Usage (man page)</title>
+   <refentry id="yazproxy-man">
     &yaz-proxy-ref;
    </refentry>
   </section>
-  <section id="otherinfo-encoding"><title>OtherInformation Encoding</title>
+  
+  <section id="otherinfo-encoding">
+   <title>OtherInformation Encoding</title>
    <para>
     The proxy uses the OtherInformation definition to carry
     information about the target address and cookie.
@@ -663,16 +615,17 @@
       categoryValue    [2]   IMPLICIT INTEGER}
   </screen>
    <para>
-     The <literal>categoryTypeId</literal> is either
-     OID 1.2.840.10003.10.1000.81.1, 1.2.840.10003.10.1000.81.2
-     for proxy target and proxy cookie respectively. The
-     integer element <literal>category</literal> is set to 0.
-     The value proxy and cookie is stored in element
-     <literal>characterInfo</literal> of the <literal>information</literal>
+    The <literal>categoryTypeId</literal> is either
+    OID 1.2.840.10003.10.1000.81.1, 1.2.840.10003.10.1000.81.2
+    for proxy target and proxy cookie respectively. The
+    integer element <literal>category</literal> is set to 0.
+    The value proxy and cookie is stored in element
+    <literal>characterInfo</literal> of the <literal>information</literal>
      choice.
-    </para>
+   </para>
    </section>
  </chapter>
+
  <!-- Keep this comment at the end of the file
  Local variables:
  mode: sgml

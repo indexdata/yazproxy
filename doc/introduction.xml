@@ -1,18 +1,89 @@
-<!-- $Id: introduction.xml,v 1.2 2004-04-11 11:58:34 adam Exp $ -->
+<!-- $Id: introduction.xml,v 1.3 2004-04-15 12:04:01 adam Exp $ -->
  <chapter id="introduction"><title>Introduction</title>
   <para>
-   <ulink url="http://www.indexdata.dk/yazplusplus/">YAZ proxy</ulink> 
-   is a Z39.50/SRW/SRU proxy. The proxy accepts connections from
-   protocol for information retrieval (client and server side).
-   While YAZ itself can be used from both C and C++ it is limited by the
-   common denominator C.
+   The <ulink url="http://www.indexdata.dk/yazproxy/">YAZ Proxy</ulink> is
+   highly configurable and can be used in a number of different
+   applications, ranging from debugging Z39.50-based applications
+   and protecting overworked servers, to improving the performance of
+   stateless WWW/Z39.50 gateways. Among other features, it includes:
+   <itemizedlist>
+    <listitem>
+     <para>
+      Configurable logging
+     </para>
+    </listitem>
+
+    <listitem>
+     <para>
+      SRU/SRW server function, to allow any Z39.50 server to also support
+      the <ulink url="http://www.loc.gov/z3950/agency/zing/">ZiNG</ulink>
+      protocols
+     </para>
+    </listitem>
+
+    <listitem>
+     <para>
+      Load balancing across multiple backend servers
+     </para>
+    </listitem>
+
+    <listitem>
+     <para>
+      Session-sharing and pre-initialization to improve performance
+      in servers with expensive session initialization
+     </para>
+    </listitem>
+    
+    <listitem>
+     <para>
+      Configurable request filtering, to keep bad requests from
+      reaching the server
+     </para>
+    </listitem>
+
+    <listitem>
+     <para>
+      XML support -- MARC records can be converted to MARCXML, and
+      XSLT-transformations allow the proxy to support arbitrary
+      retrieval schemas in XML
+     </para>
+    </listitem>
+
+    <listitem>
+     <para>
+      Load governor function limits requests from aggressive
+      batch-mode clients
+     </para>
+    </listitem>
+
+    <listitem>
+     <para>
+      Efficient multiplexing software enables small memory footprint
+      and very high performance
+     </para>
+    </listitem>
+    
+   </itemizedlist>
   </para>
   <section>
    <title>Licensing</title>
    <para>
-   The proxy application and the proxy library is covered by the 
+    The proxy application and the proxy library is covered by the 
     <link linkend="gpl">GPL</link>.
    </para>
+  </section>
+
+  <section id="support">
+   <title>Support</title>
+   <para>
+    Configuration and installation assistance and ongoing support is
+    available for the YAZ Proxy.
+    For futher information about support or licensing options, please
+    contact David Dorman in the
+    US (dorman at indexdata.com, 860-346-1237 or toll free 866-489-1568)
+    or Sebastian Hammer in Denmark (quinn a indexdata.com, or +45 3341 0100)   
+   </para>
+   
   </section>
  </chapter>
 

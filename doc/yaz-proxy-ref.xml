@@ -4,7 +4,7 @@
 </refmeta>
 <refnamediv>
  <refname>yazproxy</refname>
- <refpurpose>The YAZ toolkit's transparent Z39.50 proxy</refpurpose>
+ <refpurpose>The YAZ toolkit's transparent Z39.50/SRW/SRU proxy</refpurpose>
 </refnamediv>
 <refsynopsisdiv>
  <cmdsynopsis>
@@ -27,7 +27,8 @@
    
 <refsect1><title>DESCRIPTION</title>
  <para>
-  <command>yazproxy</command> is a Z39.50 optimizing proxy daemon.
+  <command>yazproxy</command> is a proxy that accepts connections
+  from Z39.50/SRW/SRU clients and contacts a Z39.50 backend.
   The listening port must be specified on the command-line. 
   <command>inetd</command> operation is not supported.
   The <replaceable>host</replaceable>:<replaceable>port</replaceable>
@@ -46,6 +47,7 @@
   reopens log files when it receives the hangup signal, SIGHUP.
  </para>
 </refsect1>
+
 <refsect1><title>OPTIONS</title>
  <variablelist>
   <varlistentry><term>-a <replaceable>filename</replaceable></term>
@@ -143,46 +145,34 @@
  <title>EXAMPLES</title>
  <para>
   The following command starts the proxy, listening on port
-  9000, with its default backend target set to the Library of
-  Congress bibliographic server:
-    </para>
- <screen>
-  $ yazproxy -t z3950.loc.gov:7090 @:9000
- </screen>
- <para>
-  The LOC target is sometimes very slow.  You can connect to
-  it using yaz-client as follows:
+  9000, with its default backend target set to Index Data's
+  test server:
  </para>
  <screen>
-  $ yaz-client localhost:9000/voyager
-  Connecting...Ok.
+  $ yazproxy -t indexdata.dk:210 @:9000
+ </screen>
+ <para>
+  You can connect to the proxy via yaz-client as follows:
+ </para>
+ <screen>
+  $ ./yaz-client  localhost:9000/gils
+  Connecting...OK.
   Sent initrequest.
-  Connection accepted by target.
-  ID     : 34
-  Name   : Voyager LMS - Z39.50 Server
-  Version: 1.13
-  Options: search present
-  Elapsed: 7.131197
+  Connection accepted by v3 target.
+  ID     : 81
+  Name   : Zebra Information Server/GFS/YAZ (YAZ Proxy)
+  Version: Zebra 1.3.15/1.23/2.0.19
+  Options: search present delSet scan sort extendedServices namedResultSets
+  Elapsed: 0.152108
   Z> f computer
   Sent searchRequest.
   Received SearchResponse.
   Search was a success.
-  Number of hits: 10000
+  Number of hits: 3, setno 1
+  SearchResult-1: computer(3)
   records returned: 0
-  Elapsed: 6.695174
-  Z> f computer
-  Sent searchRequest.
-  Received SearchResponse.
-  Search was a success.
-  Number of hits: 10000
-  records returned: 0
-  Elapsed: 0.001417
+  Elapsed: 0.172533
  </screen>
- <para>
-  In this test, the second search was more than 4000 times faster
-  than the first, because the proxy cached the result of the first
-  search and noticed that the second was the same.
- </para>
  <para>
   The YAZ command-line client,
   <command>yaz-client</command>,
@@ -190,15 +180,11 @@
   that case, the actual backend target is specified as part of the
   Initialize Request.
  </para>
- <para>Suppose you have a proxy running on localhost,
-  port 9000 and wish to connect to Index Data's test target at
-  <literal>indexdata.dk:210/gils</literal> you could use:
+ <para>Suppose the proxy running on localhost, port 9000.
+  To connect to British Library's server at
+  <literal>blpcz.bl.uk:21021</literal> use:
   <screen>
-   yaz-client -p localhost:9000 indexdata.dk:210/gils
-  </screen>
-  Since port 210 is the default, the port can be omitted:
-  <screen>
-   yaz-client -p localhost:9000 indexdata.dk/gils
+   yaz-client -p localhost:9000 blpcz.bl.uk:21021/BLPC-ALL
   </screen>
  </para>
 </refsect1>

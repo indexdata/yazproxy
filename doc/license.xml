@@ -1,4 +1,4 @@
-<!-- $Id: license.xml,v 1.2 2004-04-11 11:58:34 adam Exp $ -->
+<!-- $Id: license.xml,v 1.3 2004-04-15 12:04:01 adam Exp $ -->
  <appendix id="license"><title>License</title>
   
   <section id="gpl"><title>GPL</title>
@@ -29,7 +29,6 @@
     02111-1307, USA.
    </para>
    
-   <section><title>GNU General Public License</title>
    <screen>
 		    GNU GENERAL PUBLIC LICENSE
 		       Version 2, June 1991
@@ -311,8 +310,7 @@ PROGRAMS), EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGES.
 
 		     END OF TERMS AND CONDITIONS
-    </screen> 
-   </section>
+   </screen> 
   </section>
  </appendix>
  
@@ -325,7 +323,7 @@ POSSIBILITY OF SUCH DAMAGES.
  sgml-always-quote-attributes:t
  sgml-indent-step:1
  sgml-indent-data:t
- sgml-parent-document: "yaz++.xml"
+ sgml-parent-document: "yazproxy.xml"
  sgml-local-catalogs: nil
  sgml-namecase-general:t
  End:

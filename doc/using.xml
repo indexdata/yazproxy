@@ -1,0 +1,145 @@
+ <chapter id="using">
+  <title>Using YAZ proxy</title>
+  <para>
+   As mentioned in the introduction the YAZ proxy has many uses.
+   This chapter includes a few examples.
+  </para>
+  <para>
+   -- All config directives --
+   -- SRW/SRU ..
+   -- Example config
+   -- Mention XSLT conversion
+  </para>
+  <para>
+   The YAZ Proxy is useful for debugging SRW/SRU/Z39.50 software, logging
+   APDUs, redirecting Z39.50 packages through firewalls, etc.
+   Furthermore, it offers facilities that often
+   boost performance for connectionless Z39.50 clients such
+   as web gateways.
+  </para>
+  <para>
+   Unlike most other server software, the proxy runs single-threaded,
+   single-process. Every I/O operation
+   is non-blocking so it is very lightweight and extremely fast.
+   It does not store any state information on the hard drive,
+   except any log files you ask for.
+  </para>
+
+  <example id="proxy-example">
+   <title>Using the Proxy to Log APDUs</title>
+   <para>
+    Suppose you use a commercial Z39.50 client for which you do not
+    have source code, and it's not behaving how you think it should
+    when running against some specific server that you have no control
+    over.  One way to diagnose the problem is to find out what packets
+    (APDUs) are being sent and received, but not all client
+    applications have facilities to do APDU logging.
+   </para>
+   <para>
+    No problem.  Run the proxy on a friendly machine, get it to log
+    APDUs, and point the errant client at the proxy instead of
+    directly at the server that's causing it problems.
+   </para>
+   <para>
+    Suppose the server is running on <literal>foo.bar.com</literal>,
+    port 18398.  Run the proxy on the machine of your choice, say
+    <literal>your.company.com</literal> like this:
+   </para>
+   <screen>
+    yazproxy -a - -t tcp:foo.bar.com:18398 tcp:@:9000
+   </screen>
+   <para>
+    (The <literal>-a -</literal> option requests APDU logging on
+    standard output, <literal>-t tcp:foo.bar.com:18398</literal>
+    specifies where the backend target is, and
+    <literal>tcp:@:9000</literal> tells the proxy to listen on port
+    9000 and accept connections from any machine.)
+   </para>
+   <para>
+    Now change your client application's configuration so that instead
+    of connecting to <literal>foo.bar.com</literal> port 18398, it
+    connects to <literal>your.company.com</literal> port 9000, and
+    start it up.  It will work exactly as usual, but all the packets
+    will be sent via the proxy, which will generate a log like this:
+   </para>
+   <screen><![CDATA[
+    decode choice
+    initRequest {
+        referenceId OCTETSTRING(len=4) 69 6E 69 74
+        protocolVersion BITSTRING(len=1)
+        options BITSTRING(len=2)
+        preferredMessageSize 1048576
+        maximumRecordSize 1048576
+        implementationId 'Mike Taylor (id=169)'
+        implementationName 'Net::Z3950.pm (Perl)'
+        implementationVersion '0.31'
+    }
+    encode choice
+    initResponse {
+        referenceId OCTETSTRING(len=4) 69 6E 69 74
+        protocolVersion BITSTRING(len=1)
+        options BITSTRING(len=2)
+        preferredMessageSize 1048576
+        maximumRecordSize 1048576
+        result TRUE
+        implementationId '81'
+        implementationName 'GFS/YAZ / Zebra Information Server'
+        implementationVersion 'YAZ 1.9.1 / Zebra 1.3.3'
+    }
+    decode choice
+    searchRequest {
+        referenceId OCTETSTRING(len=1) 30
+        smallSetUpperBound 0
+        largeSetLowerBound 1
+        mediumSetPresentNumber 0
+        replaceIndicator TRUE
+        resultSetName 'default'
+        databaseNames {
+            'gils'
+        }
+        {
+            smallSetElementSetNames choice
+            generic 'F'
+        }
+        {
+            mediumSetElementSetNames choice
+            generic 'B'
+        }
+        preferredRecordSyntax OID: 1 2 840 10003 5 10
+        {
+            query choice
+            type_1 {
+                attributeSetId OID: 1 2 840 10003 3 1
+                RPNStructure choice
+                {
+                    simple choice
+                    attributesPlusTerm {
+                        attributes {
+                        }
+                        term choice
+                        general OCTETSTRING(len=7) 6D 69 6E 65 72 61 6C
+                    }
+                }
+            }
+        }
+    }
+]]>
+   </screen>
+  </example>
+ </chapter>
+
+ <!-- Keep this comment at the end of the file
+ Local variables:
+ mode: sgml
+ sgml-omittag:t
+ sgml-shorttag:t
+ sgml-minimize-attributes:nil
+ sgml-always-quote-attributes:t
+ sgml-indent-step:1
+ sgml-indent-data:t
+ sgml-parent-document: "yazproxy.xml"
+ sgml-local-catalogs: nil
+ sgml-namecase-general:t
+ End:
+ -->
+ 
