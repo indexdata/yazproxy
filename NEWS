@@ -1,4 +1,13 @@
-Implement XInclude for configuration file(s).
+--- 0.9 2005/02/07
+
+YAZ Proxy may use USEMARCON to convert between various MARC
+formats. Use --with-usemarcon to specify Usemarcon location.
+See config-mafi2ma.xml for an example configuration.
+Requires USEMARCON 1.5, which can be fetched from:
+ http://www.bl.uk/services/bibliographic/usemarcon.html
+
+Added support for XInclude for configuration file(s) so that
+configuration can be partitioned in multiple files.
 
 Fixed bug #189: Bad authenticated session transfer.
 
