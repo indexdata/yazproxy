@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.6 2004-04-20 23:52:50 adam Exp $
+## $Id: Makefile.am,v 1.7 2004-04-22 18:47:02 adam Exp $
 docdir=$(datadir)/doc/@PACKAGE@
 
 SUPPORTFILES = \
@@ -68,4 +68,19 @@ index.tkl: $(XMLFILES) tkl.xsl
 
 clean-data-hook:
 	rm -f [0-9]* *.bak
+
+dist-hook:
+	for f in $(srcdir)/*.html; do \
+		found=0; \
+		b=`basename $$f`; \
+		for h in $(HTMLFILES); do \
+			if test "$$h" = "$$b"; then \
+				found=1; \
+			fi \
+		done; \
+		if test "$$found" = "0"; then \
+			echo "$$h not found in HTMLFILES"; \
+			exit 1; \
+		fi \
+	done
 
