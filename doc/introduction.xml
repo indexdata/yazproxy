@@ -1,34 +1,17 @@
-<!-- $Id: introduction.xml,v 1.1 2004-04-11 11:36:52 adam Exp $ -->
+<!-- $Id: introduction.xml,v 1.2 2004-04-11 11:58:34 adam Exp $ -->
  <chapter id="introduction"><title>Introduction</title>
   <para>
-   <ulink url="http://www.indexdata.dk/yazplusplus/">YAZ++</ulink> 
-   is a C++ layer for YAZ and implements the ANSI Z39.50
+   <ulink url="http://www.indexdata.dk/yazplusplus/">YAZ proxy</ulink> 
+   is a Z39.50/SRW/SRU proxy. The proxy accepts connections from
    protocol for information retrieval (client and server side).
    While YAZ itself can be used from both C and C++ it is limited by the
    common denominator C.
   </para>
-  <para>
-   The YAZ++ packages also features a ZOOM interface for C++ (
-   <ulink url="(http://zoom.z3950.org/bind/cplusplus/">ZOOM C++</ulink>).
-  </para>
-  <para>
-   Later versions (0.7+) of YAZ++ also supports SRW/SRU.
-  </para>
-  <para>
-   This package also contains a proxy application and proxy developer
-   library.
-   The proxy application can be used to debug existing Z39.50
-   implementations, optimize Z39.50 operation (by caching and other
-   mechanisms), and offer a SRW/SRU service.
-  </para>
-
   <section>
    <title>Licensing</title>
    <para>
    The proxy application and the proxy library is covered by the 
     <link linkend="gpl">GPL</link>.
-   The remaning parts: the ZOOM-C++ library and the YAZ++ library is covered
-   by the <link linkend="yaz.license">YAZ license</link>.
    </para>
   </section>
  </chapter>
@@ -42,7 +25,7 @@
  sgml-always-quote-attributes:t
  sgml-indent-step:1
  sgml-indent-data:t
- sgml-parent-document:"yaz++.xml"
+ sgml-parent-document:"yazproxy.xml"
  sgml-local-catalogs: nil
  sgml-namecase-general:t
  End:

@@ -4,7 +4,8 @@ SUBDIRS = src include etc doc
 
 EXTRA_DIST= README LICENSE yazpp.m4 buildconf.sh
 
-dist-hook:
+# disabled for now.
+dist-hook-a:
 	mkdir $(distdir)/win
 	cp $(srcdir)/win/makefile $(distdir)/win/
 	mkdir $(distdir)/debian

@@ -1,6 +1,6 @@
 YAZ proxy - A Z39.50/SRW/SRU proxy.
 
-$Id: README,v 1.1 2004-04-11 11:36:46 adam Exp $
+$Id: README,v 1.2 2004-04-11 11:58:34 adam Exp $
 
 Introduction
 ------------
@@ -22,7 +22,7 @@ proxy application.
 
 Directory structure of the YAZ++ package:
 
-  -- src (C++ library)
+  -- src (YAZ proxy library and application)
   -- include/yazproxy (C++ headers for proxy) 
   -- lib (compiled libraries)
   -- win (Windows build files)

@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.1 2004-04-11 11:36:52 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.2 2004-04-11 11:58:35 adam Exp $
    Copyright (c) 1998-2004, Index Data.
 
 This file is part of the yaz-proxy.
@@ -34,7 +34,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include <yaz/yaz-iconv.h>
 #include <yaz/log.h>
 #include <yaz/diagbib1.h>
-#include <yaz++/proxy/proxy.h>
+#include <yazproxy/proxy.h>
 #include <yaz/pquery.h>
 
 static const char *apdu_name(Z_APDU *apdu)

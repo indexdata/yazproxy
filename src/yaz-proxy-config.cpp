@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy-config.cpp,v 1.1 2004-04-11 11:36:47 adam Exp $
+/* $Id: yaz-proxy-config.cpp,v 1.2 2004-04-11 11:58:35 adam Exp $
    Copyright (c) 1998-2004, Index Data.
 
 This file is part of the yaz-proxy.
@@ -21,7 +21,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 
 #include <ctype.h>
 #include <yaz/log.h>
-#include <yaz++/proxy/proxy.h>
+#include <yazproxy/proxy.h>
 
 Yaz_ProxyConfig::Yaz_ProxyConfig()
 {

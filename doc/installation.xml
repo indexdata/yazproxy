@@ -1,20 +1,21 @@
 <chapter id="installation">
-  <!-- $Id: installation.xml,v 1.1 2004-04-11 11:36:52 adam Exp $ -->
+  <!-- $Id: installation.xml,v 1.2 2004-04-11 11:58:34 adam Exp $ -->
   <title>Installation</title>
   <para>
-   You need a C++ compiler to compile and use YAZ++.
+   You need a C++ compiler to compile and use YAZ proxy.
    The software was implemented using GCC so we know that works
-   well with YAZ++. From time to time the software has been
+   well with YAZ proxy. From time to time the software has been
    compiled on Windows using Visual C++. Other compilers should
    work too. Let us know of portability problems, etc. with
    your system.
   </para>
   <para>
-   YAZ++ is built on top of the 
-   <ulink url="http://indexdata.dk/yaz/">YAZ</ulink>
-   toolkit.
-   You need to install that first.
-   For some platforms there are binary packages for YAZ.
+   YAZ proxy is built on top of the 
+   <ulink url="http://indexdata.dk/yaz/">YAZ</ulink> and
+   <ulink url="http://indexdata.dk/yazplusplus/">YAZ++</ulink>
+   toolkits.
+   You need to install these first.
+   For some platforms there are binary packages for YAZ/YAZ++.
   </para>
   <section id="unix">
    <title>Building on Unix</title>
@@ -38,16 +39,16 @@
        </para></listitem>
      </varlistentry>
      <varlistentry>
-      <term><literal>--with-yazconfig </literal>directory</term>
+      <term><literal>--with-yazppconfig </literal>directory</term>
       <listitem><para>
-        Specifies the location of <filename>yaz-config</filename>.
-        The <filename>yaz-config</filename> program is generated in
-        the source directory of YAZ as well as the binaries
-        directory when YAZ is installed (via make install).
+        Specifies the location of <filename>yaz++-config</filename>.
+        The <filename>yaz++-config</filename> program is generated in
+        the source directory of YAZ++ as well as the binaries
+        directory when YAZ++ is installed (via make install).
         </para>
        <para>
         If you don't supply this option, <literal>configure</literal> will
-        look for <filename>yaz-config</filename> in directories of the
+        look for <filename>yaz++-config</filename> in directories of the
         <envar>PATH</envar> environment - which is nearly always
         what you want.
        </para></listitem>
@@ -79,7 +80,7 @@
     This is what you have after successful compilation:
     <variablelist>
      <varlistentry>
-      <term><literal>proxy/yaz-proxy</literal></term> 
+      <term><literal>src/yazproxy</literal></term> 
       <listitem><para>
         The YAZ <link linkend="proxy">Z39.50 Proxy</link>.
 	This program gets installed in your binaries directory
@@ -88,25 +89,7 @@
      </varlistentry>
 
      <varlistentry>
-      <term><literal>src/libyazcpp.la</literal></term> 
-      <listitem><para>
-        The YAZ++ library.
-	This library gets installed in your libraries directory
-	(<parameter>prefix</parameter><literal>/lib</literal>).
-       </para></listitem>
-     </varlistentry>
-     
-     <varlistentry>
-      <term><literal>src/libzoomcpp.la</literal></term> 
-      <listitem><para>
-        The <link linkend="zoom">ZOOM-C++</link> library.
-	This library gets installed in your libraries directory
-	(<parameter>prefix</parameter><literal>/lib</literal>).
-       </para></listitem>
-     </varlistentry>
-     
-     <varlistentry>
-      <term><literal>proxy/libyazproxy.la</literal></term> 
+      <term><literal>src/libyazproxy.la</literal></term> 
       <listitem><para>
         The YAZ proxy library. This library gets installed in
 	your libraries directory
@@ -115,49 +98,14 @@
      </varlistentry>
 
      <varlistentry>
-      <term><literal>include/yaz++/*.h</literal></term> 
+      <term><literal>include/yazproxy/*.h</literal></term> 
       <listitem><para>
-        Various C++ header files, which you'll need for YAZ++
+        Various C++ header files, which you'll need for YAZ proxy
 	development. All these are installed in your header files area
-	(<parameter>prefix</parameter><literal>/include/yaz++</literal>).
+	(<parameter>prefix</parameter><literal>/include/yazproxy</literal>).
        </para></listitem>
      </varlistentry>
      
-     <varlistentry>
-      <term><literal>yaz++-config</literal></term> 
-      <listitem><para>
-        A Bourne shell-script utility that returns the values of the
-	<envar>CFLAGS</envar> and <envar>LIBS</envar>
-	environment variables
-        needed in order to compile your applications with the YAZ++
-	library.  This script gets installed in your binaries directory
-        (<parameter>prefix</parameter><literal>/bin</literal>).
-       </para></listitem>
-     </varlistentry>
-
-     <varlistentry>
-      <term><literal>zoom/zclient</literal></term> 
-      <listitem><para>
-        ZOOM C++ demonstration client that uses the ZOOM C++ classes.
-	This client does not get installed in the system directories.
-       </para></listitem>
-     </varlistentry>
-
-     <varlistentry>
-      <term><literal>src/yaz-my-client</literal></term> 
-      <listitem><para>
-        YAZ C++ demonstration client. This client does not
-        get installed in the system directories.
-       </para></listitem>
-     </varlistentry>
-
-     <varlistentry>
-      <term><literal>src/yaz-my-server</literal></term> 
-      <listitem><para>
-        YAZ C++ demonstration server. This server does not
-        get installed in the system directories.
-       </para></listitem>
-     </varlistentry>
     </variablelist>
    </para>
   </section>
@@ -277,16 +225,6 @@
     The following files are generated upon successful compilation:
     
     <variablelist>
-     <varlistentry><term><filename>bin/yazpp.dll</filename></term>
-      <listitem><para>
-	YAZ++ DLL . Includes ZOOM C++ as well.
-       </para></listitem></varlistentry>
-     
-     <varlistentry><term><filename>lib/yaz.lib</filename></term>
-      <listitem><para>
-	Import library for <filename>yazpp.dll</filename>.
-       </para></listitem></varlistentry>
-     
      <varlistentry><term><filename>bin/yazproxy.dll</filename></term>
       <listitem><para>
 	YAZ proxy DLL.
@@ -297,15 +235,10 @@
 	Import library for <filename>yazproxy.dll</filename>.
        </para></listitem></varlistentry>
      
-     <varlistentry><term><filename>bin/yaz-proxy.exe</filename></term>
+     <varlistentry><term><filename>bin/yazproxy.exe</filename></term>
       <listitem><para>
 	YAZ proxy. It's a WIN32 console application.
 	See <xref linkend="proxy"/> for more information.
-       </para></listitem></varlistentry>
-     
-     <varlistentry><term><filename>bin/zclient.exe</filename></term>
-      <listitem><para>
-	ZOOM C++ demo client. A simple WIN32 console application.
        </para></listitem></varlistentry>
      
     </variablelist>
@@ -323,7 +256,7 @@
  sgml-always-quote-attributes:t
  sgml-indent-step:1
  sgml-indent-data:t
- sgml-parent-document: "yaz++.xml"
+ sgml-parent-document: "yazproxy.xml"
  sgml-local-catalogs: nil
  sgml-namecase-general:t
  End:
