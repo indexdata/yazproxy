@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!-- XML Schema for YAZ proxy config file.
-    $Id: yazproxy.xsd,v 1.1 2004-04-19 13:42:52 adam Exp $
+    $Id: yazproxy.xsd,v 1.2 2004-07-02 12:37:03 adam Exp $
 -->
 <xs:schema
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
@@ -31,7 +31,7 @@
      <xs:element ref="attribute" minOccurs="0" maxOccurs="unbounded"/>
      <xs:element ref="syntax" minOccurs="0" maxOccurs="unbounded"/>
      <xs:element ref="preinit" minOccurs="0"/>
-     <xs:element name="exp:explain" minOccurs="0"/>
+     <xs:element ref="exp:explain" minOccurs="0"/>
      <xs:element ref="cql2rpn" minOccurs="0"/>
    </xs:sequence>
    <xs:attribute name="default" type="xs:string" use="optional"/>
@@ -77,17 +77,19 @@
  <xs:element name="syntax">
   <xs:complexType>
    <xs:sequence>
-    <xs:element name="title" type="xs:string" minOccurs="0"/>
-    <xs:element name="name" type="xs:string" minOccurs="0"
-                                             maxOccurs="unbounded"/>
+    <xs:element ref="title" minOccurs="0"/>
+    <xs:element ref="name" minOccurs="0" maxOccurs="unbounded"/>
    </xs:sequence>
-   <xs:attribute name="error" type="xs:string" minOccurs="0"/>
-   <xs:attribute name="type" type="xs:string" minOccurs="0"/>
-   <xs:attribute name="marcxml" type="xs:string" minOccurs="0"/>
-   <xs:attribute name="identifier" type="xs:string" minOccurs="0"/>
-   <xs:attribute name="stylesheet" type="xs:string" minOccurs="0"/>
+   <xs:attribute name="error" type="xs:string" />
+   <xs:attribute name="type" type="xs:string" />
+   <xs:attribute name="marcxml" type="xs:string" />
+   <xs:attribute name="identifier" type="xs:string" />
+   <xs:attribute name="stylesheet" type="xs:string" />
   </xs:complexType>
  </xs:element>
+
+ <xs:element name="title" type="xs:string"/>
+ <xs:element name="name" type="xs:string"/>
 
  <xs:element name="max-clients" type="xs:integer"/>
  <xs:element name="log" type="xs:string"/>
