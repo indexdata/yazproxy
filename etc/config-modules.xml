@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<!-- $Id: config-modules.xml,v 1.1 2005-03-14 13:10:08 adam Exp $ -->
+<!-- 
+   Config that uses modules 
+-->
+<proxy xmlns="http://indexdata.dk/yazproxy/schema/0.9/"
+ xmlns:xi="http://www.w3.org/2001/XInclude"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="http://indexdata.dk/yazproxy/schema/0.9/ yazproxy.xsd"
+  >
+<!-- Config can be checked with xerces-c++: PParse -n -s config.xml -->
+  <target name="localhost" default="1">
+    <url>localhost:9999</url>
+    <target-timeout>30</target-timeout>
+    <client-timeout>60</client-timeout>
+    <keepalive>
+      <bandwidth>1000000</bandwidth>
+      <pdu>1000</pdu>
+    </keepalive>
+    <limit><!-- per minute limits .. -->
+      <bandwidth>2000000</bandwidth>
+      <pdu>50</pdu>
+      <retrieve>100</retrieve>
+    </limit>
+    <attribute type="1" value="1-11,13-1016"/>
+    <attribute type="1" value="*" error="114"/>
+    <syntax type="opac"/>
+    <syntax type="usmarc"/>
+    <syntax type="none"/>
+    <syntax type="xml" marcxml="1"/>
+    <syntax type="*" error="238"/>
+    <preinit>0</preinit>
+    <xi:include href="explain.xml"/>
+    <cql2rpn>pqf.properties</cql2rpn>
+    <target-authentication type="open">my/bad</target-authentication>
+    <client-authentication module="sample" args="authenticate.pl"/>
+    <negotiation-charset>iso-8859-1</negotiation-charset>
+    <negotiation-lang>US</negotiation-lang>
+  </target>
+  <max-clients>50</max-clients>
+  <log>client-requests server-requests</log>
+  <module>../src/.libs/mod_proxy_sample.so</module>
+</proxy>
