@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.8 2004-10-19 18:34:15 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.9 2004-10-20 20:35:33 adam Exp $
    Copyright (c) 1998-2004, Index Data.
 
 This file is part of the yaz-proxy.
@@ -762,7 +762,7 @@ void Yaz_Proxy::convert_to_marcxml(Z_NamePlusRecordList *p,
 
     if (!backend_charset)
 	backend_charset = "MARC-8";
-    yaz_iconv_t cd = yaz_iconv_open("UTF-8", "MARC-8");
+    yaz_iconv_t cd = yaz_iconv_open("UTF-8", backend_charset);
     yaz_marc_t mt = yaz_marc_create();
     yaz_marc_xml(mt, YAZ_MARC_MARCXML);
     yaz_marc_iconv(mt, cd);
