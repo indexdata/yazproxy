@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.16 2005-01-11 20:50:29 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.17 2005-01-11 20:58:04 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -691,8 +691,8 @@ int Yaz_Proxy::convert_xsl(Z_NamePlusRecordList *p, Z_APDU *apdu)
 
 void Yaz_Proxy::convert_xsl_delay()
 {
-    Z_NamePlusRecord *npr = m_stylesheet_nprl->records[m_stylesheet_offset];
 #if HAVE_XSLT
+    Z_NamePlusRecord *npr = m_stylesheet_nprl->records[m_stylesheet_offset];
     if (npr->which == Z_NamePlusRecord_databaseRecord)
     {
 	Z_External *r = npr->u.databaseRecord;
