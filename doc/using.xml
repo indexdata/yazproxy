@@ -25,7 +25,7 @@
    except any log files you ask for.
   </para>
 
-  <example id="proxy-example">
+  <example id="example-apdu-logging">
    <title>Using the Proxy to Log APDUs</title>
    <para>
     Suppose you use a commercial Z39.50 client for which you do not
@@ -126,6 +126,21 @@
 ]]>
    </screen>
   </example>
+
+  <example id="example-firewall">
+   <title>Exposing a Z39.50 server behind a firewall</title>
+   <para>
+    ..
+   </para>
+  </example>
+  
+  <example id="example-srw-service">
+   <title>Offering SRW/SRU/Z39.50 service</title>
+   <para>
+    ..
+   </para>
+  </example>
+
  </chapter>
 
  <!-- Keep this comment at the end of the file

@@ -117,14 +117,16 @@
     <title>Proxy Configuration Header</title>
     <para>
      The proxy config file must have a root element called
-     <literal>proxy</literal>. All information except an optional XML
-     header must be stored within the <literal>proxy</literal> element.
+     <literal>proxy</literal> and scoped within namespace
+     <literal> xmlns="http://indexdata.dk/yazproxy/schema/0.8/</literal>.
+     All information except an optional XML header must be stored
+     within the <literal>proxy</literal> element.
     </para>
     <screen>
      &lt;?xml version="1.0"?>
-      &lt;proxy>
-       &lt;!-- content here .. -->
-      &lt;/proxy>
+     &lt;proxy xmlns="http://indexdata.dk/yazproxy/schema/0.8/">
+      &lt;!-- content here .. -->
+     &lt;/proxy>
     </screen>
    </section>
    <section id="proxy-config-target">
@@ -142,7 +144,7 @@
     <para>
      <screen>
      &lt;?xml version="1.0"?>
-     &lt;proxy>
+     &lt;proxy xmlns="http://indexdata.dk/yazproxy/schema/0.8/">
       &lt;target name="server1" default="1">
        &lt;!-- description of server1 .. -->
       &lt;/target>
@@ -306,19 +308,6 @@
      </screen>
     </para>
    </section>
-
-   <!-- TODO -->
-   <!--
-
-    <syntax type="xml" marcxml="1" stylesheet="MARC21slim2MODS.xsl"
-      identifier="http://www.loc.gov/mods"
-      >
-      <title>MODS v2</title>
-      <name>mods2</name>
-    </syntax>
-
-
--->
    <section id="proxy-config-syntax">
     <title>syntax</title>
     <para>
@@ -344,18 +333,55 @@
      <literal>type</literal> should be XML. The proxy will use
      preferred record syntax USMARC/MARC21 against the backend target.
     </para>
-    <para>To accept USMARC and offer MARCXML XML records but reject
-     all other requests the following configuration could be used:
-     <screen>
-      &lt;proxy>
-       &lt;target name="mytarget">
-       &lt;syntax type="usmarc"/>
-        &lt;syntax type="xml" marcxml="1"/>
-        &lt;syntax type="*" error="238"/>
-       &lt;/target>
-      &lt;/proxy>
-     </screen>
+    <para>
+     If attribute <literal>stylesheet</literal> is given, the proxy
+     will convert XML record from server via XSLT. It is important
+     that the content from server is XML. If used in conjunction with
+     attribute <literal>marcxml</literal> the MARC to MARCXML conversion
+     takes place before the XSLT conversion takes place.
     </para>
+    <para>
+     If attribute <literal>identifier</literal> is given that is the
+     SRW/SRU record schema identifier for the resulting output record (after
+     MARCXML and/or XSLT conversion). 
+    </para>
+    <para>
+     If sub element <literal>title</literal> is given (as child element
+     of <literal>syntax</literal>, then that is the official SRW/SRU
+     name of the resulting record schema.
+    </para>
+    <para>
+     If sub element <literal>name</literal> is given that is an alias
+     for the record schema identifier. Multiple <literal>name</literal>s
+     may be specified.
+    </para>
+    <example>
+     <title>MARCXML conversion</title>
+     <para>To accept USMARC and offer MARCXML XML plus Dublin Core (via
+      XSLT conversion) but the following configuration could be used:
+      <screen>
+       &lt;proxy>
+       &lt;target name="mytarget">
+       ..
+       &lt;syntax type="usmarc"/>
+       &lt;syntax type="xml" marcxml="1"
+        identifier="info:srw/schema/1/marcxml-v1.1"
+        &lt;title>MARCXML&lt;title>
+        &lt;name>marcxml&lt;name>
+       &lt;syntax>
+       &lt;syntax type="xml" marcxml="1" stylesheet="MARC21slim2SRWDC.xsl"
+        identifier="info:srw/schema/1/dc-v1.1">
+        &lt;title>Dublin Core&lt;title>
+        &lt;name>dc&lt;name>
+       &lt;syntax>
+       &lt;syntax type="*" error="238"/>
+       ..
+       &lt;/target>
+       &lt;/proxy>
+      </screen>
+    </para>
+    </example>
+
    </section>
 
    <section id="proxy-config-explain">
