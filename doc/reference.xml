@@ -516,11 +516,13 @@
     <title>cql2rpn</title>
     <para>
      The content of the <literal>cql2rpn</literal> element specifies
-     the path from the working directory to CQL-to-RPN conversion
+     the path from the working directory to a CQL-to-RPN conversion
      file for the server in the target section. This element
-     is required for SRW/SRU searches to operate against a Z39.50
-     server that doesn't support CQL. Most Z39.50 servers only support
+     is required for SRW/SRU searches to operate against Z39.50
+     servers that don't support CQL. Most Z39.50 servers only support
      Type-1/RPN so this is usually required.
+    </para>
+    <para>
      See YAZ documentation for more information about the
      <ulink url="http://indexdata.dk/yaz/doc/tools.tkl#tools.cql.pqf">CQL
       to PQF</ulink> conversion. See also the
@@ -689,7 +691,7 @@
    <screen><![CDATA[
 <?xml version="1.0"?>
 <!-- XML Schema for YAZ proxy config file.
-    $Id: reference.xml,v 1.8 2004-07-06 10:44:01 mike Exp $
+    $Id: reference.xml,v 1.9 2004-07-06 10:49:44 mike Exp $
 -->
 <xs:schema
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
