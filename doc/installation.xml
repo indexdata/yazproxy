@@ -1,5 +1,5 @@
 <chapter id="installation">
-  <!-- $Id: installation.xml,v 1.7 2004-04-23 16:25:17 adam Exp $ -->
+  <!-- $Id: installation.xml,v 1.8 2005-02-07 09:50:23 adam Exp $ -->
   <title>Installation</title>
   <para>
    You need a C++ compiler to compile and use YAZ proxy.
@@ -27,6 +27,15 @@
    <ulink url="http://www.loc.gov/z3950/agency/zing/srw/">SRW/SRU</ulink>
    is not supported.
    The YAZ Proxy uses libXSLT for record conversions via XSLT.
+  </para>
+  <para>
+   YAZ proxy may also use USEMARCON to convert between MARC
+   formats. This is useful if you want the proxy to offer more
+   MARC record types than the backend target supports. Get USEMARCON
+   from:
+   <ulink url="http://www.bl.uk/services/bibliographic/usemarcon.html">
+    British Library USEMARCON page
+   </ulink>.
   </para>
   <section id="unix">
    <title>Building on Unix</title>
@@ -71,6 +80,15 @@
 	configure must be able to locate <command>xslt-config</command>
 	in PREFIX/bin. If this option is omitted, configure looks
 	for <command>xslt-config</command> in the current PATH.
+       </para></listitem>
+     </varlistentry>
+     <varlistentry>
+      <term><literal>--with-usemarcon </literal>directory</term>
+      <listitem><para>
+        Specifies USEMARCON installation prefix.
+	configure must be able to locate <command>usemarcon-config</command>
+	in PREFIX/bin. If this option is omitted, configure looks
+	for <command>usemarcon-config</command> in the current PATH.
        </para></listitem>
      </varlistentry>
     </variablelist>
