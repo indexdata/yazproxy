@@ -22,7 +22,7 @@ dnl ----- libXSLT
 AC_SUBST(XSLT_LIBS)
 AC_SUBST(XSLT_CFLAGS)
 xsltdir=yes
-AC_ARG_WITH(xslt, [  --with-xslt[=PREFIX]      use libxslt in PREFIX],[xsltdir=$withval])
+AC_ARG_WITH(xslt,[[  --with-xslt[=PREFIX]    use libxslt in PREFIX]],xsltdir=$withval)
 if test "$xsltdir" = "yes"; then
 	for d in /usr /usr/local; do
 		if test -x $d/bin/xslt-config; then
