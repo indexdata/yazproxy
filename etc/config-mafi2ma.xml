@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- $Id: config-mafi2ma.xml,v 1.1 2004-12-03 14:28:18 adam Exp $ -->
+<!-- $Id: config-mafi2ma.xml,v 1.2 2004-12-06 08:00:28 adam Exp $ -->
 <proxy xmlns="http://indexdata.dk/yazproxy/schema/0.8/"
  xmlns:xi="http://www.w3.org/2001/XInclude"
  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -22,9 +22,9 @@
     <attribute type="1" value="1-11,13-1016"/>
     <attribute type="1" value="*" error="114"/>
     <syntax type="opac"/>
-    <syntax type="usmarc" backendtype="finmarc" usemarconstage1="mafi2ma/mafi2ma.ini"/>
+    <syntax type="usmarc" backendtype="none" usemarconstage1="mafi2ma/mafi2ma.ini"/>
     <syntax type="none"/>
-    <syntax type="xml" marcxml="1" backendtype="finmarc" usemarconstage1="mafi2ma/mafi2ma.ini"/>
+    <syntax type="xml" marcxml="1" backendtype="none" usemarconstage1="mafi2ma/mafi2ma.ini"/>
     <syntax type="*" error="238"/>
     <preinit>0</preinit>
     <xi:include href="explain.xml"/>
