@@ -3,7 +3,7 @@
   <section id="proxy-operation">
    <title>Operating Environment</title>
    <para>
-    The YAZ proxy is a single program. After startup it spawns 
+    The YAZ proxy is a console program. After startup it spawns 
     a child process (except on Windows or if option -X is given). 
     The child process is the core of the proxy and it handles all
     communication with clients and servers. The parent process
@@ -406,7 +406,7 @@
      A target that supports use attributes 1,4, 1000 through 1003 and
      no other use attributes, could use the following rules:
      <screen>
-      &lt;attribute type="1" value="1,4,1000-1003">
+      &lt;attribute type="1" value="1,4,1000-1003"/>
       &lt;attribute type="1" value="*" error="114"/>
      </screen>
     </para>
@@ -468,15 +468,15 @@
        ..
        &lt;syntax type="usmarc"/>
        &lt;syntax type="xml" marcxml="1"
-        identifier="info:srw/schema/1/marcxml-v1.1"
-        &lt;title>MARCXML&lt;title>
-        &lt;name>marcxml&lt;name>
-       &lt;syntax>
+         identifier="info:srw/schema/1/marcxml-v1.1"
+         &lt;title>MARCXML&lt;title>
+         &lt;name>marcxml&lt;name>
+       &lt;/syntax>
        &lt;syntax type="xml" marcxml="1" stylesheet="MARC21slim2SRWDC.xsl"
-        identifier="info:srw/schema/1/dc-v1.1">
-        &lt;title>Dublin Core&lt;title>
-        &lt;name>dc&lt;name>
-       &lt;syntax>
+         identifier="info:srw/schema/1/dc-v1.1">
+         &lt;title>Dublin Core&lt;title>
+         &lt;name>dc&lt;name>
+       &lt;/syntax>
        &lt;syntax type="*" error="238"/>
        ..
        &lt;/target>
@@ -688,7 +688,7 @@
    <screen><![CDATA[
     <?xml version="1.0"?>
 <!-- XML Schema for YAZ proxy config file.
-    $Id: reference.xml,v 1.5 2004-04-21 13:08:21 adam Exp $
+    $Id: reference.xml,v 1.6 2004-07-01 18:07:30 adam Exp $
 -->
 <xs:schema
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
