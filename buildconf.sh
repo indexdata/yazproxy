@@ -1,8 +1,8 @@
 #!/bin/sh
-# $Id: buildconf.sh,v 1.1 2004-04-11 11:36:46 adam Exp $
+# $Id: buildconf.sh,v 1.2 2004-04-11 14:25:50 adam Exp $
 set -x
 dir=`aclocal --print-ac-dir`
-if [ -f $dir/yaz.m4 ]; then
+if [ -f $dir/yazpp.m4 ]; then
 	aclocal
 else
 	aclocal -I . 
