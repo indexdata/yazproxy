@@ -515,8 +515,9 @@
    <section id="proxy-config-cql2rpn">
     <title>cql2rpn</title>
     <para>
-     The CDATA of <literal>cql2rpn</literal> refers to CQL to a RPN conversion
-     file - for the server in the target section. This element
+     The content of the <literal>cql2rpn</literal> element specifies
+     the path from the working directory to CQL-to-RPN conversion
+     file for the server in the target section. This element
      is required for SRW/SRU searches to operate against a Z39.50
      server that doesn't support CQL. Most Z39.50 servers only support
      Type-1/RPN so this is usually required.
@@ -525,7 +526,7 @@
       to PQF</ulink> conversion. See also the
      <filename>pqf.properties</filename> in the <filename>etc</filename> 
      (or <replaceable>prefix/share/yazproxy</replaceable>)
-     directory of the YAZ proxy.
+     directory of the YAZ proxy distribution.
     </para>
    </section>
    
@@ -688,7 +689,7 @@
    <screen><![CDATA[
 <?xml version="1.0"?>
 <!-- XML Schema for YAZ proxy config file.
-    $Id: reference.xml,v 1.7 2004-07-02 12:44:33 adam Exp $
+    $Id: reference.xml,v 1.8 2004-07-06 10:44:01 mike Exp $
 -->
 <xs:schema
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
