@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- $Id: config.xml,v 1.9 2005-02-21 14:27:31 adam Exp $ -->
+<!-- $Id: config.xml,v 1.10 2005-03-14 13:09:59 adam Exp $ -->
 <proxy xmlns="http://indexdata.dk/yazproxy/schema/0.9/"
  xmlns:xi="http://www.w3.org/2001/XInclude"
  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -29,10 +29,6 @@
     <preinit>0</preinit>
     <xi:include href="explain.xml"/>
     <cql2rpn>pqf.properties</cql2rpn>
-    <target-authentication type="open">my/bad</target-authentication>
-    <client-authentication module="sample" args="authenticate.pl"/>
-    <negotiation-charset>iso-8859-1</negotiation-charset>
-    <negotiation-lang>US</negotiation-lang>
   </target>
   <target name="*">
     <target-timeout>60</target-timeout>
@@ -41,5 +37,4 @@
   </target>
   <max-clients>50</max-clients>
   <log>client-requests server-requests</log>
-  <module>../src/.libs/mod_proxy_sample.so</module>
 </proxy>
