@@ -1,2 +1,2 @@
-debian/tmp/usr/bin/yaz-proxy
-debian/tmp/usr/share/man/man8/yaz-proxy.8
+debian/tmp/usr/bin/yazproxy
+debian/tmp/usr/share/man/man8/yazproxy.8

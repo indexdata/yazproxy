@@ -1,8 +1,8 @@
 <!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.1//EN" [
      <!ENTITY yaz-proxy-ref SYSTEM "yaz-proxy-ref.xml">
 ]>
-<!-- $Id: yaz-proxy-man.sgml,v 1.1 2004-04-11 11:58:34 adam Exp $ -->
-<refentry id="yaz-proxy">
+<!-- $Id: yaz-proxy-man.sgml,v 1.2 2004-04-11 14:38:53 adam Exp $ -->
+<refentry id="yazproxy">
   &yaz-proxy-ref;
  <refsect1><title>SEE ALSO</title>
   <para>
