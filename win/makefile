@@ -1,6 +1,6 @@
 # Copyright (C) 1993-2004, Index Data ApS
 # All rights reserved.
-# $Id: makefile,v 1.3 2005-02-07 13:29:38 adam Exp $
+# $Id: makefile,v 1.4 2005-03-14 13:27:35 adam Exp $
 
 ###########################################################
 ############### Parameters 
@@ -102,7 +102,7 @@ ICONV_LIB= \
 iconv: $(BINDIR)\iconv.dll
 
 $(BINDIR)\iconv.dll:
-  copy "$(ICONV_DIR)\bin\iconv.dll" $(BINDIR)
+  copy "$(ICONV_DIR)\lib\iconv.dll" $(BINDIR)
 !else
 ICONV_DEF= \
   /D HAVE_ICONV_H=0
@@ -130,7 +130,7 @@ libxml2:
 !endif
 
 !if $(HAVE_LIBXSLT)
-LIBXSLT_LIB="$(LIBXSLT_DIR)\bin\libxslt.lib"
+LIBXSLT_LIB="$(LIBXSLT_DIR)\lib\libxslt.lib"
 LIBXSLT_DEF=/D HAVE_XSLT=1 /I"$(LIBXSLT_DIR)\include"
 libxslt: $(BINDIR)\libxslt.dll $(BINDIR)\zlib1.dll
 
