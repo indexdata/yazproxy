@@ -37,5 +37,16 @@ AC_DEFUN([YAZPP_INIT],
                 AC_MSG_RESULT(Not found)
                 YAZVERSION=NONE
         fi
+	if test "X$YAZPPVERSION" != "XNONE"; then
+		AC_MSG_CHECKING([for YAZ++ version])
+		AC_MSG_RESULT([$YAZPPVERSION])
+		if test "$2"; then
+			have_yaz_version=`echo "$YAZPPVERSION" | awk 'BEGIN { FS = "."; } { printf "%d", ([$]1 * 1000 + [$]2) * 1000 + [$]3;}'`
+			req_yaz_version=`echo "$2" | awk 'BEGIN { FS = "."; } { printf "%d", ([$]1 * 1000 + [$]2) * 1000 + [$]3;}'`
+			if test "$have_yaz_version" -lt "$req_yaz_version"; then
+				AC_MSG_ERROR([$YAZPPVERSION. Requires $2 or later])
+			fi
+		fi
+	fi
 ])
 
