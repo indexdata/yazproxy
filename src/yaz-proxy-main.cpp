@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy-main.cpp,v 1.10 2005-01-17 18:44:39 adam Exp $
+/* $Id: yaz-proxy-main.cpp,v 1.11 2005-02-11 15:39:55 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -94,7 +94,7 @@ int args(Yaz_Proxy *proxy, int argc, char **argv)
 	    err = proxy->set_config(arg);
 	    if (err == -2)
 	    {
-		fprintf(stderr, "Config file support not enabled (proxy not compiled with libxml2 support)\n");
+		fprintf(stderr, "Config file support not enabled (not using libxslt & libxml2)\n");
 		exit(1);
 	    }
 	    else if (err == -1)
