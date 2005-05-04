@@ -1,4 +1,4 @@
-/* $Id: proxyp.h,v 1.3 2005-02-21 14:27:32 adam Exp $
+/* $Id: proxyp.h,v 1.4 2005-05-04 08:31:44 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -52,6 +52,26 @@ class Yaz_usemarcon {
 #endif
 };
 
+class Yaz_CharsetConverter {
+public:
+    Yaz_CharsetConverter();
+    ~Yaz_CharsetConverter();
+    void set_target_query_charset(const char *s);
+    void set_client_query_charset(const char *org);
+    void convert_type_1(Z_RPNQuery *q, ODR o);
+private:
+    void convert_type_1(char *buf_in, int len_in,
+			char **buf_out, int *len_out,
+			ODR o);
+    void convert_type_1(Z_Term *q, ODR o);
+    void convert_type_1(Z_RPNStructure *q, ODR o);
+    void convert_type_1(Z_Operand *q, ODR o);
+    char *m_target_query_charset;
+    char *m_client_query_charset;
+    yaz_iconv_t m_ct;
+    WRBUF m_wrbuf;
+};
+
 class Yaz_ProxyConfig {
 public:
     Yaz_ProxyConfig();
@@ -73,7 +93,8 @@ public:
 		      const char **cql2rpn,
 		      const char **authentication,
 		      const char **negotiation_charset,
-		      const char **negotiation_lang);
+		      const char **negotiation_lang,
+		      const char **query_charset);
     
     void get_generic_info(int *log_mask, int *max_clients);
 
@@ -85,7 +106,8 @@ public:
 			 int *pre_init,
 			 const char **cql2rpn,
 			 const char **negotiation_charset,
-			 const char **negotiation_lang);
+			 const char **negotiation_lang,
+			 const char **query_charset);
 
     const char *check_mime_type(const char *path);
     int check_query(ODR odr, const char *name, Z_Query *query, char **addinfo);

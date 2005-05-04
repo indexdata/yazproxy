@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.24 2005-02-22 10:08:20 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.25 2005-05-04 08:31:44 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -119,6 +119,7 @@ Yaz_Proxy::Yaz_Proxy(IYaz_PDU_Observable *the_PDU_Observable,
     m_default_target = 0;
     m_proxy_negotiation_charset = 0;
     m_proxy_negotiation_lang = 0;
+    m_charset_converter = new Yaz_CharsetConverter;
     m_max_clients = 150;
     m_log_mask = 0;
     m_seed = time(0);
@@ -198,6 +199,7 @@ Yaz_Proxy::~Yaz_Proxy()
     xfree(m_default_target);
     xfree(m_proxy_negotiation_charset);
     xfree(m_proxy_negotiation_lang);
+    delete m_charset_converter;
     xfree(m_optimize);
 
 #if HAVE_XSLT
@@ -306,12 +308,12 @@ IYaz_PDU_Observer *Yaz_Proxy::sessionNotify(IYaz_PDU_Observable
 	new_proxy->set_APDU_yazlog(1);
     else
 	new_proxy->set_APDU_yazlog(0);
-    new_proxy->set_proxy_negotiation(m_proxy_negotiation_charset,
-	m_proxy_negotiation_lang);
     sprintf(new_proxy->m_session_str, "%ld:%d ", (long) time(0), m_session_no);
     m_session_no++;
     yaz_log (YLOG_LOG, "%sNew session %s", new_proxy->m_session_str,
 	     the_PDU_Observable->getpeername());
+    new_proxy->set_proxy_negotiation(m_proxy_negotiation_charset,
+	m_proxy_negotiation_lang);
     return new_proxy;
 }
 
@@ -424,6 +426,7 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
 	const char *cql2rpn_fname = 0;
 	const char *negotiation_charset = 0;
 	const char *negotiation_lang = 0;
+	const char *query_charset = 0;
 	url[0] = m_default_target;
 	url[1] = 0;
 	if (cfg)
@@ -438,7 +441,8 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
 				 &pre_init,
 				 &cql2rpn_fname,
 				 &negotiation_charset,
-				 &negotiation_lang);
+				 &negotiation_lang,
+				 &query_charset);
 	}
 	if (client_idletime != -1)
 	{
@@ -453,6 +457,7 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
 	    set_proxy_negotiation(negotiation_charset,
 		negotiation_lang);
 	}
+	m_charset_converter->set_target_query_charset(query_charset);
 	if (!url[0])
 	{
 	    yaz_log(YLOG_LOG, "%sNo default target", m_session_str);
@@ -1800,6 +1805,24 @@ Z_APDU *Yaz_Proxy::handle_query_transformation(Z_APDU *apdu)
     return apdu;
 }
 
+Z_APDU *Yaz_Proxy::handle_query_charset_conversion(Z_APDU *apdu)
+{
+    if (apdu->which == Z_APDU_searchRequest &&
+	apdu->u.searchRequest->query)
+    {
+	if (apdu->u.searchRequest->query->which == Z_Query_type_1
+	    || apdu->u.searchRequest->query->which == Z_Query_type_101)
+	{
+	    if (m_http_version)
+		m_charset_converter->set_client_query_charset("UTF-8");
+	    Z_RPNQuery *rpnquery = apdu->u.searchRequest->query->u.type_1;
+	    m_charset_converter->convert_type_1(rpnquery, odr_encode());
+	}
+    }
+    return apdu;
+}
+
+
 Z_APDU *Yaz_Proxy::handle_query_validation(Z_APDU *apdu)
 {
     if (apdu->which == Z_APDU_searchRequest)
@@ -2067,7 +2090,6 @@ void Yaz_Proxy::srw_get_client(const char *db, const char **backend_db)
 int Yaz_Proxy::file_access(Z_HTTP_Request *hreq)
 {
     struct stat sbuf;
-    yaz_log(YLOG_LOG, "file_access");
     if (strcmp(hreq->method, "GET"))
 	return 0;
     if (hreq->path[0] != '/')
@@ -2614,10 +2636,14 @@ void Yaz_Proxy::handle_incoming_Z_PDU(Z_APDU *apdu)
 	apdu = handle_query_transformation(apdu);
 
     if (apdu)
+	apdu = handle_query_charset_conversion(apdu);
+
+    if (apdu)
 	apdu = handle_query_validation(apdu);
 
     if (apdu)
 	apdu = result_set_optimize(apdu);
+
     if (!apdu)
     {
 	m_client->timeout(m_target_idletime);  // mark it active even 
@@ -2832,7 +2858,8 @@ void Yaz_Proxy::pre_init()
 					  &cql2rpn,
 					  &authentication,
 					  &negotiation_charset,
-					  &negotiation_lang) ; i++)
+					  &negotiation_lang,
+					  0) ; i++)
     {
 	if (pre_init)
 	{

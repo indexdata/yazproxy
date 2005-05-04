@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy-config.cpp,v 1.17 2005-02-21 14:27:32 adam Exp $
+/* $Id: yaz-proxy-config.cpp,v 1.18 2005-05-04 08:31:44 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -122,7 +122,8 @@ class Yaz_ProxyConfigP {
 			    int *keepalive_limit_bw, int *keepalive_limit_pdu,
 			    int *pre_init, const char **cql2rpn,
 			    const char **negotiation_charset,
-			    const char **negotiation_lang);
+			    const char **negotiation_lang,
+			    const char **query_charset);
     void return_limit(xmlNodePtr ptr,
 		      int *limit_bw, int *limit_pdu, int *limit_req);
     int check_type_1(ODR odr, xmlNodePtr ptr, Z_RPNQuery *query,
@@ -328,7 +329,8 @@ void Yaz_ProxyConfigP::return_target_info(xmlNodePtr ptr,
 					  int *pre_init,
 					  const char **cql2rpn,
 					  const char **negotiation_charset,
-					  const char **negotiation_lang)
+					  const char **negotiation_lang,
+					  const char **query_charset)
 {
     *pre_init = 0;
     int no_url = 0;
@@ -391,6 +393,13 @@ void Yaz_ProxyConfigP::return_target_info(xmlNodePtr ptr,
 	    const char *t = get_text(ptr);
 	    if (t)
 		*cql2rpn = t;
+	}
+	if (ptr->type == XML_ELEMENT_NODE 
+	    && !strcmp((const char *) ptr->name, "query-charset"))
+	{
+	    const char *t = get_text(ptr);
+	    if (t && query_charset)
+		*query_charset = t;
 	}
 	if (ptr->type == XML_ELEMENT_NODE 
 	    && !strcmp((const char *) ptr->name, "negotiation-charset"))
@@ -519,8 +528,8 @@ int Yaz_ProxyConfigP::check_type_1_attributes(ODR odr, xmlNodePtr ptrl,
 
 #if HAVE_XSLT
 int Yaz_ProxyConfigP::check_type_1_structure(ODR odr, xmlNodePtr ptr,
-					    Z_RPNStructure *q,
-					    char **addinfo)
+					     Z_RPNStructure *q,
+					     char **addinfo)
 {
     if (q->which == Z_RPNStructure_complex)
     {
@@ -1021,7 +1030,8 @@ int Yaz_ProxyConfig::get_target_no(int no,
 				   const char **cql2rpn,
 				   const char **authentication,
 				   const char **negotiation_charset,
-				   const char **negotiation_lang)
+				   const char **negotiation_lang,
+				   const char **query_charset)
 {
 #if HAVE_XSLT
     xmlNodePtr ptr;
@@ -1049,7 +1059,7 @@ int Yaz_ProxyConfig::get_target_no(int no,
 		    target_idletime, client_idletime,
 		    keepalive_limit_bw, keepalive_limit_pdu,
 		    pre_init, cql2rpn,
-		    negotiation_charset, negotiation_lang);
+		    negotiation_charset, negotiation_lang, query_charset);
 		return 1;
 	    }
 	    i++;
@@ -1248,7 +1258,8 @@ void Yaz_ProxyConfig::get_target_info(const char *name,
 				      int *pre_init,
 				      const char **cql2rpn,
 				      const char **negotiation_charset,
-				      const char **negotiation_lang)
+				      const char **negotiation_lang,
+				      const char **query_charset)
 {
 #if HAVE_XSLT
     xmlNodePtr ptr;
@@ -1285,7 +1296,8 @@ void Yaz_ProxyConfig::get_target_info(const char *name,
 				 target_idletime, client_idletime,
 				 keepalive_limit_bw, keepalive_limit_pdu,
 				 pre_init, cql2rpn,
-				 negotiation_charset, negotiation_lang);
+				 negotiation_charset, negotiation_lang,
+				 query_charset);
     }
 #else
     *url = name;

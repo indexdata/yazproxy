@@ -1,4 +1,4 @@
-/* $Id: proxy.h,v 1.14 2005-02-22 10:08:19 adam Exp $
+/* $Id: proxy.h,v 1.15 2005-05-04 08:31:44 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -41,6 +41,7 @@ class Yaz_Proxy;
 class Yaz_usemarcon;
 class Yaz_ProxyConfig;
 class Yaz_ProxyClient;
+class Yaz_CharsetConverter;
 
 enum YAZ_Proxy_MARCXML_mode {
     none,
@@ -98,6 +99,7 @@ class YAZ_EXPORT Yaz_Proxy : public Yaz_Z_Assoc {
 
     Z_APDU *handle_query_validation(Z_APDU *apdu);
     Z_APDU *handle_query_transformation(Z_APDU *apdu);
+    Z_APDU *handle_query_charset_conversion(Z_APDU *apdu);
 
     Z_APDU *handle_syntax_validation(Z_APDU *apdu);
 
@@ -169,6 +171,7 @@ class YAZ_EXPORT Yaz_Proxy : public Yaz_Z_Assoc {
     char *m_usemarcon_ini_stage1;
     char *m_usemarcon_ini_stage2;
     Yaz_usemarcon *m_usemarcon;
+    Yaz_CharsetConverter *m_charset_converter;
  public:
     Yaz_Proxy(IYaz_PDU_Observable *the_PDU_Observable,
 	      Yaz_Proxy *parent = 0);
@@ -186,6 +189,7 @@ class YAZ_EXPORT Yaz_Proxy : public Yaz_Z_Assoc {
     const char *option(const char *name, const char *value);
     void set_default_target(const char *target);
     void set_proxy_negotiation (const char *charset, const char *lang);
+    void set_query_charset(const char *charset);
     char *get_proxy_target() { return m_proxyTarget; };
     char *get_session_str() { return m_session_str; };
     void set_max_clients(int m) { m_max_clients = m; };
