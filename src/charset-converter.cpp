@@ -1,4 +1,4 @@
-/* $Id: charset-converter.cpp,v 1.1 2005-05-04 08:35:03 adam Exp $
+/* $Id: charset-converter.cpp,v 1.2 2005-05-06 06:55:54 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -19,6 +19,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 02111-1307, USA.
  */
 
+#include <yaz/log.h>
 #include <yaz/proto.h>
 #include "proxyp.h"
 
@@ -58,10 +59,18 @@ void Yaz_CharsetConverter::convert_type_1(char *buf_in, int len_in,
 {
     wrbuf_rewind(m_wrbuf);
     wrbuf_iconv_write(m_wrbuf, m_ct, buf_in, len_in);
-    
+
     *len_out = wrbuf_len(m_wrbuf);
-    *buf_out = (char*) odr_malloc(o, *len_out);
-    memcpy(*buf_out, wrbuf_buf(m_wrbuf), *len_out);
+    if (*len_out == 0)
+    {   // we assume conversion failed
+	*buf_out = buf_in;
+	*len_out = len_in;
+    }
+    else
+    {
+	*buf_out = (char*) odr_malloc(o, *len_out);
+	memcpy(*buf_out, wrbuf_buf(m_wrbuf), *len_out);
+    }
 }
 
 void Yaz_CharsetConverter::convert_type_1(Z_Term *q, ODR o)
