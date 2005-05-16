@@ -5,3 +5,4 @@ yazproxy
 *.la
 Makefile
 Makefile.in
+cdetails
