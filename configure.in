@@ -21,9 +21,9 @@ dnl
 dnl ----- libXSLT
 AC_SUBST(XSLT_LIBS)
 AC_SUBST(XSLT_CFLAGS)
-xsltdir=yes
+xsltdir=default
 AC_ARG_WITH(xslt,[[  --with-xslt[=PREFIX]    use libxslt in PREFIX]],xsltdir=$withval)
-if test "$xsltdir" = "yes"; then
+if test "$xsltdir" = "yes" -o "$xsltdir" = "default"; then
 	for d in /usr /usr/local; do
 		if test -x $d/bin/xslt-config; then
 			xsltdir=$d
@@ -40,6 +40,10 @@ if test "$xsltdir" != "no"; then
 		AC_DEFINE(HAVE_XSLT)
 	else
 		AC_MSG_RESULT(Not found)
+                if test "$xsltdir" = "default"; then
+                        AC_MSG_WARN([Libxslt development libraries not found.])
+                else
+                        AC_MSG_ERROR([libxslt development libraries not found.])                fi
 	fi
 fi
 
