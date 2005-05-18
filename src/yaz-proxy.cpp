@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.25 2005-05-04 08:31:44 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.26 2005-05-18 20:15:23 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -453,7 +453,6 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
 	    m_cql2rpn.set_pqf_file(cql2rpn_fname);
 	if (negotiation_charset || negotiation_lang)
 	{
-	    yaz_log(YLOG_LOG, "set_proxy_negotiation...");
 	    set_proxy_negotiation(negotiation_charset,
 		negotiation_lang);
 	}
@@ -842,6 +841,74 @@ void Yaz_Proxy::convert_to_frontend_type(Z_NamePlusRecordList *p)
     }
 }
 
+void Yaz_Proxy::convert_records_charset(Z_NamePlusRecordList *p,
+					const char *backend_charset)
+{
+    yaz_log(YLOG_LOG, "%sconvert_to_marc", m_session_str);
+    int sel = 	m_charset_converter->get_client_charset_selected();
+    const char *client_record_charset =
+	m_charset_converter->get_client_query_charset();
+    if (sel && backend_charset && client_record_charset &&
+	strcmp(backend_charset, client_record_charset))
+    {
+	int i;
+	yaz_iconv_t cd = yaz_iconv_open(client_record_charset,
+					backend_charset);
+	yaz_marc_t mt = yaz_marc_create();
+	yaz_marc_xml(mt, YAZ_MARC_ISO2709);
+	yaz_marc_iconv(mt, cd);
+	for (i = 0; i < p->num_records; i++)
+	{
+	    Z_NamePlusRecord *npr = p->records[i];
+	    if (npr->which == Z_NamePlusRecord_databaseRecord)
+	    {
+		Z_External *r = npr->u.databaseRecord;
+		oident *ent = oid_getentbyoid(r->direct_reference);
+		if (!ent || ent->value == VAL_NONE)
+		    continue;
+
+		if (ent->value == VAL_SUTRS)
+		{
+		    WRBUF w = wrbuf_alloc();
+
+		    wrbuf_iconv_write(w, cd,  (char*) r->u.octet_aligned->buf,
+				      r->u.octet_aligned->len);
+		    npr->u.databaseRecord =
+			z_ext_record(odr_encode(), ent->value, wrbuf_buf(w),
+				     wrbuf_len(w));
+		    wrbuf_free(w, 1);
+		}
+		else if (ent->value == VAL_TEXT_XML)
+		{
+		    ;
+		}
+		else if (r->which == Z_External_octet)
+		{
+		    int rlen;
+		    char *result;
+		    if (yaz_marc_decode_buf(mt,
+					    (char*) r->u.octet_aligned->buf,
+					    r->u.octet_aligned->len,
+					    &result, &rlen))
+		    {
+			npr->u.databaseRecord =
+			    z_ext_record(odr_encode(), ent->value, result, rlen);
+			yaz_log(YLOG_LOG, "%sRecoding MARC record",
+				m_session_str);
+		    }
+		}
+	    }
+	}
+	if (cd)
+	    yaz_iconv_close(cd);
+	yaz_marc_destroy(mt);
+    }
+    else
+    {
+	yaz_log(YLOG_LOG, "%sSkipping marc convert", m_session_str);
+    }
+}
+
 void Yaz_Proxy::convert_to_marcxml(Z_NamePlusRecordList *p,
 				   const char *backend_charset)
 {
@@ -1200,6 +1267,9 @@ int Yaz_Proxy::send_to_client(Z_APDU *apdu)
 		if (m_marcxml_mode == marcxml)
 		    convert_to_marcxml(p->u.databaseOrSurDiagnostics,
 				       m_backend_charset);
+		else
+		    convert_records_charset(p->u.databaseOrSurDiagnostics,
+					    m_backend_charset);
 		if (convert_xsl(p->u.databaseOrSurDiagnostics, apdu))
 		    return 0;
 		    
@@ -1245,6 +1315,9 @@ int Yaz_Proxy::send_to_client(Z_APDU *apdu)
 	    if (m_marcxml_mode == marcxml)
 		convert_to_marcxml(p->u.databaseOrSurDiagnostics,
 				   m_backend_charset);
+	    else
+		convert_records_charset(p->u.databaseOrSurDiagnostics,
+					m_backend_charset);
 	    if (convert_xsl(p->u.databaseOrSurDiagnostics, apdu))
 		return 0;
 	}
@@ -1635,11 +1708,13 @@ void Yaz_Proxy::handle_charset_lang_negotiation(Z_APDU *apdu)
 {
     if (apdu->which == Z_APDU_initRequest)
     {
+	yaz_log(YLOG_LOG, "%shandle_charset_lang_negotiation", 
+		m_session_str);
 	if (m_initRequest_options &&
 	    !ODR_MASK_GET(m_initRequest_options, Z_Options_negotiationModel) &&
 	    (m_proxy_negotiation_charset || m_proxy_negotiation_lang))
 	{
-	    // There is not negotiation proposal from
+	    // There is no negotiation proposal from
 	    // client's side. OK. The proxy negotiation
 	    // in use, only.
 	    Z_InitRequest *initRequest = apdu->u.initRequest;
@@ -1659,6 +1734,66 @@ void Yaz_Proxy::handle_charset_lang_negotiation(Z_APDU *apdu)
 		    (const char**)&m_proxy_negotiation_lang,
 		    m_proxy_negotiation_lang ? 1:0,
 		    1);
+	    }
+	}
+	else if (m_initRequest_options &&
+		 ODR_MASK_GET(m_initRequest_options,
+			      Z_Options_negotiationModel) &&
+		 m_charset_converter->get_target_query_charset())
+	{
+	    yaz_log(YLOG_LOG, "%sManaged charset negotiation: charset=%s",
+		    m_session_str,
+		    m_charset_converter->get_target_query_charset());
+	    Z_InitRequest *initRequest = apdu->u.initRequest;
+	    Z_CharSetandLanguageNegotiation *negotiation =
+		yaz_get_charneg_record (initRequest->otherInfo);	
+	    if (negotiation &&
+		negotiation->which == Z_CharSetandLanguageNegotiation_proposal)
+	    {
+		NMEM nmem = nmem_create();
+		char **charsets = 0;
+		int num_charsets = 0;
+		char **langs = 0;
+		int num_langs = 0;
+		int selected = 0;
+		yaz_get_proposal_charneg (nmem, negotiation,
+					  &charsets, &num_charsets,
+					  &langs, &num_langs, &selected);
+		int i;
+		for (i = 0; i<num_charsets; i++)
+		    yaz_log(YLOG_LOG, "%scharset %s", m_session_str,
+			    charsets[i]);
+		for (i = 0; i<num_langs; i++)
+		    yaz_log(YLOG_LOG, "%slang %s", m_session_str,
+			    langs[i]);
+
+		const char *t_charset =
+		    m_charset_converter->get_target_query_charset();
+		// sweep through charsets and pick the first supported
+		// conversion
+		for (i = 0; i<num_charsets; i++)
+		{
+		    const char *c_charset = charsets[i];
+		    if (!odr_set_charset(odr_decode(), t_charset, c_charset))
+			break;
+		}
+		if (i != num_charsets)
+		{
+		    // got one .. set up ODR for reverse direction
+		    const char *c_charset = charsets[i];
+		    odr_set_charset(odr_encode(), c_charset, t_charset);
+		    m_charset_converter->set_client_query_charset(c_charset);
+		    m_charset_converter->set_client_charset_selected(selected);
+		}
+		nmem_destroy(nmem);
+		ODR_MASK_CLEAR(m_initRequest_options, 
+			       Z_Options_negotiationModel);
+		yaz_del_charneg_record(&initRequest->otherInfo);
+	    }
+	    else
+	    {
+		yaz_log(YLOG_WARN, "%sUnable to decode charset package",
+			m_session_str);
 	    }
 	}
     }
@@ -1708,35 +1843,42 @@ void Yaz_Proxy::handle_charset_lang_negotiation(Z_APDU *apdu)
 		ODR_MASK_CLEAR(initResponse->options, Z_Options_negotiationModel);
 		
 		// Delete negotiation (charneg-3) entry.
-		Z_OtherInformation *p = *otherInfo;
-		for (int i=0; i<p->num_elements; i++)
+		yaz_del_charneg_record(otherInfo);
+	    }
+	}
+	else
+	{
+	    if (m_proxy_negotiation_charset || m_proxy_negotiation_lang)
+	    {
+		yaz_log(YLOG_LOG, "%sTarget did not honor negotiation",
+			m_session_str);
+	    }
+	    else if (m_charset_converter->get_client_query_charset())
+	    {
+		Z_OtherInformation **otherInfo;  
+		Z_OtherInformationUnit *oi;
+		get_otherInfoAPDU(apdu, &otherInfo);
+		oi = update_otherInformation(otherInfo, 1, NULL, 0, 0);
+		if (oi)
 		{
-		    if (p->list[i]->which == Z_OtherInfo_externallyDefinedInfo)
-		    {
-			Z_External *pext =
-			    p->list[i]->information.externallyDefinedInfo;
-			struct oident *e = oid_getentbyoid(pext->direct_reference);
-		    
-			if (e && e->value == VAL_CHARNEG3 && e->oclass == CLASS_NEGOT &&
-			    pext->which == Z_External_charSetandLanguageNegotiation)
-			{
-			    (p->num_elements)--;			
-			    if(p->num_elements == 0)
-			    {
-				*otherInfo = 0;
-			    }
-			    else
-			    {
-				for (int j=i; j<p->num_elements;j++)
-				    p->list[j] = p->list[j+1];
-			    }
-			}
-		    }
-		}    
+		    ODR_MASK_SET(initResponse->options,
+				 Z_Options_negotiationModel);
+		    ODR_MASK_SET(m_initRequest_options,
+				 Z_Options_negotiationModel);
+
+		    oi->which = Z_OtherInfo_externallyDefinedInfo;    
+		    oi->information.externallyDefinedInfo =
+			yaz_set_response_charneg(
+			    odr_encode(),
+			    m_charset_converter->get_client_query_charset(),
+			    0 /* no lang */,
+			    m_charset_converter->get_client_charset_selected());
+		}
 	    }
 	}
     }
 }
+
 Z_Records *Yaz_Proxy::create_nonSurrogateDiagnostics(ODR odr,
 						     int error,
 						     const char *addinfo)
@@ -1805,7 +1947,7 @@ Z_APDU *Yaz_Proxy::handle_query_transformation(Z_APDU *apdu)
     return apdu;
 }
 
-Z_APDU *Yaz_Proxy::handle_query_charset_conversion(Z_APDU *apdu)
+Z_APDU *Yaz_Proxy::handle_target_charset_conversion(Z_APDU *apdu)
 {
     if (apdu->which == Z_APDU_searchRequest &&
 	apdu->u.searchRequest->query)
@@ -2636,7 +2778,7 @@ void Yaz_Proxy::handle_incoming_Z_PDU(Z_APDU *apdu)
 	apdu = handle_query_transformation(apdu);
 
     if (apdu)
-	apdu = handle_query_charset_conversion(apdu);
+	apdu = handle_target_charset_conversion(apdu);
 
     if (apdu)
 	apdu = handle_query_validation(apdu);

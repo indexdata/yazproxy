@@ -1,4 +1,4 @@
-/* $Id: proxyp.h,v 1.4 2005-05-04 08:31:44 adam Exp $
+/* $Id: proxyp.h,v 1.5 2005-05-18 20:15:22 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -58,7 +58,11 @@ public:
     ~Yaz_CharsetConverter();
     void set_target_query_charset(const char *s);
     void set_client_query_charset(const char *org);
+    const char *get_client_query_charset(void);
+    const char *get_target_query_charset(void);
     void convert_type_1(Z_RPNQuery *q, ODR o);
+    void set_client_charset_selected(int sel);
+    int get_client_charset_selected();
 private:
     void convert_type_1(char *buf_in, int len_in,
 			char **buf_out, int *len_out,
@@ -68,6 +72,7 @@ private:
     void convert_type_1(Z_Operand *q, ODR o);
     char *m_target_query_charset;
     char *m_client_query_charset;
+    int m_client_charset_selected;
     yaz_iconv_t m_ct;
     WRBUF m_wrbuf;
 };

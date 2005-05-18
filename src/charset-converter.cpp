@@ -1,4 +1,4 @@
-/* $Id: charset-converter.cpp,v 1.2 2005-05-06 06:55:54 adam Exp $
+/* $Id: charset-converter.cpp,v 1.3 2005-05-18 20:15:22 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -28,6 +28,7 @@ Yaz_CharsetConverter::Yaz_CharsetConverter()
     m_wrbuf = wrbuf_alloc();
     m_target_query_charset = 0;
     m_client_query_charset = 0;
+    m_client_charset_selected = 0;
 }
 
 Yaz_CharsetConverter::~Yaz_CharsetConverter()
@@ -35,6 +36,11 @@ Yaz_CharsetConverter::~Yaz_CharsetConverter()
     wrbuf_free(m_wrbuf, 1);
     xfree(m_target_query_charset);
     xfree(m_client_query_charset);
+}
+
+const char *Yaz_CharsetConverter::get_target_query_charset()
+{
+    return m_target_query_charset;
 }
 
 void Yaz_CharsetConverter::set_target_query_charset(const char *s)
@@ -51,6 +57,21 @@ void Yaz_CharsetConverter::set_client_query_charset(const char *s)
     m_client_query_charset = 0;
     if (s)
 	m_client_query_charset = xstrdup(s);
+}
+
+const char *Yaz_CharsetConverter::get_client_query_charset()
+{
+    return m_client_query_charset;
+}
+
+void Yaz_CharsetConverter::set_client_charset_selected(int sel)
+{
+    m_client_charset_selected = sel;
+}
+
+int Yaz_CharsetConverter::get_client_charset_selected()
+{
+    return m_client_charset_selected;
 }
 
 void Yaz_CharsetConverter::convert_type_1(char *buf_in, int len_in,
@@ -111,6 +132,7 @@ void Yaz_CharsetConverter::convert_type_1(Z_RPNStructure *q, ODR o)
 	break;
     }
 }
+
 void Yaz_CharsetConverter::convert_type_1(Z_RPNQuery *q, ODR o)
 {
     if (m_target_query_charset && m_client_query_charset)

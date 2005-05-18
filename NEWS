@@ -1,3 +1,10 @@
+Added support for Z39.50 character set negotiation. This allows
+the proxy to act as a Z39.50 server supporting character set negotiation
+for backends not supporting it. New config element target-charset
+specifies encoding for target, and MUST be specified in order
+for any conversion to take place. Conversion also takes place for
+SRW/SRU clients that are negotiate implicitly to UTF-8.
+
 --- 1.0 2005/03/14
 
 Added Support OPAC to XML conversion. Triggered by backendtype="opac"

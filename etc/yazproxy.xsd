@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!-- XML Schema for YAZ proxy config file.
-    $Id: yazproxy.xsd,v 1.8 2005-02-21 14:27:31 adam Exp $
+    $Id: yazproxy.xsd,v 1.9 2005-05-18 20:15:22 adam Exp $
 -->
 <xs:schema
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
@@ -34,6 +34,7 @@
      <xs:element ref="preinit" minOccurs="0"/>
      <xs:element ref="exp:explain" minOccurs="0"/>
      <xs:element ref="cql2rpn" minOccurs="0"/>
+     <xs:element ref="target-charset" minOccurs="0"/>
      <xs:element ref="target-authentication" minOccurs="0"/>
      <xs:element ref="client-authentication" minOccurs="0"/>
      <xs:element ref="negotiation-charset" minOccurs="0"/>
@@ -52,6 +53,7 @@
  <xs:element name="pdu" type="xs:integer"/>
  <xs:element name="retrieve" type="xs:integer"/>
  <xs:element name="preinit" type="xs:integer"/>
+ <xs:element name="target-charset" type="xs:string"/>
  <xs:element name="cql2rpn" type="xs:string"/>
  <xs:element name="target-authentication">
    <xs:complexType>
