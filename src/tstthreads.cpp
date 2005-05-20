@@ -1,4 +1,4 @@
-/* $Id: tstthreads.cpp,v 1.1 2005-05-19 21:29:58 adam Exp $
+/* $Id: tstthreads.cpp,v 1.2 2005-05-20 21:32:31 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -19,6 +19,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 02111-1307, USA.
  */
 
+#include <stdlib.h>
 #include <pthread.h>
 #include <unistd.h>
 #include <ctype.h>
