@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.26 2005-05-18 20:15:23 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.27 2005-05-27 18:07:49 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -390,12 +390,6 @@ const char *Yaz_Proxy::load_balance(const char **url)
 	    max_spare = zurl_in_spare[i];
 	}
     }
-    // use the one with minimum connections if spare is > 3
-    if (spare_for_min > 3)
-	return ret_min;
-    // use one with most spares (if any)
-    if (max_spare > 0)
-	return ret_spare;
     return ret_min;
 }
 
