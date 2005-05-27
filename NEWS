@@ -5,6 +5,10 @@ specifies encoding for target, and MUST be specified in order
 for any conversion to take place. Conversion also takes place for
 SRW/SRU clients that are negotiate implicitly to UTF-8.
 
+--- 1.0.1 2005/05/27
+
+Fixed bug #355: Yaz proxy does not seem to load balance.
+ 
 --- 1.0 2005/03/14
 
 Added Support OPAC to XML conversion. Triggered by backendtype="opac"
