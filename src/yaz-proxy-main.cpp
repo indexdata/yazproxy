@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy-main.cpp,v 1.12 2005-02-21 14:27:32 adam Exp $
+/* $Id: yaz-proxy-main.cpp,v 1.13 2005-05-30 20:09:21 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -283,7 +283,7 @@ int main(int argc, char **argv)
     int cont = 1;
     int run = 1;
     Yaz_SocketManager mySocketManager;
-    Yaz_Proxy proxy(new Yaz_PDU_Assoc(&mySocketManager));
+    Yaz_Proxy proxy(new Yaz_PDU_Assoc(&mySocketManager), &mySocketManager);
 
     static_yaz_proxy = &proxy;
 

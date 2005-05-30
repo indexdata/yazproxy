@@ -1,4 +1,4 @@
-/* $Id: module.h,v 1.2 2005-02-21 14:27:31 adam Exp $
+/* $Id: module.h,v 1.3 2005-05-30 20:09:20 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -48,6 +48,24 @@ struct Yaz_ProxyModule_int0 {
 	const char *group, // Group ID (or NULL if no supplied Group ID)
 	const char *pw     // Password (or NULL if no supplied password)
     );
+};
+
+class Yaz_ProxyModule;
+
+class Yaz_ProxyModules {
+    friend class Proxy_Msg;
+ public:
+    Yaz_ProxyModules();
+    ~Yaz_ProxyModules();
+    int authenticate(const char *module_name,
+		     const char *target_name, void *element_ptr,
+		     const char *user,
+		     const char *group,
+		     const char *password);
+    int add_module(const char *fname);
+    void unload_modules();
+ private:
+    Yaz_ProxyModule *m_list;
 };
 
 #endif

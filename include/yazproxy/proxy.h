@@ -1,4 +1,4 @@
-/* $Id: proxy.h,v 1.16 2005-05-18 20:15:22 adam Exp $
+/* $Id: proxy.h,v 1.17 2005-05-30 20:09:20 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -22,6 +22,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #ifndef YAZ_PROXY_H_INCLUDED
 #define YAZ_PROXY_H_INCLUDED
 
+#include <yaz++/socket-observer.h>
 #include <yaz++/z-assoc.h>
 #include <yaz++/z-query.h>
 #include <yaz++/z-databases.h>
@@ -48,8 +49,11 @@ enum YAZ_Proxy_MARCXML_mode {
     marcxml,
 };
 
+class Msg_Thread;
+
 /// Information Retrieval Proxy Server.
 class YAZ_EXPORT Yaz_Proxy : public Yaz_Z_Assoc {
+    friend class Proxy_Msg;
  private:
     char *get_cookie(Z_OtherInformation **otherInfo);
     char *get_proxy(Z_OtherInformation **otherInfo);
@@ -63,6 +67,7 @@ class YAZ_EXPORT Yaz_Proxy : public Yaz_Z_Assoc {
     void releaseClient();    
     Yaz_ProxyClient *m_client;
     IYaz_PDU_Observable *m_PDU_Observable;
+    IYazSocketObservable *m_socket_observable;
     Yaz_ProxyClient *m_clientPool;
     Yaz_Proxy *m_parent;
     int m_seqno;
@@ -92,7 +97,6 @@ class YAZ_EXPORT Yaz_Proxy : public Yaz_Z_Assoc {
     Z_GDU *m_bw_hold_PDU;
     int m_max_record_retrieve;
     void handle_max_record_retrieve(Z_APDU *apdu);
-    int handle_authentication(Z_APDU *apdu);
     void display_diagrecs(Z_DiagRec **pp, int num);
     Z_Records *create_nonSurrogateDiagnostics(ODR o, int error,
 					      const char *addinfo);
@@ -165,6 +169,7 @@ class YAZ_EXPORT Yaz_Proxy : public Yaz_Z_Assoc {
     Z_ElementSetNames *mk_esn_from_schema(ODR o, const char *schema);
     Z_ReferenceId *m_referenceId;
     NMEM m_referenceId_mem;
+    
 #define NO_SPARE_SOLARIS_FD 10
     int m_lo_fd[NO_SPARE_SOLARIS_FD];
     void low_socket_open();
@@ -175,12 +180,17 @@ class YAZ_EXPORT Yaz_Proxy : public Yaz_Z_Assoc {
     Yaz_CharsetConverter *m_charset_converter;
  public:
     Yaz_Proxy(IYaz_PDU_Observable *the_PDU_Observable,
+	      IYazSocketObservable *the_socket_observable,
 	      Yaz_Proxy *parent = 0);
     ~Yaz_Proxy();
+    int handle_authentication(Z_APDU *apdu);
+    void result_authentication(Z_APDU *apdu, int ret);
+    void handle_init(Z_APDU *apdu);
     void inc_request_no();
     void recv_GDU(Z_GDU *apdu, int len);
     void handle_incoming_HTTP(Z_HTTP_Request *req);
     void handle_incoming_Z_PDU(Z_APDU *apdu);
+    void handle_incoming_Z_PDU_2(Z_APDU *apdu);
     IYaz_PDU_Observer* sessionNotify
 	(IYaz_PDU_Observable *the_PDU_Observable, int fd);
     void failNotify();
@@ -205,6 +215,7 @@ class YAZ_EXPORT Yaz_Proxy : public Yaz_Z_Assoc {
     int get_log_mask() { return m_log_mask; };
     int handle_init_response_for_invalid_session(Z_APDU *apdu);
     void set_debug_mode(int mode);
+    Msg_Thread *m_my_thread;
 };
 
 #endif

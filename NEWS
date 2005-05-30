@@ -1,3 +1,7 @@
+
+Added support for threaded authentication modules. See
+etc/config-modules.xml + mod_sample.cpp for an example.
+
 Added support for Z39.50 character set negotiation. This allows
 the proxy to act as a Z39.50 server supporting character set negotiation
 for backends not supporting it. New config element target-charset
