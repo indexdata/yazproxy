@@ -1,4 +1,4 @@
-/* $Id: msg-thread.cpp,v 1.1 2005-05-30 20:08:58 adam Exp $
+/* $Id: msg-thread.cpp,v 1.2 2005-06-02 06:40:46 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -26,6 +26,8 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include <yaz/log.h>
 
 #include "msg-thread.h"
+
+using namespace yazpp_1;
 
 Msg_Thread_Queue::Msg_Thread_Queue()
 {

@@ -1,4 +1,4 @@
-/* $Id: tstthreads.cpp,v 1.3 2005-05-30 20:08:58 adam Exp $
+/* $Id: tstthreads.cpp,v 1.4 2005-06-02 06:40:46 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -26,6 +26,8 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include <yaz++/socket-manager.h>
 #include <yaz/log.h>
 #include "msg-thread.h"
+
+using namespace yazpp_1;
 
 class My_Msg : public IMsg_Thread {
 public:

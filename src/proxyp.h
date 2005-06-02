@@ -1,4 +1,4 @@
-/* $Id: proxyp.h,v 1.5 2005-05-18 20:15:22 adam Exp $
+/* $Id: proxyp.h,v 1.6 2005-06-02 06:40:46 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -31,6 +31,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include <objectlist.h>
 #endif
 
+#include <yaz++/record-cache.h>
 #include <yazproxy/proxy.h>
 #include <yazproxy/module.h>
 
@@ -137,40 +138,16 @@ public:
     class Yaz_ProxyConfigP *m_cp;
 };
 
-class Yaz_RecordCache {
- public:
-    Yaz_RecordCache ();
-    ~Yaz_RecordCache ();
-    void add (ODR o, Z_NamePlusRecordList *npr, int start, int hits);
-    
-    int lookup (ODR o, Z_NamePlusRecordList **npr, int start, int num,
-		Odr_oid *syntax, Z_RecordComposition *comp);
-    void clear();
-
-    void copy_searchRequest(Z_SearchRequest *sr);
-    void copy_presentRequest(Z_PresentRequest *pr);
-    void set_max_size(int sz);
- private:
-    NMEM m_mem;
-    Yaz_RecordCache_Entry *m_entries;
-    Z_SearchRequest *m_searchRequest;
-    Z_PresentRequest *m_presentRequest;
-    int match (Yaz_RecordCache_Entry *entry,
-	       Odr_oid *syntax, int offset,
-	       Z_RecordComposition *comp);
-    int m_max_size;
-};
-
-class Yaz_ProxyClient : public Yaz_Z_Assoc {
+class Yaz_ProxyClient : public yazpp_1::Yaz_Z_Assoc {
     friend class Yaz_Proxy;
-    Yaz_ProxyClient(IYaz_PDU_Observable *the_PDU_Observable,
+    Yaz_ProxyClient(yazpp_1::IYaz_PDU_Observable *the_PDU_Observable,
 		    Yaz_Proxy *parent);
     ~Yaz_ProxyClient();
     void recv_GDU(Z_GDU *apdu, int len);
     void recv_Z_PDU(Z_APDU *apdu, int len);
     void recv_HTTP_response(Z_HTTP_Response *apdu, int len);
     IYaz_PDU_Observer* sessionNotify
-	(IYaz_PDU_Observable *the_PDU_Observable, int fd);
+	(yazpp_1::IYaz_PDU_Observable *the_PDU_Observable, int fd);
     void shutdown();
     Yaz_Proxy *m_server;
     void failNotify();
@@ -182,8 +159,8 @@ class Yaz_ProxyClient : public Yaz_Z_Assoc {
     Yaz_ProxyClient *m_next;
     Yaz_ProxyClient **m_prev;
     int m_init_flag;
-    Yaz_Z_Query *m_last_query;
-    Yaz_Z_Databases m_last_databases;
+    yazpp_1::Yaz_Z_Query *m_last_query;
+    yazpp_1::Yaz_Z_Databases m_last_databases;
     char *m_last_resultSetId;
     int m_last_ok;
     int m_last_resultCount;
@@ -200,7 +177,7 @@ class Yaz_ProxyClient : public Yaz_Z_Assoc {
     Z_ProtocolVersion *m_initResponse_version;
     int m_initResponse_preferredMessageSize;
     int m_initResponse_maximumRecordSize;
-    Yaz_RecordCache m_cache;
+    yazpp_1::Yaz_RecordCache m_cache;
     void pre_init_client();
     int m_target_idletime;
     Yaz_Proxy *m_root;

@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy-main.cpp,v 1.13 2005-05-30 20:09:21 adam Exp $
+/* $Id: yaz-proxy-main.cpp,v 1.14 2005-06-02 06:40:46 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -55,6 +55,8 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include <libxslt/xsltutils.h>
 #include <libxslt/transform.h>
 #endif
+
+using namespace yazpp_1;
 
 void usage(char *prog)
 {
