@@ -1,4 +1,4 @@
-/* $Id: proxy.h,v 1.18 2005-06-02 06:40:46 adam Exp $
+/* $Id: proxy.h,v 1.19 2005-06-08 13:29:03 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -52,7 +52,7 @@ enum YAZ_Proxy_MARCXML_mode {
 class Msg_Thread;
 
 /// Information Retrieval Proxy Server.
-class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Yaz_Z_Assoc {
+class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Z_Assoc {
     friend class Proxy_Msg;
  private:
     char *get_cookie(Z_OtherInformation **otherInfo);
@@ -66,8 +66,8 @@ class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Yaz_Z_Assoc {
     void shutdown();
     void releaseClient();    
     Yaz_ProxyClient *m_client;
-    yazpp_1::IYaz_PDU_Observable *m_PDU_Observable;
-    yazpp_1::IYazSocketObservable *m_socket_observable;
+    yazpp_1::IPDU_Observable *m_PDU_Observable;
+    yazpp_1::ISocketObservable *m_socket_observable;
     Yaz_ProxyClient *m_clientPool;
     Yaz_Proxy *m_parent;
     int m_seqno;
@@ -179,8 +179,8 @@ class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Yaz_Z_Assoc {
     Yaz_usemarcon *m_usemarcon;
     Yaz_CharsetConverter *m_charset_converter;
  public:
-    Yaz_Proxy(yazpp_1::IYaz_PDU_Observable *the_PDU_Observable,
-	      yazpp_1::IYazSocketObservable *the_socket_observable,
+    Yaz_Proxy(yazpp_1::IPDU_Observable *the_PDU_Observable,
+	      yazpp_1::ISocketObservable *the_socket_observable,
 	      Yaz_Proxy *parent = 0);
     ~Yaz_Proxy();
     int handle_authentication(Z_APDU *apdu);
@@ -191,8 +191,8 @@ class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Yaz_Z_Assoc {
     void handle_incoming_HTTP(Z_HTTP_Request *req);
     void handle_incoming_Z_PDU(Z_APDU *apdu);
     void handle_incoming_Z_PDU_2(Z_APDU *apdu);
-    IYaz_PDU_Observer* sessionNotify
-	(yazpp_1::IYaz_PDU_Observable *the_PDU_Observable, int fd);
+    IPDU_Observer *sessionNotify(yazpp_1::IPDU_Observable *the_PDU_Observable,
+				 int fd);
     void failNotify();
     void timeoutNotify();
     void connectNotify();

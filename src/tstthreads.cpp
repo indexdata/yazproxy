@@ -1,4 +1,4 @@
-/* $Id: tstthreads.cpp,v 1.4 2005-06-02 06:40:46 adam Exp $
+/* $Id: tstthreads.cpp,v 1.5 2005-06-08 13:29:03 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -52,23 +52,23 @@ void My_Msg::result()
     printf("My_Msg::result val=%d\n", m_val);
 }
 
-class My_Timer_Thread : public IYazSocketObserver {
+class My_Timer_Thread : public ISocketObserver {
 private:
-    IYazSocketObservable *m_obs;
+    ISocketObservable *m_obs;
     int m_fd[2];
     Msg_Thread *m_t;
 public:
-    My_Timer_Thread(IYazSocketObservable *obs, Msg_Thread *t);
+    My_Timer_Thread(ISocketObservable *obs, Msg_Thread *t);
     void socketNotify(int event);
 };
 
-My_Timer_Thread::My_Timer_Thread(IYazSocketObservable *obs,
+My_Timer_Thread::My_Timer_Thread(ISocketObservable *obs,
 				 Msg_Thread *t) : m_obs(obs) 
 {
     pipe(m_fd);
     m_t = t;
     obs->addObserver(m_fd[0], this);
-    obs->maskObserver(this, YAZ_SOCKET_OBSERVE_READ);
+    obs->maskObserver(this, SOCKET_OBSERVE_READ);
     obs->timeoutObserver(this, 2);
 }
 
@@ -83,7 +83,7 @@ void My_Timer_Thread::socketNotify(int event)
 
 int main(int argc, char **argv)
 {
-    Yaz_SocketManager mySocketManager;
+    SocketManager mySocketManager;
 
     Msg_Thread m(&mySocketManager);
     My_Timer_Thread t(&mySocketManager, &m) ;

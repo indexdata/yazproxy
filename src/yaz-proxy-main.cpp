@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy-main.cpp,v 1.14 2005-06-02 06:40:46 adam Exp $
+/* $Id: yaz-proxy-main.cpp,v 1.15 2005-06-08 13:29:03 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -196,7 +196,7 @@ static void proxy_xml_error_handler(void *ctx, const char *fmt, ...)
 }
 #endif
 
-static void child_run(Yaz_SocketManager *m, int run)
+static void child_run(SocketManager *m, int run)
 {
 #ifdef WIN32
 #else
@@ -284,8 +284,8 @@ int main(int argc, char **argv)
 #endif
     int cont = 1;
     int run = 1;
-    Yaz_SocketManager mySocketManager;
-    Yaz_Proxy proxy(new Yaz_PDU_Assoc(&mySocketManager), &mySocketManager);
+    SocketManager mySocketManager;
+    Yaz_Proxy proxy(new PDU_Assoc(&mySocketManager), &mySocketManager);
 
     static_yaz_proxy = &proxy;
 

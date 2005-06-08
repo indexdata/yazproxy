@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.29 2005-06-02 06:40:46 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.30 2005-06-08 13:29:03 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -145,11 +145,11 @@ static const char *gdu_name(Z_GDU *gdu)
     return "Unknown request/response";
 }
 
-Yaz_Proxy::Yaz_Proxy(IYaz_PDU_Observable *the_PDU_Observable,
-		     IYazSocketObservable *the_socket_observable,
+Yaz_Proxy::Yaz_Proxy(IPDU_Observable *the_PDU_Observable,
+		     ISocketObservable *the_socket_observable,
 		     Yaz_Proxy *parent) 
     :
-    Yaz_Z_Assoc(the_PDU_Observable), m_bw_stat(60), m_pdu_stat(60)
+    Z_Assoc(the_PDU_Observable), m_bw_stat(60), m_pdu_stat(60)
 {
     m_PDU_Observable = the_PDU_Observable;
     m_socket_observable = the_socket_observable;
@@ -338,8 +338,8 @@ Yaz_ProxyConfig *Yaz_Proxy::check_reconfigure()
     return cfg;
 }
 
-IYaz_PDU_Observer *Yaz_Proxy::sessionNotify(IYaz_PDU_Observable
-					    *the_PDU_Observable, int fd)
+IPDU_Observer *Yaz_Proxy::sessionNotify(IPDU_Observable
+					*the_PDU_Observable, int fd)
 {
     check_reconfigure();
     Yaz_Proxy *new_proxy = new Yaz_Proxy(the_PDU_Observable,
@@ -2975,8 +2975,8 @@ void Yaz_ProxyClient::connectNotify()
 	pre_init_client();
 }
 
-IYaz_PDU_Observer *Yaz_ProxyClient::sessionNotify(IYaz_PDU_Observable
-						  *the_PDU_Observable, int fd)
+IPDU_Observer *Yaz_ProxyClient::sessionNotify(IPDU_Observable
+					      *the_PDU_Observable, int fd)
 {
     return new Yaz_ProxyClient(the_PDU_Observable, 0);
 }
@@ -3177,9 +3177,9 @@ void Yaz_ProxyClient::timeoutNotify()
     shutdown();
 }
 
-Yaz_ProxyClient::Yaz_ProxyClient(IYaz_PDU_Observable *the_PDU_Observable,
+Yaz_ProxyClient::Yaz_ProxyClient(IPDU_Observable *the_PDU_Observable,
 				 Yaz_Proxy *parent) :
-    Yaz_Z_Assoc (the_PDU_Observable)
+    Z_Assoc (the_PDU_Observable)
 {
     m_cookie = 0;
     m_next = 0;
@@ -3364,7 +3364,7 @@ void Yaz_Proxy::low_socket_open()
 
 int Yaz_Proxy::server(const char *addr)
 {
-    int r = Yaz_Z_Assoc::server(addr);
+    int r = Z_Assoc::server(addr);
     if (!r)
     {
 	yaz_log(YLOG_LOG, "%sStarted proxy " 

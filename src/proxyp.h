@@ -1,4 +1,4 @@
-/* $Id: proxyp.h,v 1.6 2005-06-02 06:40:46 adam Exp $
+/* $Id: proxyp.h,v 1.7 2005-06-08 13:29:03 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -138,16 +138,16 @@ public:
     class Yaz_ProxyConfigP *m_cp;
 };
 
-class Yaz_ProxyClient : public yazpp_1::Yaz_Z_Assoc {
+class Yaz_ProxyClient : public yazpp_1::Z_Assoc {
     friend class Yaz_Proxy;
-    Yaz_ProxyClient(yazpp_1::IYaz_PDU_Observable *the_PDU_Observable,
+    Yaz_ProxyClient(yazpp_1::IPDU_Observable *the_PDU_Observable,
 		    Yaz_Proxy *parent);
     ~Yaz_ProxyClient();
     void recv_GDU(Z_GDU *apdu, int len);
     void recv_Z_PDU(Z_APDU *apdu, int len);
     void recv_HTTP_response(Z_HTTP_Response *apdu, int len);
-    IYaz_PDU_Observer* sessionNotify
-	(yazpp_1::IYaz_PDU_Observable *the_PDU_Observable, int fd);
+    IPDU_Observer* sessionNotify
+	(yazpp_1::IPDU_Observable *the_PDU_Observable, int fd);
     void shutdown();
     Yaz_Proxy *m_server;
     void failNotify();
@@ -177,7 +177,7 @@ class Yaz_ProxyClient : public yazpp_1::Yaz_Z_Assoc {
     Z_ProtocolVersion *m_initResponse_version;
     int m_initResponse_preferredMessageSize;
     int m_initResponse_maximumRecordSize;
-    yazpp_1::Yaz_RecordCache m_cache;
+    yazpp_1::RecordCache m_cache;
     void pre_init_client();
     int m_target_idletime;
     Yaz_Proxy *m_root;

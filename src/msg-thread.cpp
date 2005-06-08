@@ -1,4 +1,4 @@
-/* $Id: msg-thread.cpp,v 1.2 2005-06-02 06:40:46 adam Exp $
+/* $Id: msg-thread.cpp,v 1.3 2005-06-08 13:29:03 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -72,12 +72,12 @@ static void *tfunc(void *p)
 }
 
 
-Msg_Thread::Msg_Thread(IYazSocketObservable *obs)
+Msg_Thread::Msg_Thread(ISocketObservable *obs)
     : m_SocketObservable(obs)
 {
     pipe(m_fd);
     obs->addObserver(m_fd[0], this);
-    obs->maskObserver(this, YAZ_SOCKET_OBSERVE_READ);
+    obs->maskObserver(this, SOCKET_OBSERVE_READ);
 
     m_stop_flag = false;
     pthread_mutex_init(&m_mutex_input_data, 0);
@@ -108,7 +108,7 @@ Msg_Thread::~Msg_Thread()
 
 void Msg_Thread::socketNotify(int event)
 {
-    if (event & YAZ_SOCKET_OBSERVE_READ)
+    if (event & SOCKET_OBSERVE_READ)
     {
 	char buf[2];
 	read(m_fd[0], buf, 1);
