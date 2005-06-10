@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.24.2.1 2005-05-27 18:00:28 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.24.2.2 2005-06-10 17:51:40 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -2505,14 +2505,15 @@ void Yaz_Proxy::handle_incoming_Z_PDU(Z_APDU *apdu)
 	    m_initRequest_maximumRecordSize = *apdu->u.initRequest->
 		maximumRecordSize;
 	    *apdu->u.initRequest->maximumRecordSize = 1024*1024;
-	    	    
+
+	    Z_CharSetandLanguageNegotiation *charSetandLangRecord =
+		yaz_get_charneg_record(*oi);
+	    
 	    // Save proposal charsets and langs.
 	    if (ODR_MASK_GET(apdu->u.initRequest->options,
-		Z_Options_negotiationModel))
+			     Z_Options_negotiationModel)
+		&& charSetandLangRecord)
 	    {
-		Z_CharSetandLanguageNegotiation *charSetandLangRecord =
-		    yaz_get_charneg_record(*oi);
-    
 		yaz_get_proposal_charneg(m_referenceId_mem,
 		    charSetandLangRecord,
 		    &m_initRequest_oi_negotiation_charsets,
