@@ -1,4 +1,4 @@
-/* $Id: modules.cpp,v 1.1 2005-05-30 20:09:21 adam Exp $
+/* $Id: modules.cpp,v 1.2 2005-06-10 22:53:43 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -25,6 +25,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #endif
 
 #include <yaz/nmem.h>
+#include <yaz/log.h>
 #include <yazproxy/module.h>
 
 class Yaz_ProxyModule {
@@ -103,6 +104,7 @@ int Yaz_ProxyModule::authenticate(const char *name,
 Yaz_ProxyModules::Yaz_ProxyModules()
 {
     m_list = 0;
+    m_no_open = 0;
 }
 
 
@@ -118,6 +120,7 @@ void Yaz_ProxyModules::unload_modules()
     {
 	Yaz_ProxyModule *m_next = m->get_next();
 	delete m;
+	m_no_open--;
 	m = m_next;
     }
     m_list = 0;
@@ -161,6 +164,8 @@ int Yaz_ProxyModules::add_module(const char *fname)
 						     m_list);
 	    m_list = m;
 
+	    m_no_open++;
+	    yaz_log(YLOG_LOG, "Loaded module no_open=%d", m_no_open);
 	    return 0;
 	}
 	else

@@ -1,4 +1,4 @@
-/* $Id: module.h,v 1.3 2005-05-30 20:09:20 adam Exp $
+/* $Id: module.h,v 1.4 2005-06-10 22:53:43 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -66,6 +66,7 @@ class Yaz_ProxyModules {
     void unload_modules();
  private:
     Yaz_ProxyModule *m_list;
+    int m_no_open;
 };
 
 #endif
