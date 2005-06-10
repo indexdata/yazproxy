@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.31 2005-06-10 17:54:11 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.32 2005-06-10 22:54:22 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -55,23 +55,77 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 
 using namespace yazpp_1;
 
+#define USE_AUTH_MSG 1
+
+#if USE_AUTH_MSG
 class Auth_Msg : public IMsg_Thread {
 public:
     int m_ret;
-    void destroy();
     IMsg_Thread *handle();
     void result();
     Yaz_Proxy *m_proxy;
-    Z_APDU *m_apdu;
+    NMEM m_nmem;
+    char *m_apdu_buf;
+    int m_apdu_len;
+    Auth_Msg();
+    virtual ~Auth_Msg();
 };
 
+Auth_Msg::Auth_Msg()
+{
+    m_nmem = nmem_create();
+}
+
+Auth_Msg::~Auth_Msg()
+{
+    nmem_destroy(m_nmem);
+}
+    
 IMsg_Thread *Auth_Msg::handle()
 {
     yaz_log(YLOG_LOG, "Auth_Msg:handle begin");
-    m_ret = m_proxy->handle_authentication(m_apdu);
+    ODR encode = odr_createmem(ODR_DECODE);
+    Z_APDU *apdu;
+
+    odr_setbuf(encode, m_apdu_buf, m_apdu_len, 0);
+    int r = z_APDU(encode, &apdu, 0, 0);
+    if (!r)
+    {
+	yaz_log(YLOG_WARN, "decode failed in Auth_Msg::handle");
+    }
+    else
+    {
+	m_ret = m_proxy->handle_authentication(apdu);
+    }
     yaz_log(YLOG_LOG, "Auth_Msg:handle end");
+    odr_destroy(encode);
     return this;
 }
+
+void Auth_Msg::result()
+{
+    if (m_proxy->dec_ref())
+    {
+	yaz_log(YLOG_LOG, "Auth_Msg:result proxy gone");
+    }
+    else
+    {
+	yaz_log(YLOG_LOG, "Auth_Msg:result proxy ok buf=%p len=%d",
+		m_apdu_buf, m_apdu_len);
+	odr_reset(m_proxy->odr_decode());	
+	odr_setbuf(m_proxy->odr_decode(), m_apdu_buf, m_apdu_len, 0);
+	Z_APDU *apdu = 0;
+	int r = z_APDU(m_proxy->odr_decode(), &apdu, 0, 0);
+	if (r)
+	    yaz_log(YLOG_LOG, "Auth_Msg::result z_APDU OK");
+	else
+	    yaz_log(YLOG_LOG, "Auth_Msg::result z_APDU failed");
+	m_proxy->result_authentication(apdu, m_ret);
+    }
+    delete this;
+}
+
+#endif
 
 void Yaz_Proxy::result_authentication(Z_APDU *apdu, int ret)
 {
@@ -80,17 +134,10 @@ void Yaz_Proxy::result_authentication(Z_APDU *apdu, int ret)
 	Z_APDU *apdu_reject = zget_APDU(odr_encode(), Z_APDU_initResponse);
 	*apdu_reject->u.initResponse->result = 0;
 	send_to_client(apdu_reject);
-	shutdown();
+	dec_ref();
     }
     else
 	handle_incoming_Z_PDU_2(apdu);
-}
-
-void Auth_Msg::result()
-{
-    yaz_log(YLOG_LOG, "Auth_Msg:result");
-    m_proxy->result_authentication(m_apdu, m_ret);
-    delete this;
 }
 
 static const char *apdu_name(Z_APDU *apdu)
@@ -230,10 +277,17 @@ Yaz_Proxy::Yaz_Proxy(IPDU_Observable *the_PDU_Observable,
     if (!m_parent)
 	low_socket_open();
     m_my_thread = 0;
+    m_ref_count = 1;
+}
+
+void Yaz_Proxy::inc_ref()
+{
+    m_ref_count++;
 }
 
 Yaz_Proxy::~Yaz_Proxy()
 {
+    assert(m_ref_count == 0);
     yaz_log(YLOG_LOG, "%sClosed %d/%d sent/recv bytes total", m_session_str,
 	    m_bytes_sent, m_bytes_recv);
     nmem_destroy(m_initRequest_mem);
@@ -1694,7 +1748,7 @@ void Yaz_Proxy::recv_GDU(Z_GDU *apdu, int len)
 		 m_session_str, gdu_name(apdu), len);
 
     if (m_bw_hold_PDU)     // double incoming PDU. shutdown now.
-	shutdown();
+	dec_ref();
 
     m_bw_stat.add_bytes(len);
     m_pdu_stat.add_bytes(1);
@@ -2767,10 +2821,21 @@ void Yaz_Proxy::handle_init(Z_APDU *apdu)
     }
     m_client->m_init_flag = 1;
     
+#if USE_AUTH_MSG
     Auth_Msg *m = new Auth_Msg;
-    m->m_apdu = apdu;
     m->m_proxy = this;
+    z_APDU(odr_encode(), &apdu, 0, "encode");
+    char *apdu_buf = odr_getbuf(odr_encode(), &m->m_apdu_len, 0);
+    m->m_apdu_buf = (char*) nmem_malloc(m->m_nmem, m->m_apdu_len);
+    memcpy(m->m_apdu_buf, apdu_buf, m->m_apdu_len);
+    odr_reset(odr_encode());
+
+    inc_ref();
     m_my_thread->put(m);
+#else
+    int ret = handle_authentication(apdu);
+    result_authentication(apdu, ret);
+#endif
 }
 
 void Yaz_Proxy::handle_incoming_Z_PDU(Z_APDU *apdu)
@@ -2809,7 +2874,7 @@ void Yaz_Proxy::handle_incoming_Z_PDU(Z_APDU *apdu)
 	}
 	else
 	{
-	    delete this;
+	    dec_ref();
 	    return;
 	}
     }
@@ -2871,7 +2936,7 @@ void Yaz_Proxy::handle_incoming_Z_PDU_2(Z_APDU *apdu)
     {
 	delete m_client;
 	m_client = 0;
-	delete this;
+	dec_ref();
     }
     else
 	m_client->m_waiting = 1;
@@ -2928,10 +2993,17 @@ void Yaz_Proxy::releaseClient()
 	m_parent->pre_init();
 }
 
-void Yaz_Proxy::shutdown()
+bool Yaz_Proxy::dec_ref()
 {
-    releaseClient();
-    delete this;
+    --m_ref_count;
+    assert(m_ref_count >= 0);
+    bool last = (m_ref_count == 0);
+    if (m_ref_count == 0)
+    {
+	releaseClient();
+	delete this;
+    }
+    return last;
 }
 
 const char *Yaz_ProxyClient::get_session_str() 
@@ -2954,7 +3026,7 @@ void Yaz_Proxy::failNotify()
     inc_request_no();
     yaz_log (YLOG_LOG, "%sConnection closed by client",
 	     get_session_str());
-    shutdown();
+    dec_ref();
 }
 
 void Yaz_ProxyClient::failNotify()
@@ -3143,7 +3215,7 @@ void Yaz_Proxy::timeoutNotify()
 	    inc_request_no();
 
 	    yaz_log (YLOG_LOG, "%sTimeout (client to proxy)", m_session_str);
-	    shutdown();
+	    dec_ref();
 	}
     }
     else

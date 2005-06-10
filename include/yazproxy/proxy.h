@@ -1,4 +1,4 @@
-/* $Id: proxy.h,v 1.19 2005-06-08 13:29:03 adam Exp $
+/* $Id: proxy.h,v 1.20 2005-06-10 22:54:22 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -55,6 +55,7 @@ class Msg_Thread;
 class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Z_Assoc {
     friend class Proxy_Msg;
  private:
+    int m_ref_count;
     char *get_cookie(Z_OtherInformation **otherInfo);
     char *get_proxy(Z_OtherInformation **otherInfo);
     void get_charset_and_lang_negotiation(Z_OtherInformation **otherInfo,
@@ -63,7 +64,6 @@ class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Z_Assoc {
 				const char *proxy_host);
     void srw_get_client(const char *db, const char **backend_db);
     Z_APDU *result_set_optimize(Z_APDU *apdu);
-    void shutdown();
     void releaseClient();    
     Yaz_ProxyClient *m_client;
     yazpp_1::IPDU_Observable *m_PDU_Observable;
@@ -183,6 +183,12 @@ class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Z_Assoc {
 	      yazpp_1::ISocketObservable *the_socket_observable,
 	      Yaz_Proxy *parent = 0);
     ~Yaz_Proxy();
+
+
+    void inc_ref();
+    bool dec_ref();
+
+
     int handle_authentication(Z_APDU *apdu);
     void result_authentication(Z_APDU *apdu, int ret);
     void handle_init(Z_APDU *apdu);

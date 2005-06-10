@@ -1,4 +1,4 @@
-/* $Id: mod_sample.cpp,v 1.2 2005-02-21 14:27:32 adam Exp $
+/* $Id: mod_sample.cpp,v 1.3 2005-06-10 22:54:22 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -21,6 +21,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 
 #include <string.h>
 #include <stdio.h>
+#include <unistd.h>
 
 #include <yazproxy/module.h>
 
@@ -62,6 +63,7 @@ int my_authenticate(void *user_handle,
 #endif
     // args holds args (or NULL if  none is provided)
 
+    sleep(1);
     fprintf(stderr, "my_authenticate: target=%s user=%s group=%s args=%s\n",
 	    target_name ? target_name : "none", 
 	    user ? user : "none", group ? group : "none",
