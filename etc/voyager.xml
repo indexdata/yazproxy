@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- $Id: voyager.xml,v 1.5 2005-02-22 10:08:19 adam Exp $ -->
+<!-- $Id: voyager.xml,v 1.6 2005-06-10 17:54:10 adam Exp $ -->
 <proxy xmlns="http://indexdata.dk/yazproxy/schema/0.9/"
  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
  xsi:schemaLocation="http://indexdata.dk/yazproxy/schema/0.9/ yazproxy.xsd"
@@ -99,7 +99,7 @@
     <syntax type="*" error="238"/>
 
     <!-- keep this number of spare sessions for future sessions -->
-    <preinit>2</preinit>
+    <preinit>0</preinit>
 
     <explain xmlns="http://explain.z3950.org/dtd/2.0/">
       <serverInfo>
@@ -210,4 +210,5 @@
   <!-- what we log. Allowed tokens: client-apdu, server-apdu,
   client-requests, server-requests -->
   <log>client-requests server-requests</log>
+  <xlog></xlog>
 </proxy>
