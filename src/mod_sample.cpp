@@ -1,4 +1,4 @@
-/* $Id: mod_sample.cpp,v 1.3 2005-06-10 22:54:22 adam Exp $
+/* $Id: mod_sample.cpp,v 1.4 2005-06-21 18:46:04 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -46,7 +46,8 @@ void my_destroy(void *p)
 int my_authenticate(void *user_handle,
 		    const char *target_name,
 		    void *element_ptr,
-		    const char *user, const char *group, const char *password)
+		    const char *user, const char *group, const char *password,
+		    const char *peer_IP)
 {
     // see if we have an "args" attribute
     const char *args = 0;
@@ -63,11 +64,13 @@ int my_authenticate(void *user_handle,
 #endif
     // args holds args (or NULL if  none is provided)
 
-    sleep(1);
-    fprintf(stderr, "my_authenticate: target=%s user=%s group=%s args=%s\n",
+    sleep(2);
+    fprintf(stderr, "my_authenticate: target=%s user=%s group=%s args=%s IP=%s"
+	    "\n",
 	    target_name ? target_name : "none", 
 	    user ? user : "none", group ? group : "none",
-	    args ? args : "none");
+	    args ? args : "none",
+	    peer_IP);
     // authentication handler
     if (!user && !group && !password)
 	return YAZPROXY_RET_OK;   // OK if anonymous

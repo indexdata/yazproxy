@@ -1,4 +1,4 @@
-/* $Id: proxy.h,v 1.20 2005-06-10 22:54:22 adam Exp $
+/* $Id: proxy.h,v 1.21 2005-06-21 18:46:04 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -28,6 +28,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include <yaz++/z-databases.h>
 #include <yaz++/cql2rpn.h>
 #include <yaz/cql.h>
+#include <yaz++/gdu.h>
 #include <yazproxy/bw.h>
 
 class Yaz_Proxy;
@@ -55,6 +56,7 @@ class Msg_Thread;
 class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Z_Assoc {
     friend class Proxy_Msg;
  private:
+    char *m_peername;
     int m_ref_count;
     char *get_cookie(Z_OtherInformation **otherInfo);
     char *get_proxy(Z_OtherInformation **otherInfo);
@@ -91,6 +93,14 @@ class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Z_Assoc {
     int m_bytes_sent;
     int m_bytes_recv;
     int m_bw_max;
+
+    yazpp_1::GDU *m_timeout_gdu;
+    enum timeout_mode {
+	timeout_normal,
+	timeout_reduce,
+	timeout_xsl
+    } m_timeout_mode;
+
     Yaz_bw m_bw_stat;
     int m_pdu_max;
     Yaz_bw m_pdu_stat;
@@ -113,7 +123,7 @@ class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Z_Assoc {
     int m_reconfig_flag;
     Yaz_ProxyConfig *check_reconfigure();
     int m_request_no;
-    int m_invalid_session;
+    int m_flag_invalid_session;
     YAZ_Proxy_MARCXML_mode m_marcxml_mode;
     void *m_stylesheet_xsp;  // Really libxslt's xsltStylesheetPtr 
     int m_stylesheet_offset;
@@ -178,6 +188,7 @@ class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Z_Assoc {
     char *m_usemarcon_ini_stage2;
     Yaz_usemarcon *m_usemarcon;
     Yaz_CharsetConverter *m_charset_converter;
+    yazpp_1::GDUQueue m_in_queue;
  public:
     Yaz_Proxy(yazpp_1::IPDU_Observable *the_PDU_Observable,
 	      yazpp_1::ISocketObservable *the_socket_observable,
@@ -194,6 +205,9 @@ class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Z_Assoc {
     void handle_init(Z_APDU *apdu);
     void inc_request_no();
     void recv_GDU(Z_GDU *apdu, int len);
+    void recv_GDU_reduce(yazpp_1::GDU *gdu);
+    void recv_GDU_normal(yazpp_1::GDU *gdu);
+    void recv_GDU_more();
     void handle_incoming_HTTP(Z_HTTP_Request *req);
     void handle_incoming_Z_PDU(Z_APDU *apdu);
     void handle_incoming_Z_PDU_2(Z_APDU *apdu);

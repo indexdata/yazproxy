@@ -1,4 +1,4 @@
-/* $Id: modules.cpp,v 1.2 2005-06-10 22:53:43 adam Exp $
+/* $Id: modules.cpp,v 1.3 2005-06-21 18:46:04 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -43,7 +43,8 @@ public:
     Yaz_ProxyModule *get_next() { return m_next; };
     int is_module(const char *name);
     int authenticate(const char *target_name, void *element_ptr,
-		     const char *user, const char *group, const char *password);
+		     const char *user, const char *group, const char *password,
+		     const char *peer_IP);
 };
 
 int Yaz_ProxyModule::is_module(const char *name)
@@ -86,7 +87,8 @@ Yaz_ProxyModule::~Yaz_ProxyModule()
 int Yaz_ProxyModule::authenticate(const char *name,
 				  void *element_ptr,
 				  const char *user, const char *group,
-				  const char *password)
+				  const char *password,
+				  const char *peer_IP)
 {
     if (m_entry->int_version == 0)
     {
@@ -96,7 +98,7 @@ int Yaz_ProxyModule::authenticate(const char *name,
 	if (!int0->authenticate)
 	    return YAZPROXY_RET_NOT_ME;
 	return (*int0->authenticate)(m_user_handle, name, element_ptr,
-				     user, group, password);
+				     user, group, password, peer_IP);
     }
     return YAZPROXY_RET_NOT_ME;
 }
@@ -131,7 +133,8 @@ int Yaz_ProxyModules::authenticate(const char *module_name,
 				   const char *target_name, void *element_ptr,
 				   const char *user,
 				   const char *group,
-				   const char *password)
+				   const char *password,
+				   const char *peer_IP)
 {
     int ret = YAZPROXY_RET_NOT_ME;
     Yaz_ProxyModule *m = m_list;
@@ -140,7 +143,8 @@ int Yaz_ProxyModules::authenticate(const char *module_name,
 	if (m->is_module(module_name))
 	{
 	    ret = m->authenticate(target_name, element_ptr,
-				       user, group, password);
+				  user, group, password,
+				  peer_IP);
 	    if (ret != YAZPROXY_RET_NOT_ME)
 		break;
 	}

@@ -1,9 +1,8 @@
 #!/bin/sh
-# $Id: buildconf.sh,v 1.6 2005-05-08 15:23:05 adam Exp $
+# $Id: buildconf.sh,v 1.7 2005-06-21 18:46:04 adam Exp $
 set -x
 aclocal -I .
 libtoolize --automake --force 
-automake --add-missing 
 automake --add-missing 
 autoconf
 set -

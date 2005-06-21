@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy-config.cpp,v 1.20 2005-05-30 20:09:21 adam Exp $
+/* $Id: yaz-proxy-config.cpp,v 1.21 2005-06-21 18:46:04 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -603,7 +603,8 @@ void Yaz_ProxyConfig::target_authentication(const char *name,
 int Yaz_ProxyConfig::client_authentication(const char *name,
 					   const char *user,
 					   const char *group,
-					   const char *password)
+					   const char *password,
+					   const char *peer_IP)
 {
     int ret = YAZPROXY_RET_NOT_ME;
 #if HAVE_XSLT
@@ -625,7 +626,9 @@ int Yaz_ProxyConfig::client_authentication(const char *name,
 	    }
 	    ret = m_cp->m_modules.authenticate(module_name,
 					       name, ptr,
-					       user, group, password);
+					       user, group, password,
+					       peer_IP
+		);
 	    if (ret != YAZPROXY_RET_NOT_ME)
 		break;
 	}

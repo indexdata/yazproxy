@@ -1,4 +1,4 @@
-/* $Id: module.h,v 1.4 2005-06-10 22:53:43 adam Exp $
+/* $Id: module.h,v 1.5 2005-06-21 18:46:04 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -46,7 +46,8 @@ struct Yaz_ProxyModule_int0 {
 	void *element_ptr, // xmlnodePtr thing to XML config this
 	const char *user,  // User ID (or NULL if no suppliied User ID)
 	const char *group, // Group ID (or NULL if no supplied Group ID)
-	const char *pw     // Password (or NULL if no supplied password)
+	const char *pw,    // Password (or NULL if no supplied password)
+	const char *peer_IP// IP address of client
     );
 };
 
@@ -61,7 +62,8 @@ class Yaz_ProxyModules {
 		     const char *target_name, void *element_ptr,
 		     const char *user,
 		     const char *group,
-		     const char *password);
+		     const char *password,
+		     const char *peer_IP);
     int add_module(const char *fname);
     void unload_modules();
  private:
