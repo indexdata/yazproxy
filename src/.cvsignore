@@ -6,3 +6,5 @@ yazproxy
 Makefile
 Makefile.in
 cdetails
+t-server
+tstthreads
