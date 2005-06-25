@@ -1,4 +1,4 @@
-/* $Id: bw.h,v 1.3 2004-04-22 07:46:21 adam Exp $
+/* $Id: bw.h,v 1.4 2005-06-25 15:58:33 adam Exp $
    Copyright (c) 1998-2004, Index Data.
 
 This file is part of the yaz-proxy.
@@ -31,4 +31,12 @@ class YAZ_EXPORT Yaz_bw {
     int m_ptr;
     int m_size;
 };
+
+/*
+ * Local variables:
+ * c-basic-offset: 4
+ * indent-tabs-mode: nil
+ * End:
+ * vim: shiftwidth=4 tabstop=8 expandtab
+ */
 

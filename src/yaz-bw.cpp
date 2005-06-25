@@ -1,4 +1,4 @@
-/* $Id: yaz-bw.cpp,v 1.6 2004-12-13 20:52:33 adam Exp $
+/* $Id: yaz-bw.cpp,v 1.7 2005-06-25 15:58:33 adam Exp $
    Copyright (c) 1998-2004, Index Data.
 
 This file is part of the yaz-proxy.
@@ -42,7 +42,7 @@ int Yaz_bw::get_total()
     int bw = 0;
     int i;
     for (i = 0; i<m_size; i++)
-	bw += m_bucket[i];
+        bw += m_bucket[i];
     return bw;
 }
 
@@ -52,14 +52,22 @@ void Yaz_bw::add_bytes(int b)
 
     int d = now - m_sec;
     if (d > m_size)
-	d = m_size;
+        d = m_size;
     while (--d >= 0)
     {
-	if (++m_ptr == m_size)
-	    m_ptr = 0;
-	m_bucket[m_ptr] = 0;
+        if (++m_ptr == m_size)
+            m_ptr = 0;
+        m_bucket[m_ptr] = 0;
     }
     m_bucket[m_ptr] += b;
     m_sec = now;
 }
+
+/*
+ * Local variables:
+ * c-basic-offset: 4
+ * indent-tabs-mode: nil
+ * End:
+ * vim: shiftwidth=4 tabstop=8 expandtab
+ */
 

@@ -1,4 +1,4 @@
-/* $Id: module.h,v 1.5 2005-06-21 18:46:04 adam Exp $
+/* $Id: module.h,v 1.6 2005-06-25 15:58:33 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -37,17 +37,17 @@ struct Yaz_ProxyModule_int0 {
     void *(*init)(void);   // Init handler - returns module-specific handle
 
     void (*destroy)(       // Destroy handler
-	void *handle       // module-specific handle as returned by init
-	);
+        void *handle       // module-specific handle as returned by init
+        );
     
     int (*authenticate)(   // Authenticate handler. Returns YAZPROXY_RET_..
-	void *handle,      // module-specific handle as returned by init 
-	const char *name,  // target name (or NULL if default target)
-	void *element_ptr, // xmlnodePtr thing to XML config this
-	const char *user,  // User ID (or NULL if no suppliied User ID)
-	const char *group, // Group ID (or NULL if no supplied Group ID)
-	const char *pw,    // Password (or NULL if no supplied password)
-	const char *peer_IP// IP address of client
+        void *handle,      // module-specific handle as returned by init 
+        const char *name,  // target name (or NULL if default target)
+        void *element_ptr, // xmlnodePtr thing to XML config this
+        const char *user,  // User ID (or NULL if no suppliied User ID)
+        const char *group, // Group ID (or NULL if no supplied Group ID)
+        const char *pw,    // Password (or NULL if no supplied password)
+        const char *peer_IP// IP address of client
     );
 };
 
@@ -59,11 +59,11 @@ class Yaz_ProxyModules {
     Yaz_ProxyModules();
     ~Yaz_ProxyModules();
     int authenticate(const char *module_name,
-		     const char *target_name, void *element_ptr,
-		     const char *user,
-		     const char *group,
-		     const char *password,
-		     const char *peer_IP);
+                     const char *target_name, void *element_ptr,
+                     const char *user,
+                     const char *group,
+                     const char *password,
+                     const char *peer_IP);
     int add_module(const char *fname);
     void unload_modules();
  private:
@@ -72,3 +72,11 @@ class Yaz_ProxyModules {
 };
 
 #endif
+/*
+ * Local variables:
+ * c-basic-offset: 4
+ * indent-tabs-mode: nil
+ * End:
+ * vim: shiftwidth=4 tabstop=8 expandtab
+ */
+

@@ -1,4 +1,4 @@
-/* $Id: modules.cpp,v 1.3 2005-06-21 18:46:04 adam Exp $
+/* $Id: modules.cpp,v 1.4 2005-06-25 15:58:33 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -37,25 +37,25 @@ private:
     void *m_user_handle;              /* user handle */
 public:
     Yaz_ProxyModule(void *dl_handle, Yaz_ProxyModule_entry *ent,
-		    Yaz_ProxyModule *next);
+                    Yaz_ProxyModule *next);
     ~Yaz_ProxyModule();
     
     Yaz_ProxyModule *get_next() { return m_next; };
     int is_module(const char *name);
     int authenticate(const char *target_name, void *element_ptr,
-		     const char *user, const char *group, const char *password,
-		     const char *peer_IP);
+                     const char *user, const char *group, const char *password,
+                     const char *peer_IP);
 };
 
 int Yaz_ProxyModule::is_module(const char *name)
 {
     if (!name || !strcmp(m_entry->module_name, name))
-	return 1;
+        return 1;
     return 0;
 }
 
 Yaz_ProxyModule::Yaz_ProxyModule(void *dl_handle, Yaz_ProxyModule_entry *ent,
-				 Yaz_ProxyModule *next)
+                                 Yaz_ProxyModule *next)
 {
     m_dl_handle = dl_handle;
     m_entry = ent;
@@ -63,10 +63,10 @@ Yaz_ProxyModule::Yaz_ProxyModule(void *dl_handle, Yaz_ProxyModule_entry *ent,
     m_user_handle = 0;
     if (m_entry->int_version == 0)
     {
-	struct Yaz_ProxyModule_int0 *int0 =
-	    reinterpret_cast<Yaz_ProxyModule_int0 *>(m_entry->fl);
-	if (int0->init)
-	    m_user_handle = (*int0->init)();
+        struct Yaz_ProxyModule_int0 *int0 =
+            reinterpret_cast<Yaz_ProxyModule_int0 *>(m_entry->fl);
+        if (int0->init)
+            m_user_handle = (*int0->init)();
     }
 }
 
@@ -74,10 +74,10 @@ Yaz_ProxyModule::~Yaz_ProxyModule()
 {
     if (m_entry->int_version == 0)
     {
-	struct Yaz_ProxyModule_int0 *int0 =
-	    reinterpret_cast<Yaz_ProxyModule_int0 *>(m_entry->fl);
-	if (int0->destroy)
-	    (*int0->destroy)(m_user_handle);
+        struct Yaz_ProxyModule_int0 *int0 =
+            reinterpret_cast<Yaz_ProxyModule_int0 *>(m_entry->fl);
+        if (int0->destroy)
+            (*int0->destroy)(m_user_handle);
     }
 #if HAVE_DLFCN_H
     dlclose(m_dl_handle);
@@ -85,20 +85,20 @@ Yaz_ProxyModule::~Yaz_ProxyModule()
 }
 
 int Yaz_ProxyModule::authenticate(const char *name,
-				  void *element_ptr,
-				  const char *user, const char *group,
-				  const char *password,
-				  const char *peer_IP)
+                                  void *element_ptr,
+                                  const char *user, const char *group,
+                                  const char *password,
+                                  const char *peer_IP)
 {
     if (m_entry->int_version == 0)
     {
-	struct Yaz_ProxyModule_int0 *int0 =
-	    reinterpret_cast<Yaz_ProxyModule_int0 *>(m_entry->fl);
-	
-	if (!int0->authenticate)
-	    return YAZPROXY_RET_NOT_ME;
-	return (*int0->authenticate)(m_user_handle, name, element_ptr,
-				     user, group, password, peer_IP);
+        struct Yaz_ProxyModule_int0 *int0 =
+            reinterpret_cast<Yaz_ProxyModule_int0 *>(m_entry->fl);
+        
+        if (!int0->authenticate)
+            return YAZPROXY_RET_NOT_ME;
+        return (*int0->authenticate)(m_user_handle, name, element_ptr,
+                                     user, group, password, peer_IP);
     }
     return YAZPROXY_RET_NOT_ME;
 }
@@ -120,34 +120,34 @@ void Yaz_ProxyModules::unload_modules()
     Yaz_ProxyModule *m = m_list;
     while (m)
     {
-	Yaz_ProxyModule *m_next = m->get_next();
-	delete m;
-	m_no_open--;
-	m = m_next;
+        Yaz_ProxyModule *m_next = m->get_next();
+        delete m;
+        m_no_open--;
+        m = m_next;
     }
     m_list = 0;
 }
 
 
 int Yaz_ProxyModules::authenticate(const char *module_name,
-				   const char *target_name, void *element_ptr,
-				   const char *user,
-				   const char *group,
-				   const char *password,
-				   const char *peer_IP)
+                                   const char *target_name, void *element_ptr,
+                                   const char *user,
+                                   const char *group,
+                                   const char *password,
+                                   const char *peer_IP)
 {
     int ret = YAZPROXY_RET_NOT_ME;
     Yaz_ProxyModule *m = m_list;
     for (; m; m = m->get_next())
     {
-	if (m->is_module(module_name))
-	{
-	    ret = m->authenticate(target_name, element_ptr,
-				  user, group, password,
-				  peer_IP);
-	    if (ret != YAZPROXY_RET_NOT_ME)
-		break;
-	}
+        if (m->is_module(module_name))
+        {
+            ret = m->authenticate(target_name, element_ptr,
+                                  user, group, password,
+                                  peer_IP);
+            if (ret != YAZPROXY_RET_NOT_ME)
+                break;
+        }
     }
     return ret;
 }
@@ -158,30 +158,38 @@ int Yaz_ProxyModules::add_module(const char *fname)
     void *dl_handle = dlopen(fname, RTLD_NOW|RTLD_GLOBAL);
     if (dl_handle)
     {
-	Yaz_ProxyModule_entry *fl_ptr = 0;
-	fl_ptr = reinterpret_cast<Yaz_ProxyModule_entry *> 
-	    (dlsym(dl_handle, "yazproxy_module"));
-	if (fl_ptr)
-	{
-	    Yaz_ProxyModule *m = new Yaz_ProxyModule(dl_handle,
-						     fl_ptr,
-						     m_list);
-	    m_list = m;
+        Yaz_ProxyModule_entry *fl_ptr = 0;
+        fl_ptr = reinterpret_cast<Yaz_ProxyModule_entry *> 
+            (dlsym(dl_handle, "yazproxy_module"));
+        if (fl_ptr)
+        {
+            Yaz_ProxyModule *m = new Yaz_ProxyModule(dl_handle,
+                                                     fl_ptr,
+                                                     m_list);
+            m_list = m;
 
-	    m_no_open++;
-	    yaz_log(YLOG_LOG, "Loaded module no_open=%d", m_no_open);
-	    return 0;
-	}
-	else
-	{
-	    return -1;
-	    dlclose(dl_handle);
-	}
+            m_no_open++;
+            yaz_log(YLOG_LOG, "Loaded module no_open=%d", m_no_open);
+            return 0;
+        }
+        else
+        {
+            return -1;
+            dlclose(dl_handle);
+        }
     }
     else
-	return -1;
+        return -1;
 #else
     return -1;
 #endif
 }
+
+/*
+ * Local variables:
+ * c-basic-offset: 4
+ * indent-tabs-mode: nil
+ * End:
+ * vim: shiftwidth=4 tabstop=8 expandtab
+ */
 

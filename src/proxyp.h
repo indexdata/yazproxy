@@ -1,4 +1,4 @@
-/* $Id: proxyp.h,v 1.8 2005-06-21 18:46:04 adam Exp $
+/* $Id: proxyp.h,v 1.9 2005-06-25 15:58:33 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -43,8 +43,8 @@ class Yaz_usemarcon {
     ~Yaz_usemarcon();
 
     int convert(const char *stage1, const char *stage2,
-		const char *input, int input_len,
-		char **output, int *output_len);
+                const char *input, int input_len,
+                char **output, int *output_len);
 #if HAVE_USEMARCON
     CDetails *m_stage1;
     CDetails *m_stage2;
@@ -66,8 +66,8 @@ public:
     int get_client_charset_selected();
 private:
     void convert_type_1(char *buf_in, int len_in,
-			char **buf_out, int *len_out,
-			ODR o);
+                        char **buf_out, int *len_out,
+                        ODR o);
     void convert_type_1(Z_Term *q, ODR o);
     void convert_type_1(Z_RPNStructure *q, ODR o);
     void convert_type_1(Z_Operand *q, ODR o);
@@ -85,54 +85,54 @@ public:
     int read_xml(const char *fname);
 
     int get_target_no(int no,
-		      const char **name,
-		      const char **url,
-		      int *limit_bw,
-		      int *limit_pdu,
-		      int *limit_req,
-		      int *target_idletime,
-		      int *client_idletime,
-		      int *max_clients,
-		      int *keepalive_limit_bw,
-		      int *keepalive_limit_pdu,
-		      int *pre_init,
-		      const char **cql2rpn,
-		      const char **authentication,
-		      const char **negotiation_charset,
-		      const char **negotiation_lang,
-		      const char **query_charset);
+                      const char **name,
+                      const char **url,
+                      int *limit_bw,
+                      int *limit_pdu,
+                      int *limit_req,
+                      int *target_idletime,
+                      int *client_idletime,
+                      int *max_clients,
+                      int *keepalive_limit_bw,
+                      int *keepalive_limit_pdu,
+                      int *pre_init,
+                      const char **cql2rpn,
+                      const char **authentication,
+                      const char **negotiation_charset,
+                      const char **negotiation_lang,
+                      const char **query_charset);
     
     void get_generic_info(int *log_mask, int *max_clients);
 
     void get_target_info(const char *name, const char **url,
-			 int *limit_bw, int *limit_pdu, int *limit_req,
-			 int *target_idletime, int *client_idletime,
-			 int *max_clients,
-			 int *keepalive_limit_bw, int *keepalive_limit_pdu,
-			 int *pre_init,
-			 const char **cql2rpn,
-			 const char **negotiation_charset,
-			 const char **negotiation_lang,
-			 const char **query_charset);
+                         int *limit_bw, int *limit_pdu, int *limit_req,
+                         int *target_idletime, int *client_idletime,
+                         int *max_clients,
+                         int *keepalive_limit_bw, int *keepalive_limit_pdu,
+                         int *pre_init,
+                         const char **cql2rpn,
+                         const char **negotiation_charset,
+                         const char **negotiation_lang,
+                         const char **query_charset);
 
     const char *check_mime_type(const char *path);
     int check_query(ODR odr, const char *name, Z_Query *query, char **addinfo);
     int check_syntax(ODR odr, const char *name,
-		     Odr_oid *syntax, Z_RecordComposition *comp,
-		     char **addinfo, char **stylesheet, char **schema,
-		     char **backend_type, char **backend_charset,
-		     char **usemarcon_ini_stage1, char **usemarcon_ini_stage2);
+                     Odr_oid *syntax, Z_RecordComposition *comp,
+                     char **addinfo, char **stylesheet, char **schema,
+                     char **backend_type, char **backend_charset,
+                     char **usemarcon_ini_stage1, char **usemarcon_ini_stage2);
 
     void target_authentication(const char *name,
-			       ODR odr,
-			       Z_InitRequest *req);
+                               ODR odr,
+                               Z_InitRequest *req);
 
     int client_authentication(const char *name,
-			      const char *user, const char *group,
-			      const char *password,
-			      const char *peer_IP);
+                              const char *user, const char *group,
+                              const char *password,
+                              const char *peer_IP);
     char *get_explain_doc(ODR odr, const char *name, const char *db,
-			  int *len);
+                          int *len);
     const char *get_explain_name(const char *db, const char **backend_db);
  private:
     void operator=(const Yaz_ProxyConfig &conf);
@@ -142,13 +142,13 @@ public:
 class Yaz_ProxyClient : public yazpp_1::Z_Assoc {
     friend class Yaz_Proxy;
     Yaz_ProxyClient(yazpp_1::IPDU_Observable *the_PDU_Observable,
-		    Yaz_Proxy *parent);
+                    Yaz_Proxy *parent);
     ~Yaz_ProxyClient();
     void recv_GDU(Z_GDU *apdu, int len);
     void recv_Z_PDU(Z_APDU *apdu, int len);
     void recv_HTTP_response(Z_HTTP_Response *apdu, int len);
     IPDU_Observer* sessionNotify
-	(yazpp_1::IPDU_Observable *the_PDU_Observable, int fd);
+        (yazpp_1::IPDU_Observable *the_PDU_Observable, int fd);
     void shutdown();
     Yaz_Proxy *m_server;
     void failNotify();
@@ -183,4 +183,12 @@ class Yaz_ProxyClient : public yazpp_1::Z_Assoc {
     int m_target_idletime;
     Yaz_Proxy *m_root;
 };
+
+/*
+ * Local variables:
+ * c-basic-offset: 4
+ * indent-tabs-mode: nil
+ * End:
+ * vim: shiftwidth=4 tabstop=8 expandtab
+ */
 

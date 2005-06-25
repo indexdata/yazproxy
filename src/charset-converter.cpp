@@ -1,4 +1,4 @@
-/* $Id: charset-converter.cpp,v 1.3 2005-05-18 20:15:22 adam Exp $
+/* $Id: charset-converter.cpp,v 1.4 2005-06-25 15:58:33 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -48,7 +48,7 @@ void Yaz_CharsetConverter::set_target_query_charset(const char *s)
     xfree(m_target_query_charset);
     m_target_query_charset = 0;
     if (s)
-	m_target_query_charset = xstrdup(s);
+        m_target_query_charset = xstrdup(s);
 }
 
 void Yaz_CharsetConverter::set_client_query_charset(const char *s)
@@ -56,7 +56,7 @@ void Yaz_CharsetConverter::set_client_query_charset(const char *s)
     xfree(m_client_query_charset);
     m_client_query_charset = 0;
     if (s)
-	m_client_query_charset = xstrdup(s);
+        m_client_query_charset = xstrdup(s);
 }
 
 const char *Yaz_CharsetConverter::get_client_query_charset()
@@ -75,8 +75,8 @@ int Yaz_CharsetConverter::get_client_charset_selected()
 }
 
 void Yaz_CharsetConverter::convert_type_1(char *buf_in, int len_in,
-					  char **buf_out, int *len_out,
-					  ODR o)
+                                          char **buf_out, int *len_out,
+                                          ODR o)
 {
     wrbuf_rewind(m_wrbuf);
     wrbuf_iconv_write(m_wrbuf, m_ct, buf_in, len_in);
@@ -84,13 +84,13 @@ void Yaz_CharsetConverter::convert_type_1(char *buf_in, int len_in,
     *len_out = wrbuf_len(m_wrbuf);
     if (*len_out == 0)
     {   // we assume conversion failed
-	*buf_out = buf_in;
-	*len_out = len_in;
+        *buf_out = buf_in;
+        *len_out = len_in;
     }
     else
     {
-	*buf_out = (char*) odr_malloc(o, *len_out);
-	memcpy(*buf_out, wrbuf_buf(m_wrbuf), *len_out);
+        *buf_out = (char*) odr_malloc(o, *len_out);
+        memcpy(*buf_out, wrbuf_buf(m_wrbuf), *len_out);
     }
 }
 
@@ -99,9 +99,9 @@ void Yaz_CharsetConverter::convert_type_1(Z_Term *q, ODR o)
     switch(q->which)
     {
     case Z_Term_general:
-	convert_type_1((char *) q->u.general->buf, q->u.general->len,
-		       (char **) &q->u.general->buf, &q->u.general->len, o);
-	break;
+        convert_type_1((char *) q->u.general->buf, q->u.general->len,
+                       (char **) &q->u.general->buf, &q->u.general->len, o);
+        break;
     }
 }
 
@@ -110,12 +110,12 @@ void Yaz_CharsetConverter::convert_type_1(Z_Operand *q, ODR o)
     switch(q->which)
     {
     case Z_Operand_APT:
-	convert_type_1(q->u.attributesPlusTerm->term, o);
-	break;
+        convert_type_1(q->u.attributesPlusTerm->term, o);
+        break;
     case Z_Operand_resultSetId:
-	break;
+        break;
     case Z_Operand_resultAttr:
-	break;
+        break;
     }
 }
 
@@ -124,12 +124,12 @@ void Yaz_CharsetConverter::convert_type_1(Z_RPNStructure *q, ODR o)
     switch(q->which)
     {
     case Z_RPNStructure_simple:
-	convert_type_1(q->u.simple, o);
-	break;
+        convert_type_1(q->u.simple, o);
+        break;
     case Z_RPNStructure_complex:
-	convert_type_1(q->u.complex->s1, o);
-	convert_type_1(q->u.complex->s2, o);
-	break;
+        convert_type_1(q->u.complex->s1, o);
+        convert_type_1(q->u.complex->s2, o);
+        break;
     }
 }
 
@@ -137,12 +137,20 @@ void Yaz_CharsetConverter::convert_type_1(Z_RPNQuery *q, ODR o)
 {
     if (m_target_query_charset && m_client_query_charset)
     {
-	m_ct = yaz_iconv_open(m_target_query_charset,
-			      m_client_query_charset);
-	if (m_ct)
-	{
-	    convert_type_1(q->RPNStructure, o);
-	    yaz_iconv_close(m_ct);
-	}
+        m_ct = yaz_iconv_open(m_target_query_charset,
+                              m_client_query_charset);
+        if (m_ct)
+        {
+            convert_type_1(q->RPNStructure, o);
+            yaz_iconv_close(m_ct);
+        }
     }
 }
+/*
+ * Local variables:
+ * c-basic-offset: 4
+ * indent-tabs-mode: nil
+ * End:
+ * vim: shiftwidth=4 tabstop=8 expandtab
+ */
+

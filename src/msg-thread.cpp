@@ -1,4 +1,4 @@
-/* $Id: msg-thread.cpp,v 1.4 2005-06-10 22:54:22 adam Exp $
+/* $Id: msg-thread.cpp,v 1.5 2005-06-25 15:58:33 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -58,7 +58,7 @@ IMsg_Thread *Msg_Thread_Queue::dequeue()
     if (!*l)
         return 0;
     while ((*l)->m_next)
-	l = &(*l)->m_next;
+        l = &(*l)->m_next;
     IMsg_Thread *m = (*l)->m_item;
     delete *l;
     *l = 0;
@@ -111,13 +111,13 @@ void Msg_Thread::socketNotify(int event)
 {
     if (event & SOCKET_OBSERVE_READ)
     {
-	char buf[2];
-	read(m_fd[0], buf, 1);
-	pthread_mutex_lock(&m_mutex_output_data);
-	IMsg_Thread *out = m_output.dequeue();
-	pthread_mutex_unlock(&m_mutex_output_data);
-	if (out)
-	    out->result();
+        char buf[2];
+        read(m_fd[0], buf, 1);
+        pthread_mutex_lock(&m_mutex_output_data);
+        IMsg_Thread *out = m_output.dequeue();
+        pthread_mutex_unlock(&m_mutex_output_data);
+        if (out)
+            out->result();
     }
 }
 
@@ -125,29 +125,29 @@ void Msg_Thread::run(void *p)
 {
     while(1)
     {
-	pthread_mutex_lock(&m_mutex_input_data);
-	pthread_cond_wait(&m_cond_input_data, &m_mutex_input_data);
-	while (1)
-	{
-	    if (m_stop_flag)
-	    {
-		pthread_mutex_unlock(&m_mutex_input_data);
-		return;
-	    }
-	    IMsg_Thread *in = m_input.dequeue();
-	    pthread_mutex_unlock(&m_mutex_input_data);
-	    if (!in)
-		break;
-	    IMsg_Thread *out = in->handle();
-	    pthread_mutex_lock(&m_mutex_output_data);
-	    m_output.enqueue(out);
-	    pthread_cond_signal(&m_cond_output_data);
-	    pthread_mutex_unlock(&m_mutex_output_data);
+        pthread_mutex_lock(&m_mutex_input_data);
+        pthread_cond_wait(&m_cond_input_data, &m_mutex_input_data);
+        while (1)
+        {
+            if (m_stop_flag)
+            {
+                pthread_mutex_unlock(&m_mutex_input_data);
+                return;
+            }
+            IMsg_Thread *in = m_input.dequeue();
+            pthread_mutex_unlock(&m_mutex_input_data);
+            if (!in)
+                break;
+            IMsg_Thread *out = in->handle();
+            pthread_mutex_lock(&m_mutex_output_data);
+            m_output.enqueue(out);
+            pthread_cond_signal(&m_cond_output_data);
+            pthread_mutex_unlock(&m_mutex_output_data);
 
-	    write(m_fd[1], "", 1);
+            write(m_fd[1], "", 1);
 
-	    pthread_mutex_lock(&m_mutex_input_data);
-	}
+            pthread_mutex_lock(&m_mutex_input_data);
+        }
     }
 }
 
@@ -158,3 +158,11 @@ void Msg_Thread::put(IMsg_Thread *m)
     pthread_cond_signal(&m_cond_input_data);
     pthread_mutex_unlock(&m_mutex_input_data);
 }
+/*
+ * Local variables:
+ * c-basic-offset: 4
+ * indent-tabs-mode: nil
+ * End:
+ * vim: shiftwidth=4 tabstop=8 expandtab
+ */
+

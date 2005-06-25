@@ -1,4 +1,4 @@
-/* $Id: tstthreads.cpp,v 1.5 2005-06-08 13:29:03 adam Exp $
+/* $Id: tstthreads.cpp,v 1.6 2005-06-25 15:58:33 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -63,7 +63,7 @@ public:
 };
 
 My_Timer_Thread::My_Timer_Thread(ISocketObservable *obs,
-				 Msg_Thread *t) : m_obs(obs) 
+                                 Msg_Thread *t) : m_obs(obs) 
 {
     pipe(m_fd);
     m_t = t;
@@ -89,6 +89,14 @@ int main(int argc, char **argv)
     My_Timer_Thread t(&mySocketManager, &m) ;
     int i = 0;
     while (++i < 5 && mySocketManager.processEvent() > 0)
-	;
+        ;
     return 0;
 }
+/*
+ * Local variables:
+ * c-basic-offset: 4
+ * indent-tabs-mode: nil
+ * End:
+ * vim: shiftwidth=4 tabstop=8 expandtab
+ */
+

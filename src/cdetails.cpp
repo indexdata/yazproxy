@@ -23,3 +23,11 @@ int main(int argc, char **argv)
 #endif
     exit(0);
 }
+/*
+ * Local variables:
+ * c-basic-offset: 4
+ * indent-tabs-mode: nil
+ * End:
+ * vim: shiftwidth=4 tabstop=8 expandtab
+ */
+

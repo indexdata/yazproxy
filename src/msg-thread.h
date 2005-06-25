@@ -1,4 +1,4 @@
-/* $Id: msg-thread.h,v 1.3 2005-06-08 13:29:03 adam Exp $
+/* $Id: msg-thread.h,v 1.4 2005-06-25 15:58:33 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -73,4 +73,12 @@ private:
     pthread_cond_t m_cond_output_data;
     bool m_stop_flag;
 };
+
+/*
+ * Local variables:
+ * c-basic-offset: 4
+ * indent-tabs-mode: nil
+ * End:
+ * vim: shiftwidth=4 tabstop=8 expandtab
+ */
 

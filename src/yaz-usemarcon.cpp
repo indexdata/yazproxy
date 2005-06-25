@@ -1,4 +1,4 @@
-/* $Id: yaz-usemarcon.cpp,v 1.1 2004-12-03 14:28:18 adam Exp $
+/* $Id: yaz-usemarcon.cpp,v 1.2 2005-06-25 15:58:34 adam Exp $
    Copyright (c) 1998-2004, Index Data.
 
 This file is part of the yaz-proxy.
@@ -38,46 +38,54 @@ Yaz_usemarcon::~Yaz_usemarcon()
 }
 
 int Yaz_usemarcon::convert(const char *stage1, const char *stage2,
-			   const char *input, int input_len,
-			   char **output, int *output_len)
+                           const char *input, int input_len,
+                           char **output, int *output_len)
 {
 #if HAVE_USEMARCON
     if (stage1 && *stage1)
     {
-	char *converted;
-	int convlen;
-	if (!m_stage1)
-	{
-	    m_stage1 = new CDetails();
-	}
-	m_stage1->SetIniFileName(stage1);
-	m_stage1->SetMarcRecord((char*) input, input_len);
-	int res = m_stage1->Start();
-	if (res == 0)
-	{
-	    m_stage1->GetMarcRecord(converted, convlen);
-	    if (stage2 && *stage2)
-	    {
-		if (!m_stage2)
-		{
-		    m_stage2 = new CDetails();
-		}
-		m_stage2->SetIniFileName(stage2);
-		m_stage2->SetMarcRecord(converted, convlen);
-		res = m_stage2->Start();
-		if (res == 0)
-		{
-		    free(converted);
-		    m_stage2->GetMarcRecord(converted, convlen);
-		}
-		else
-		    return 0;
-	    }
-	    *output = converted;
-	    *output_len = convlen;
-	    return 1;
-	}
+        char *converted;
+        int convlen;
+        if (!m_stage1)
+        {
+            m_stage1 = new CDetails();
+        }
+        m_stage1->SetIniFileName(stage1);
+        m_stage1->SetMarcRecord((char*) input, input_len);
+        int res = m_stage1->Start();
+        if (res == 0)
+        {
+            m_stage1->GetMarcRecord(converted, convlen);
+            if (stage2 && *stage2)
+            {
+                if (!m_stage2)
+                {
+                    m_stage2 = new CDetails();
+                }
+                m_stage2->SetIniFileName(stage2);
+                m_stage2->SetMarcRecord(converted, convlen);
+                res = m_stage2->Start();
+                if (res == 0)
+                {
+                    free(converted);
+                    m_stage2->GetMarcRecord(converted, convlen);
+                }
+                else
+                    return 0;
+            }
+            *output = converted;
+            *output_len = convlen;
+            return 1;
+        }
     }
 #endif
     return 0;
 }
+/*
+ * Local variables:
+ * c-basic-offset: 4
+ * indent-tabs-mode: nil
+ * End:
+ * vim: shiftwidth=4 tabstop=8 expandtab
+ */
+

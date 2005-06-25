@@ -1,4 +1,4 @@
-/* $Id: proxy.h,v 1.21 2005-06-21 18:46:04 adam Exp $
+/* $Id: proxy.h,v 1.22 2005-06-25 15:58:33 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -61,9 +61,9 @@ class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Z_Assoc {
     char *get_cookie(Z_OtherInformation **otherInfo);
     char *get_proxy(Z_OtherInformation **otherInfo);
     void get_charset_and_lang_negotiation(Z_OtherInformation **otherInfo,
-	char **charstes, char **langs, int *selected);
+        char **charstes, char **langs, int *selected);
     Yaz_ProxyClient *get_client(Z_APDU *apdu, const char *cookie,
-				const char *proxy_host);
+                                const char *proxy_host);
     void srw_get_client(const char *db, const char **backend_db);
     Z_APDU *result_set_optimize(Z_APDU *apdu);
     void releaseClient();    
@@ -96,9 +96,9 @@ class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Z_Assoc {
 
     yazpp_1::GDU *m_timeout_gdu;
     enum timeout_mode {
-	timeout_normal,
-	timeout_reduce,
-	timeout_xsl
+        timeout_normal,
+        timeout_reduce,
+        timeout_xsl
     } m_timeout_mode;
 
     Yaz_bw m_bw_stat;
@@ -109,7 +109,7 @@ class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Z_Assoc {
     void handle_max_record_retrieve(Z_APDU *apdu);
     void display_diagrecs(Z_DiagRec **pp, int num);
     Z_Records *create_nonSurrogateDiagnostics(ODR o, int error,
-					      const char *addinfo);
+                                              const char *addinfo);
 
     Z_APDU *handle_query_validation(Z_APDU *apdu);
     Z_APDU *handle_query_transformation(Z_APDU *apdu);
@@ -168,9 +168,9 @@ class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Z_Assoc {
     int send_http_response(int code);
     int send_srw_response(Z_SRW_PDU *srw_pdu);
     int send_srw_explain_response(Z_SRW_diagnostic *diagnostics,
-				  int num_diagnostics);
+                                  int num_diagnostics);
     int z_to_srw_diag(ODR o, Z_SRW_searchRetrieveResponse *srw_res,
-		      Z_DefaultDiagFormat *ddf);
+                      Z_DefaultDiagFormat *ddf);
     int m_http_keepalive;
     const char *m_http_version;
     yazpp_1::Yaz_cql2rpn m_cql2rpn;
@@ -191,8 +191,8 @@ class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Z_Assoc {
     yazpp_1::GDUQueue m_in_queue;
  public:
     Yaz_Proxy(yazpp_1::IPDU_Observable *the_PDU_Observable,
-	      yazpp_1::ISocketObservable *the_socket_observable,
-	      Yaz_Proxy *parent = 0);
+              yazpp_1::ISocketObservable *the_socket_observable,
+              Yaz_Proxy *parent = 0);
     ~Yaz_Proxy();
 
 
@@ -212,7 +212,7 @@ class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Z_Assoc {
     void handle_incoming_Z_PDU(Z_APDU *apdu);
     void handle_incoming_Z_PDU_2(Z_APDU *apdu);
     IPDU_Observer *sessionNotify(yazpp_1::IPDU_Observable *the_PDU_Observable,
-				 int fd);
+                                 int fd);
     void failNotify();
     void timeoutNotify();
     void connectNotify();
@@ -239,3 +239,11 @@ class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Z_Assoc {
 };
 
 #endif
+/*
+ * Local variables:
+ * c-basic-offset: 4
+ * indent-tabs-mode: nil
+ * End:
+ * vim: shiftwidth=4 tabstop=8 expandtab
+ */
+
