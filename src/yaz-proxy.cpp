@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.34 2005-06-25 15:58:33 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.35 2005-08-15 12:53:08 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -106,7 +106,6 @@ void Auth_Msg::result()
 {
     yaz_log(YLOG_LOG, "Auth_Msg:result proxy ok buf=%p len=%d",
             m_apdu_buf, m_apdu_len);
-    odr_reset(m_proxy->odr_decode());   
     odr_setbuf(m_proxy->odr_decode(), m_apdu_buf, m_apdu_len, 0);
     Z_APDU *apdu = 0;
     int r = z_APDU(m_proxy->odr_decode(), &apdu, 0, 0);
@@ -114,7 +113,13 @@ void Auth_Msg::result()
         yaz_log(YLOG_LOG, "Auth_Msg::result z_APDU OK");
     else
         yaz_log(YLOG_LOG, "Auth_Msg::result z_APDU failed");
-    m_proxy->result_authentication(apdu, m_ret);
+    if (m_proxy->dec_ref())
+        yaz_log(YLOG_LOG, "Auth_Msg::proxy deleted meanwhile");
+    else
+    {
+        yaz_log(YLOG_LOG, "Auth_Msg::proxy still alive");
+        m_proxy->result_authentication(apdu, m_ret);
+    }
     delete this;
 }
 
@@ -122,7 +127,7 @@ void Auth_Msg::result()
 
 void Yaz_Proxy::result_authentication(Z_APDU *apdu, int ret)
 {
-    if (ret == 0)
+    if (apdu == 0 || ret == 0)
     {
         Z_APDU *apdu_reject = zget_APDU(odr_encode(), Z_APDU_initResponse);
         *apdu_reject->u.initResponse->result = 0;
@@ -279,7 +284,7 @@ Yaz_Proxy::Yaz_Proxy(IPDU_Observable *the_PDU_Observable,
 
 void Yaz_Proxy::inc_ref()
 {
-//    m_ref_count++;
+    m_ref_count++;
 }
 
 Yaz_Proxy::~Yaz_Proxy()
@@ -690,7 +695,7 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
                 yaz_log (YLOG_LOG, "%sMAXCLIENTS %d Destroy %d",
                          m_session_str, parent->m_max_clients, c->m_seqno);
                 if (c->m_server && c->m_server != this)
-                    delete c->m_server;
+                    delete c->m_server;   // PROBLEM: m_ref_count!
                 c->m_server = 0;
             }
             else
@@ -706,7 +711,7 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
                 if (c->m_server && c->m_server != this)
                 {
                     c->m_server->m_client = 0;
-                    delete c->m_server;
+                    delete c->m_server;   // PROBLEM: m_ref_count!
                 }
                 (parent->m_seqno)++;
                 c->m_target_idletime = m_target_idletime;
@@ -802,7 +807,9 @@ void Yaz_Proxy::display_diagrecs(Z_DiagRec **pp, int num)
 int Yaz_Proxy::convert_xsl(Z_NamePlusRecordList *p, Z_APDU *apdu)
 {
     if (!m_stylesheet_xsp || p->num_records <= 0)
+    {
         return 0;  /* no XSLT to be done ... */
+    }
 
     m_stylesheet_offset = 0;
     m_stylesheet_nprl = p;
@@ -1755,18 +1762,9 @@ void Yaz_Proxy::recv_GDU(Z_GDU *apdu, int len)
     m_pdu_stat.add_bytes(1);
     
     GDU *gdu = new GDU(apdu);
-    int qsize = m_in_queue.size();
-    if (m_timeout_mode != timeout_normal)
-    {
-        yaz_log(YLOG_LOG, "%sAdded gdu in queue of size %d", m_session_str,
-                qsize);
-        m_in_queue.enqueue(gdu);
-    }
-    else
-    {
-        recv_GDU_reduce(gdu);
-        recv_GDU_more();
-    }
+    m_in_queue.enqueue(gdu);
+
+    recv_GDU_more(false);
 }
 
 void Yaz_Proxy::recv_GDU_reduce(GDU *gdu)
@@ -1775,7 +1773,7 @@ void Yaz_Proxy::recv_GDU_reduce(GDU *gdu)
     int pdu_total = m_pdu_stat.get_total();
     int reduce = 0;
 
-    assert(m_timeout_mode == timeout_normal);
+    assert(m_timeout_mode == timeout_busy);
     assert(m_timeout_gdu == 0);
     
     if (m_bw_max)
@@ -1795,6 +1793,14 @@ void Yaz_Proxy::recv_GDU_reduce(GDU *gdu)
     }
     m_http_version = 0;
 
+#if 0
+    /* uncomment to force a big reduce */
+    m_timeout_mode = timeout_reduce;
+    m_timeout_gdu = gdu;
+    // m_bw_hold_PDU = apdu;  // save PDU and signal "on hold"
+    timeout(3);       // call us reduce seconds later
+    return;
+#endif    
     if (reduce)  
     {
         yaz_log(YLOG_LOG, "%sdelay=%d bw=%d pdu=%d limit-bw=%d limit-pdu=%d",
@@ -1810,11 +1816,16 @@ void Yaz_Proxy::recv_GDU_reduce(GDU *gdu)
         recv_GDU_normal(gdu);
 }
 
-void Yaz_Proxy::recv_GDU_more()
+void Yaz_Proxy::recv_GDU_more(bool normal)
 {
     GDU *g;
+    if (normal && m_timeout_mode == timeout_busy)
+        m_timeout_mode = timeout_normal;
     while (m_timeout_mode == timeout_normal && (g = m_in_queue.dequeue()))
+    {
+        m_timeout_mode = timeout_busy;
         recv_GDU_reduce(g);
+    }
 }
 
 void Yaz_Proxy::recv_GDU_normal(GDU *gdu)
@@ -2859,12 +2870,14 @@ void Yaz_Proxy::handle_init(Z_APDU *apdu)
                 m_client->m_initResponse_version;
             
             send_to_client(apdu2);
+            m_timeout_mode = timeout_normal;
             return;
         }
     }
     m_client->m_init_flag = 1;
     
 #if USE_AUTH_MSG
+    yaz_log(YLOG_LOG, "%suse_auth_msg", m_session_str);
     Auth_Msg *m = new Auth_Msg;
     m->m_proxy = this;
     z_APDU(odr_encode(), &apdu, 0, "encode");
@@ -2912,12 +2925,13 @@ void Yaz_Proxy::handle_incoming_Z_PDU(Z_APDU *apdu)
     if (!m_client)
     {
         if (m_http_version)
-        {
+        {   // HTTP. Send not found
             send_http_response(404);
             return;
         }
         else
         {
+            // Z39.50 just shutdown
             delete this;
             return;
         }
@@ -2953,6 +2967,7 @@ void Yaz_Proxy::handle_incoming_Z_PDU_2(Z_APDU *apdu)
     if (!apdu)
     {
         m_client->timeout(m_target_idletime);  // mark it active even 
+        recv_GDU_more(true);
         // though we didn't use it
         return;
     }
@@ -2978,9 +2993,7 @@ void Yaz_Proxy::handle_incoming_Z_PDU_2(Z_APDU *apdu)
     }
     if (m_client->send_to_target(apdu) < 0)
     {
-        delete m_client;
-        m_client = 0;
-        delete this;
+        m_client->shutdown();
     }
     else
         m_client->m_waiting = 1;
@@ -3039,15 +3052,17 @@ void Yaz_Proxy::releaseClient()
 
 bool Yaz_Proxy::dec_ref()
 {
+    yaz_log(YLOG_LOG, "%sdec_ref count=%d", m_session_str, m_ref_count);
+    assert(m_ref_count > 0);
+
     --m_ref_count;
-    assert(m_ref_count >= 0);
-    bool last = (m_ref_count == 0);
-    if (m_ref_count == 0)
-    {
-        releaseClient();
-        delete this;
-    }
-    return last;
+    if (m_ref_count > 0)
+        return false;
+
+    releaseClient();
+
+    delete this;
+    return true;
 }
 
 const char *Yaz_ProxyClient::get_session_str() 
@@ -3061,8 +3076,14 @@ void Yaz_ProxyClient::shutdown()
 {
     yaz_log (YLOG_LOG, "%sShutdown (proxy to target) %s", get_session_str(),
              get_hostname());
-    delete m_server;
-    delete this;
+
+    if (m_server)
+    {
+        m_waiting = 1;      // ensure it's released from Proxy in releaseClient
+        m_server->dec_ref();
+    }
+    else
+        delete this;
 }
 
 void Yaz_Proxy::failNotify()
@@ -3245,6 +3266,7 @@ void Yaz_Proxy::timeoutNotify()
         switch(m_timeout_mode)
         {
         case timeout_normal:
+        case timeout_busy:
             inc_request_no();
             m_in_queue.clear();
             yaz_log (YLOG_LOG, "%sTimeout (client to proxy)", m_session_str);
@@ -3252,7 +3274,7 @@ void Yaz_Proxy::timeoutNotify()
             break;
         case timeout_reduce:
             timeout(m_client_idletime);
-            m_timeout_mode = timeout_normal;
+            m_timeout_mode = timeout_busy;
             gdu = m_timeout_gdu;
             m_timeout_gdu = 0;
             recv_GDU_normal(gdu);
@@ -3260,7 +3282,7 @@ void Yaz_Proxy::timeoutNotify()
         case timeout_xsl:
             assert(m_stylesheet_nprl);
             convert_xsl_delay();
-            recv_GDU_more();
+            recv_GDU_more(true);
         }
     }
     else
@@ -3458,8 +3480,7 @@ void Yaz_ProxyClient::recv_Z_PDU(Z_APDU *apdu, int len)
     if (apdu->which == Z_APDU_close)
         shutdown();
     else if (server)
-        server->recv_GDU_more();
-    
+        server->recv_GDU_more(true);
 }
 
 void Yaz_Proxy::low_socket_close()

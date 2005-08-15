@@ -1,4 +1,4 @@
-/* $Id: proxy.h,v 1.22 2005-06-25 15:58:33 adam Exp $
+/* $Id: proxy.h,v 1.23 2005-08-15 12:54:02 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -96,6 +96,7 @@ class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Z_Assoc {
 
     yazpp_1::GDU *m_timeout_gdu;
     enum timeout_mode {
+        timeout_busy,
         timeout_normal,
         timeout_reduce,
         timeout_xsl
@@ -207,7 +208,7 @@ class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Z_Assoc {
     void recv_GDU(Z_GDU *apdu, int len);
     void recv_GDU_reduce(yazpp_1::GDU *gdu);
     void recv_GDU_normal(yazpp_1::GDU *gdu);
-    void recv_GDU_more();
+    void recv_GDU_more(bool normal);
     void handle_incoming_HTTP(Z_HTTP_Request *req);
     void handle_incoming_Z_PDU(Z_APDU *apdu);
     void handle_incoming_Z_PDU_2(Z_APDU *apdu);
