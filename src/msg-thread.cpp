@@ -1,4 +1,4 @@
-/* $Id: msg-thread.cpp,v 1.6 2005-08-10 12:42:24 adam Exp $
+/* $Id: msg-thread.cpp,v 1.7 2005-08-15 12:51:57 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -84,7 +84,6 @@ Msg_Thread::Msg_Thread(ISocketObservable *obs)
     pthread_mutex_init(&m_mutex_input_data, 0);
     pthread_cond_init(&m_cond_input_data, 0);
     pthread_mutex_init(&m_mutex_output_data, 0);
-    pthread_cond_init(&m_cond_output_data, 0);
     pthread_create(&m_thread_id, 0, tfunc, this);
 }
 
@@ -101,7 +100,6 @@ Msg_Thread::~Msg_Thread()
 
     pthread_cond_destroy(&m_cond_input_data);
     pthread_mutex_destroy(&m_mutex_input_data);
-    pthread_cond_destroy(&m_cond_output_data);
     pthread_mutex_destroy(&m_mutex_output_data);
     close(m_fd[0]);
     close(m_fd[1]);
@@ -126,7 +124,7 @@ void Msg_Thread::run(void *p)
     while(1)
     {
         pthread_mutex_lock(&m_mutex_input_data);
-        if (!m_stop_flag && m_input.size() == 0)
+        while (!m_stop_flag && m_input.size() == 0)
             pthread_cond_wait(&m_cond_input_data, &m_mutex_input_data);
         if (m_stop_flag)
         {
@@ -139,10 +137,9 @@ void Msg_Thread::run(void *p)
         IMsg_Thread *out = in->handle();
         pthread_mutex_lock(&m_mutex_output_data);
         m_output.enqueue(out);
-        pthread_cond_signal(&m_cond_output_data);
-        pthread_mutex_unlock(&m_mutex_output_data);
         
         write(m_fd[1], "", 1);
+        pthread_mutex_unlock(&m_mutex_output_data);
     }
 }
 

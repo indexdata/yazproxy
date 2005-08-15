@@ -1,4 +1,4 @@
-/* $Id: msg-thread.h,v 1.4 2005-06-25 15:58:33 adam Exp $
+/* $Id: msg-thread.h,v 1.5 2005-08-15 12:51:57 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -70,7 +70,6 @@ private:
     pthread_mutex_t m_mutex_input_data;
     pthread_cond_t m_cond_input_data;
     pthread_mutex_t m_mutex_output_data;
-    pthread_cond_t m_cond_output_data;
     bool m_stop_flag;
 };
 
