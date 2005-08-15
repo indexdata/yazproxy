@@ -5,7 +5,7 @@ dnl ----- Setup Docbook documentation for YAZ
 AC_DEFUN([YAZ_DOC],
 [
 AC_SUBST(DTD_DIR)	
-AC_ARG_WITH(docbook-dtd, [  --with-docbook-dtd[=DIR]  use docbookx.dtd in DIR],
+AC_ARG_WITH(docbook-dtd,[[  --with-docbook-dtd=DIR  use docbookx.dtd in DIR]],
 [
 	if test -f "$withval/docbookx.dtd"; then
 		DTD_DIR=$withval
@@ -13,16 +13,14 @@ AC_ARG_WITH(docbook-dtd, [  --with-docbook-dtd[=DIR]  use docbookx.dtd in DIR],
 ],[
 	AC_MSG_CHECKING(for docbookx.dtd)
 	DTD_DIR=""
-	for d in /usr/share/sgml/docbook/dtd/xml/4.1.2 \
-		/usr/share/sgml/docbook/xml-dtd-4.1.2* \
-		/usr/share/sgml/docbook/xml-dtd-4.1 \
-		/usr/share/sgml/docbook/dtd/xml/4.0 \
-		/usr/lib/sgml/dtd/docbook-xml 
+	for d in /usr/lib/sgml/dtd/docbook-xml \
+		 /usr/share/sgml/docbook/dtd/4.2 \
+		 /usr/share/sgml/docbook/dtd/xml/4.* \
+		 /usr/share/sgml/docbook/xml-dtd-4.* 
 	do
 		if test -f $d/docbookx.dtd; then
 			AC_MSG_RESULT($d)
 			DTD_DIR=$d
-			break
 		fi
 	done
 	if test -z "$DTD_DIR"; then
@@ -30,7 +28,7 @@ AC_ARG_WITH(docbook-dtd, [  --with-docbook-dtd[=DIR]  use docbookx.dtd in DIR],
 	fi
 ])
 AC_SUBST(DSSSL_DIR)
-AC_ARG_WITH(docbook-dsssl,[  --with-docbook-dsssl[=DIR] use Docbook DSSSL in DIR/{html,print}/docbook.dsl],
+AC_ARG_WITH(docbook-dsssl,[[  --with-docbook-dsssl=DIR use Docbook DSSSL in DIR/{html,print}/docbook.dsl]],
 [
 	if test -f "$withval/html/docbook.dsl"; then
 		DSSSL_DIR=$withval
@@ -53,7 +51,7 @@ AC_ARG_WITH(docbook-dsssl,[  --with-docbook-dsssl[=DIR] use Docbook DSSSL in DIR
 	fi
 ])
 AC_SUBST(XSL_DIR)
-AC_ARG_WITH(docbook-xsl,[  --with-docbook-xsl[=DIR]  use Docbook XSL in DIR/{htmlhelp,xhtml}],
+AC_ARG_WITH(docbook-xsl,[[  --with-docbook-xsl=DIR  use Docbook XSL in DIR/{htmlhelp,xhtml}]],
 [
 	if test -f "$withval/htmlhelp/htmlhelp.xsl"; then
 		XSL_DIR=$withval
