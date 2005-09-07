@@ -651,7 +651,7 @@
    </section>
   </section>
   <section id="proxy-usage">
-   <title>Proxy Usage (man page)</title>
+   <title>Proxy Manual Pages</title>
    <refentry id="yazproxy-man">
     &yaz-proxy-ref;
    </refentry>
@@ -696,7 +696,7 @@
    <screen><![CDATA[
 <?xml version="1.0"?>
 <!-- XML Schema for YAZ proxy config file.
-    $Id: reference.xml,v 1.12 2005-05-14 14:15:50 mike Exp $
+    $Id: reference.xml,v 1.13 2005-09-07 09:28:46 adam Exp $
 -->
 <xs:schema
   xmlns:xs="http://www.w3.org/2001/XMLSchema"

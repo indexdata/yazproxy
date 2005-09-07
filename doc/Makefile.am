@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.7 2004-04-22 18:47:02 adam Exp $
+## $Id: Makefile.am,v 1.8 2005-09-07 09:28:46 adam Exp $
 docdir=$(datadir)/doc/@PACKAGE@
 
 SUPPORTFILES = \
@@ -13,7 +13,7 @@ XMLFILES = \
  reference.xml \
  using.xml \
  yaz-proxy-ref.xml \
- yaz-proxy-man.sgml \
+ yaz-proxy-man.xml \
  license.xml \
  yazproxy.xml.in
  
@@ -50,8 +50,8 @@ EXTRA_DIST = $(SUPPORTFILES) $(XMLFILES) $(doc_DATA) $(man_MANS)
 $(HTMLFILES): $(XMLFILES)
 	jade -E14 -D $(srcdir) -d yazhtml.dsl -t sgml $(srcdir)/xml.dcl $(TOP)
 
-yazproxy.8: yaz-proxy-man.sgml yaz-proxy-ref.xml
-	docbook2man $(srcdir)/yaz-proxy-man.sgml
+yazproxy.8: yaz-proxy-man.xml yaz-proxy-ref.xml
+	docbook2man $(srcdir)/yaz-proxy-man.xml
 
 yazproxy.php: $(XMLFILES)
 	jade -E14 -D $(srcdir) -d yazphp.dsl -t sgml $(srcdir)/xml.dcl $(TOP)

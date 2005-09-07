@@ -10,16 +10,18 @@
  <cmdsynopsis>
   <command>yazproxy</command>
   <arg choice="opt">-a <replaceable>filename</replaceable></arg>
+  <arg choice="opt">-c <replaceable>config</replaceable></arg>
+  <arg choice="opt">-i <replaceable>seconds</replaceable></arg>
   <arg choice="opt">-l <replaceable>filename</replaceable></arg>
   <arg choice="opt">-m <replaceable>num</replaceable></arg>
-  <arg choice="opt">-v <replaceable>level</replaceable></arg>
-  <arg choice="opt">-t <replaceable>target</replaceable></arg>
+  <arg choice="opt">-n <replaceable>num</replaceable></arg>
   <arg choice="opt">-o <replaceable>level</replaceable></arg>
-  <arg choice="opt">-i <replaceable>seconds</replaceable></arg>
-  <arg choice="opt">-T <replaceable>seconds</replaceable></arg>
+  <arg choice="opt">-t <replaceable>target</replaceable></arg>
   <arg choice="opt">-p <replaceable>pidfile</replaceable></arg>
+  <arg choice="opt">-T <replaceable>seconds</replaceable></arg>
   <arg choice="opt">-u <replaceable>userid</replaceable></arg>
-  <arg choice="opt">-c <replaceable>config</replaceable></arg>
+  <arg choice="opt">-v <replaceable>level</replaceable></arg>
+  <arg choice="opt">-X</arg>
   <arg choice="req"><replaceable>host</replaceable>:<replaceable>port</replaceable></arg>
  </cmdsynopsis>
 </refsynopsisdiv>
@@ -57,6 +59,20 @@
      standard output.
     </para></listitem>
   </varlistentry>
+  <varlistentry><term>-c <replaceable>config</replaceable></term>
+   <listitem><para>
+     Specifies config filename. Configuration is in XML
+     and is only supported if the YAZ proxy is compiled with
+     libxml2.
+    </para></listitem>
+  </varlistentry>
+  <varlistentry><term>-i <replaceable>seconds</replaceable></term>
+   <listitem><para>
+     Specifies in seconds the idle time for communication between
+     client and proxy. If a connection is inactive for this long
+     it will be closed. Default: 600 seconds (10 minutes).
+    </para></listitem>
+  </varlistentry>
   <varlistentry><term>-l <replaceable>filename</replaceable></term>
    <listitem><para>
      Specifies the name of a file to which to write a log of the
@@ -67,22 +83,15 @@
   </varlistentry>
   <varlistentry><term>-m <replaceable>num</replaceable></term>
    <listitem><para>
-     Specifies the maximum number of connections to be cached
-     [default 50].
+     Specifies the maximum number of client connections to be
+     offered  [default 150].
     </para></listitem>
   </varlistentry>
-  <varlistentry><term>-v <replaceable>level</replaceable></term>
+  <varlistentry><term>-n <replaceable>num</replaceable></term>
    <listitem><para>
-     Sets the logging level. <replaceable>level</replaceable> is
-     a comma-separated list of members of the set
-     {<literal>fatal</literal>,<literal>debug</literal>,<literal>warn</literal>,<literal>log</literal>,<literal>malloc</literal>,<literal>all</literal>,<literal>none</literal>}.
-    </para></listitem>
-  </varlistentry>
-  <varlistentry><term>-t <replaceable>target</replaceable></term>
-   <listitem><para>
-     Specifies the default backend target to use when a client
-     connects that does not explicitly specify a target in its
-     <literal>initRequest</literal>.
+     Sets maximum number of open files to <replaceable>num</replaceable>.
+     This is only available on systems that offers the 
+     <function>setrlimit(2)</function> call.
     </para></listitem>
   </varlistentry>
   <varlistentry><term>-o <replaceable>level</replaceable></term>
@@ -93,11 +102,18 @@
      features. By default optimization is enabled (value 1).
     </para></listitem>
   </varlistentry>
-  <varlistentry><term>-i <replaceable>seconds</replaceable></term>
+  <varlistentry><term>-p <replaceable>pidfile</replaceable></term>
    <listitem><para>
-     Specifies in seconds the idle time for communication between
-     client and proxy. If a connection is inactive for this long
-     it will be closed. Default: 600 seconds (10 minutes).
+     When specified, yazproxy will create <replaceable>pidfile</replaceable>
+     with the process ID of the proxy. The pidfile will be generated
+     before the process changes identity (see option <literal>-u</literal>).
+    </para></listitem>
+  </varlistentry>
+  <varlistentry><term>-t <replaceable>target</replaceable></term>
+   <listitem><para>
+     Specifies the default backend target to use when a client
+     connects that does not explicitly specify a target in its
+     <literal>initRequest</literal>.
     </para></listitem>
   </varlistentry>
   <varlistentry><term>-T <replaceable>seconds</replaceable></term>
@@ -108,13 +124,6 @@
      it will be closed. Default: 600 seconds (10 minutes).
     </para></listitem>
   </varlistentry>
-  <varlistentry><term>-p <replaceable>pidfile</replaceable></term>
-   <listitem><para>
-     When specified, yazproxy will create <replaceable>pidfile</replaceable>
-     with the process ID of the proxy. The pidfile will be generated
-     before the process changes identity (see option <literal>-u</literal>).
-    </para></listitem>
-  </varlistentry>
   <varlistentry><term>-u <replaceable>userid</replaceable></term>
    <listitem><para>
      When specified, yazproxy will change identity to the user ID
@@ -123,11 +132,19 @@
      if specified by option <literal>-u</literal>.
     </para></listitem>
   </varlistentry>
-  <varlistentry><term>-c <replaceable>config</replaceable></term>
+  <varlistentry><term>-v <replaceable>level</replaceable></term>
    <listitem><para>
-     Specifies config filename. Configuration is in XML
-     and is only supported if the YAZ proxy is compiled with
-     libxml2.
+     Sets the logging level. <replaceable>level</replaceable> is
+     a comma-separated list of members of the set
+     {<literal>fatal</literal>,<literal>debug</literal>,<literal>warn</literal>,<literal>log</literal>,<literal>malloc</literal>,<literal>all</literal>,<literal>none</literal>}.
+    </para></listitem>
+  </varlistentry>
+  <varlistentry><term>-X</term>
+   <listitem><para>
+     Enables debugging mode for the proxy. When specified, the proxy will
+     not fork itself, thus any violations becomes fatal. Useful if
+     you run yazproxy inside <application>gdb</application>.
+     Don't run this in production.
     </para></listitem>
   </varlistentry>
  </variablelist>

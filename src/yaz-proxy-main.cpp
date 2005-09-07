@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy-main.cpp,v 1.16 2005-06-25 15:58:33 adam Exp $
+/* $Id: yaz-proxy-main.cpp,v 1.17 2005-09-07 09:28:46 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -60,8 +60,10 @@ using namespace yazpp_1;
 
 void usage(char *prog)
 {
-    fprintf (stderr, "%s: [-c config] [-l log] [-a log] [-v level] [-t target] "
-             "[-u uid] [-p pidfile] @:port\n", prog);
+    fprintf (stderr, "%s: [-a log] [-c config]\n"
+             " [-i sec] [-l log] [-m num] [-n num] [-p pidfile]"
+             " [-t target] [-T sec] [-u uid]\n"
+             " [-v level] [-X] @:port\n", prog);
     exit (1);
 }
 
@@ -92,6 +94,9 @@ int args(Yaz_Proxy *proxy, int argc, char **argv)
             }
             addr = arg;
             break;
+        case 'a':
+            proxy->set_APDU_log(arg);
+            break;
         case 'c':
             err = proxy->set_config(arg);
             if (err == -2)
@@ -105,17 +110,8 @@ int args(Yaz_Proxy *proxy, int argc, char **argv)
                 exit(1);
             }
             break;
-        case 'a':
-            proxy->set_APDU_log(arg);
-            break;
-        case 't':
-            proxy->set_default_target(arg);
-            break;
-        case 'o':
-            proxy->option("optimize", arg);
-            break;
-        case 'v':
-            yaz_log_init_level (yaz_log_mask_str(arg));
+        case 'i':
+            proxy->set_client_idletime(atoi(arg));
             break;
         case 'l':
             yaz_log_init_file (arg);
@@ -124,26 +120,32 @@ int args(Yaz_Proxy *proxy, int argc, char **argv)
         case 'm':
             proxy->set_max_clients(atoi(arg));
             break;
-        case 'i':
-            proxy->set_client_idletime(atoi(arg));
-            break;
-        case 'T':
-            proxy->set_target_idletime(atoi(arg));
-            break;
         case 'n':
             no_limit_files = atoi(arg);
             break;
-        case 'X':
-            proxy->set_debug_mode(1);
-            debug = 1;
+        case 'o':
+            proxy->option("optimize", arg);
             break;
         case 'p':
             if (!pid_fname)
                 pid_fname = xstrdup(arg);
             break;
+        case 't':
+            proxy->set_default_target(arg);
+            break;
+        case 'T':
+            proxy->set_target_idletime(atoi(arg));
+            break;
         case 'u':
             if (!uid)
                 uid = xstrdup(arg);
+            break;
+        case 'v':
+            yaz_log_init_level (yaz_log_mask_str(arg));
+            break;
+        case 'X':
+            proxy->set_debug_mode(1);
+            debug = 1;
             break;
         default:
             usage(prog);
