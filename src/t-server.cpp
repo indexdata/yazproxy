@@ -2,7 +2,7 @@
  * Copyright (c) 1998-2005, Index Data.
  * See the file LICENSE for details.
  * 
- * $Id: t-server.cpp,v 1.2 2005-06-25 15:58:33 adam Exp $
+ * $Id: t-server.cpp,v 1.3 2005-09-11 20:06:54 adam Exp $
  */
 
 #include <stdlib.h>
@@ -17,38 +17,6 @@
 #include <yaz++/socket-manager.h>
 
 using namespace yazpp_1;
-
-class Mutex {
-public:
-    Mutex();
-    ~Mutex();
-    void lock();
-    void unlock();
-private:
-    pthread_mutex_t m_mutex;
-    
-};
-
-Mutex::Mutex()
-{
-    pthread_mutex_init(&m_mutex, 0);
-}
-
-Mutex::~Mutex()
-{
-    pthread_mutex_destroy(&m_mutex);
-}
- 
-void Mutex::lock()
-{
-    pthread_mutex_lock(&m_mutex);
-}
- 
-void Mutex::unlock()
-{
-    pthread_mutex_unlock(&m_mutex);
-}
-
 
 class MyServer;
 
