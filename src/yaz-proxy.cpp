@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.35 2005-08-15 12:53:08 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.36 2005-09-12 20:09:14 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -421,7 +421,7 @@ IPDU_Observer *Yaz_Proxy::sessionNotify(IPDU_Observable
         m_proxy_negotiation_lang);
     // create thread object the first time we get an incoming connection
     if (!m_my_thread)
-        m_my_thread = new Msg_Thread(m_socket_observable);
+        m_my_thread = new Msg_Thread(m_socket_observable, 1);
     new_proxy->m_my_thread = m_my_thread;
     return new_proxy;
 }

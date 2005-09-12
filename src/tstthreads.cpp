@@ -1,4 +1,4 @@
-/* $Id: tstthreads.cpp,v 1.6 2005-06-25 15:58:33 adam Exp $
+/* $Id: tstthreads.cpp,v 1.7 2005-09-12 20:09:14 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -85,7 +85,7 @@ int main(int argc, char **argv)
 {
     SocketManager mySocketManager;
 
-    Msg_Thread m(&mySocketManager);
+    Msg_Thread m(&mySocketManager, 1);
     My_Timer_Thread t(&mySocketManager, &m) ;
     int i = 0;
     while (++i < 5 && mySocketManager.processEvent() > 0)

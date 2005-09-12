@@ -1,4 +1,4 @@
-/* $Id: msg-thread.cpp,v 1.7 2005-08-15 12:51:57 adam Exp $
+/* $Id: msg-thread.cpp,v 1.8 2005-09-12 20:09:14 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -73,7 +73,7 @@ static void *tfunc(void *p)
 }
 
 
-Msg_Thread::Msg_Thread(ISocketObservable *obs)
+Msg_Thread::Msg_Thread(ISocketObservable *obs, int no_threads)
     : m_SocketObservable(obs)
 {
     pipe(m_fd);
@@ -84,7 +84,12 @@ Msg_Thread::Msg_Thread(ISocketObservable *obs)
     pthread_mutex_init(&m_mutex_input_data, 0);
     pthread_cond_init(&m_cond_input_data, 0);
     pthread_mutex_init(&m_mutex_output_data, 0);
-    pthread_create(&m_thread_id, 0, tfunc, this);
+
+    m_no_threads = no_threads;
+    m_thread_id = new pthread_t[no_threads];
+    int i;
+    for (i = 0; i<m_no_threads; i++)
+        pthread_create(&m_thread_id[i], 0, tfunc, this);
 }
 
 Msg_Thread::~Msg_Thread()
@@ -94,7 +99,10 @@ Msg_Thread::~Msg_Thread()
     pthread_cond_signal(&m_cond_input_data);
     pthread_mutex_unlock(&m_mutex_input_data);
     
-    pthread_join(m_thread_id, 0);
+    int i;
+    for (i = 0; i<m_no_threads; i++)
+        pthread_join(m_thread_id[i], 0);
+    delete [] m_thread_id;
 
     m_SocketObservable->deleteObserver(this);
 

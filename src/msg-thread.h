@@ -1,4 +1,4 @@
-/* $Id: msg-thread.h,v 1.5 2005-08-15 12:51:57 adam Exp $
+/* $Id: msg-thread.h,v 1.6 2005-09-12 20:09:14 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -55,7 +55,7 @@ class Msg_Thread_Queue {
 
 class Msg_Thread : public yazpp_1::ISocketObserver {
  public:
-    Msg_Thread(yazpp_1::ISocketObservable *obs);
+    Msg_Thread(yazpp_1::ISocketObservable *obs, int no_threads);
     virtual ~Msg_Thread();
     void socketNotify(int event);
     void put(IMsg_Thread *m);
@@ -64,7 +64,8 @@ class Msg_Thread : public yazpp_1::ISocketObserver {
     int m_fd[2];
 private:
     yazpp_1::ISocketObservable *m_SocketObservable;
-    pthread_t m_thread_id;
+    int m_no_threads;
+    pthread_t *m_thread_id;
     Msg_Thread_Queue m_input;
     Msg_Thread_Queue m_output;
     pthread_mutex_t m_mutex_input_data;

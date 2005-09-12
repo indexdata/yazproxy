@@ -2,7 +2,7 @@
  * Copyright (c) 1998-2005, Index Data.
  * See the file LICENSE for details.
  * 
- * $Id: t-server.cpp,v 1.3 2005-09-11 20:06:54 adam Exp $
+ * $Id: t-server.cpp,v 1.4 2005-09-12 20:09:14 adam Exp $
  */
 
 #include <stdlib.h>
@@ -184,13 +184,17 @@ int main(int argc, char **argv)
     int ret;
     const char *addr = "tcp:@:9999";
     char *apdu_log = 0;
+    int no_threads = 1;
 
-    while ((ret = options("a:v:T", argv, argc, &arg)) != -2)
+    while ((ret = options("n:a:v:T", argv, argc, &arg)) != -2)
     {
         switch (ret)
         {
         case 0:
             addr = xstrdup(arg);
+            break;
+        case 'n':
+            no_threads = atoi(arg);
             break;
         case 'a':
             apdu_log = xstrdup(arg);
@@ -213,7 +217,7 @@ int main(int argc, char **argv)
     
     MyServer *z = 0;
 
-    Msg_Thread *my_thread = new Msg_Thread(&mySocketManager);
+    Msg_Thread *my_thread = new Msg_Thread(&mySocketManager, no_threads);
 
 #if YAZ_POSIX_THREADS
     if (thread_flag)
