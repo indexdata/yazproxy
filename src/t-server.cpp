@@ -2,7 +2,7 @@
  * Copyright (c) 1998-2005, Index Data.
  * See the file LICENSE for details.
  * 
- * $Id: t-server.cpp,v 1.4 2005-09-12 20:09:14 adam Exp $
+ * $Id: t-server.cpp,v 1.5 2005-09-26 09:24:14 adam Exp $
  */
 
 #include <stdlib.h>
@@ -58,10 +58,15 @@ IMsg_Thread *Auth_Msg::handle()
         {
         case Z_APDU_initRequest:
             apdu = zget_APDU(odr, Z_APDU_initResponse);
+            ODR_MASK_SET(apdu->u.initResponse->options, Z_Options_triggerResourceCtrl);
+            ODR_MASK_SET(apdu->u.initResponse->options, Z_Options_search);
+            ODR_MASK_SET(apdu->u.initResponse->options, Z_Options_present);
             break;
         case Z_APDU_searchRequest:
             sleep(5);
             apdu = zget_APDU(odr, Z_APDU_searchResponse);
+            break;
+        case Z_APDU_triggerResourceControlRequest:
             break;
         default:
             apdu = zget_APDU(odr, Z_APDU_close);
@@ -116,6 +121,7 @@ void Auth_Msg::result()
     }
     if (m_front->m_delete_flag && m_front->m_no_requests == 0)
         delete m_front;
+    delete this;
 }
 
 MyServer::MyServer(IPDU_Observable *the_PDU_Observable,
