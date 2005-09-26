@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.36 2005-09-12 20:09:14 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.37 2005-09-26 09:25:06 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -219,9 +219,10 @@ Yaz_Proxy::Yaz_Proxy(IPDU_Observable *the_PDU_Observable,
     m_session_no = 0;
     m_bytes_sent = 0;
     m_bytes_recv = 0;
-    m_bw_hold_PDU = 0;
     m_bw_max = 0;
     m_pdu_max = 0;
+    m_search_max = 0;
+    m_connect_max = 0;
     m_timeout_mode = timeout_normal;
     m_timeout_gdu = 0;
     m_max_record_retrieve = 0;
@@ -537,6 +538,7 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
             int pre_init = 0;
             cfg->get_target_info(proxy_host, url, &m_bw_max,
                                  &m_pdu_max, &m_max_record_retrieve,
+                                 &m_search_max, &m_connect_max,
                                  &m_target_idletime, &client_idletime,
                                  &parent->m_max_clients,
                                  &m_keepalive_limit_bw,
@@ -1797,7 +1799,6 @@ void Yaz_Proxy::recv_GDU_reduce(GDU *gdu)
     /* uncomment to force a big reduce */
     m_timeout_mode = timeout_reduce;
     m_timeout_gdu = gdu;
-    // m_bw_hold_PDU = apdu;  // save PDU and signal "on hold"
     timeout(3);       // call us reduce seconds later
     return;
 #endif    
@@ -1809,7 +1810,6 @@ void Yaz_Proxy::recv_GDU_reduce(GDU *gdu)
         
         m_timeout_mode = timeout_reduce;
         m_timeout_gdu = gdu;
-        // m_bw_hold_PDU = apdu;  // save PDU and signal "on hold"
         timeout(reduce);       // call us reduce seconds later
     }
     else
@@ -3164,7 +3164,7 @@ void Yaz_Proxy::pre_init()
     int i;
     const char *name = 0;
     const char *zurl_in_use[MAX_ZURL_PLEX];
-    int limit_bw, limit_pdu, limit_req;
+    int limit_bw, limit_pdu, limit_req, limit_search, limit_connect;
     int target_idletime, client_idletime;
     int max_clients;
     int keepalive_limit_bw, keepalive_limit_pdu;
@@ -3185,6 +3185,7 @@ void Yaz_Proxy::pre_init()
 
     for (i = 0; cfg && cfg->get_target_no(i, &name, zurl_in_use,
                                           &limit_bw, &limit_pdu, &limit_req,
+                                          &limit_search, &limit_connect,
                                           &target_idletime, &client_idletime,
                                           &max_clients, 
                                           &keepalive_limit_bw,

@@ -1,4 +1,4 @@
-/* $Id: proxyp.h,v 1.9 2005-06-25 15:58:33 adam Exp $
+/* $Id: proxyp.h,v 1.10 2005-09-26 09:25:05 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -90,6 +90,8 @@ public:
                       int *limit_bw,
                       int *limit_pdu,
                       int *limit_req,
+                      int *limit_search,
+                      int *limit_connect,
                       int *target_idletime,
                       int *client_idletime,
                       int *max_clients,
@@ -106,6 +108,7 @@ public:
 
     void get_target_info(const char *name, const char **url,
                          int *limit_bw, int *limit_pdu, int *limit_req,
+                         int *limit_search, int *limit_connect,
                          int *target_idletime, int *client_idletime,
                          int *max_clients,
                          int *keepalive_limit_bw, int *keepalive_limit_pdu,

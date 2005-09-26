@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy-config.cpp,v 1.22 2005-06-25 15:58:33 adam Exp $
+/* $Id: yaz-proxy-config.cpp,v 1.23 2005-09-26 09:25:06 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -39,6 +39,7 @@ class Yaz_ProxyConfigP {
     xmlNodePtr m_proxyPtr;
     void return_target_info(xmlNodePtr ptr, const char **url,
                             int *limit_bw, int *limit_pdu, int *limit_req,
+                            int *limit_search, int *limit_connect,
                             int *target_idletime, int *client_idletime,
                             int *keepalive_limit_bw, int *keepalive_limit_pdu,
                             int *pre_init, const char **cql2rpn,
@@ -46,7 +47,8 @@ class Yaz_ProxyConfigP {
                             const char **negotiation_lang,
                             const char **target_charset);
     void return_limit(xmlNodePtr ptr,
-                      int *limit_bw, int *limit_pdu, int *limit_req);
+                      int *limit_bw, int *limit_pdu, int *limit_req,
+                      int *limit_search, int *limit_connect);
     int check_type_1(ODR odr, xmlNodePtr ptr, Z_RPNQuery *query,
                      char **addinfo);
     xmlNodePtr find_target_node(const char *name, const char *db);
@@ -166,9 +168,11 @@ const char *Yaz_ProxyConfigP::get_text(xmlNodePtr ptr)
 
 #if HAVE_XSLT
 void Yaz_ProxyConfigP::return_limit(xmlNodePtr ptr,
-                                   int *limit_bw,
-                                   int *limit_pdu,
-                                   int *limit_req)
+                                    int *limit_bw,
+                                    int *limit_pdu,
+                                    int *limit_req,
+                                    int *limit_search,
+                                    int *limit_connect)
 {
     for (ptr = ptr->children; ptr; ptr = ptr->next)
     {
@@ -193,6 +197,20 @@ void Yaz_ProxyConfigP::return_limit(xmlNodePtr ptr,
             if (t)
                 *limit_pdu = atoi(t);
         }
+        if (ptr->type == XML_ELEMENT_NODE 
+            && !strcmp((const char *) ptr->name, "search"))
+        {
+            const char *t = get_text(ptr);
+            if (t)
+                *limit_search = atoi(t);
+        }
+        if (ptr->type == XML_ELEMENT_NODE 
+            && !strcmp((const char *) ptr->name, "connect"))
+        {
+            const char *t = get_text(ptr);
+            if (t)
+                *limit_connect = atoi(t);
+        }
     }
 }
 #endif
@@ -203,6 +221,8 @@ void Yaz_ProxyConfigP::return_target_info(xmlNodePtr ptr,
                                           int *limit_bw,
                                           int *limit_pdu,
                                           int *limit_req,
+                                          int *limit_search,
+                                          int *limit_connect,
                                           int *target_idletime,
                                           int *client_idletime,
                                           int *keepalive_limit_bw,
@@ -241,11 +261,12 @@ void Yaz_ProxyConfigP::return_target_info(xmlNodePtr ptr,
             *keepalive_limit_bw = 500000;
             *keepalive_limit_pdu = 1000;
             return_limit(ptr, keepalive_limit_bw, keepalive_limit_pdu,
-                         &dummy);
+                         &dummy, &dummy, &dummy);
         }
         if (ptr->type == XML_ELEMENT_NODE 
             && !strcmp((const char *) ptr->name, "limit"))
-            return_limit(ptr, limit_bw, limit_pdu, limit_req);
+            return_limit(ptr, limit_bw, limit_pdu, limit_req,
+                         limit_search, limit_connect);
         if (ptr->type == XML_ELEMENT_NODE 
             && !strcmp((const char *) ptr->name, "target-timeout"))
         {
@@ -900,6 +921,8 @@ int Yaz_ProxyConfig::get_target_no(int no,
                                    int *limit_bw,
                                    int *limit_pdu,
                                    int *limit_req,
+                                   int *limit_search,
+                                   int *limit_connect,
                                    int *target_idletime,
                                    int *client_idletime,
                                    int *max_clients,
@@ -935,6 +958,7 @@ int Yaz_ProxyConfig::get_target_no(int no,
                 m_cp->return_target_info(
                     ptr, url,
                     limit_bw, limit_pdu, limit_req,
+                    limit_search, limit_connect,
                     target_idletime, client_idletime,
                     keepalive_limit_bw, keepalive_limit_pdu,
                     pre_init, cql2rpn,
@@ -1129,6 +1153,8 @@ void Yaz_ProxyConfig::get_target_info(const char *name,
                                       int *limit_bw,
                                       int *limit_pdu,
                                       int *limit_req,
+                                      int *limit_search,
+                                      int *limit_connect,
                                       int *target_idletime,
                                       int *client_idletime,
                                       int *max_clients,
@@ -1172,6 +1198,7 @@ void Yaz_ProxyConfig::get_target_info(const char *name,
             url[1] = 0;
         }
         m_cp->return_target_info(ptr, url, limit_bw, limit_pdu, limit_req,
+                                 limit_search, limit_connect,
                                  target_idletime, client_idletime,
                                  keepalive_limit_bw, keepalive_limit_pdu,
                                  pre_init, cql2rpn,
