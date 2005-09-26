@@ -1,4 +1,4 @@
-/* $Id: msg-thread.h,v 1.6 2005-09-12 20:09:14 adam Exp $
+/* $Id: msg-thread.h,v 1.7 2005-09-26 09:22:59 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -34,6 +34,7 @@ class IMsg_Thread {
 public:
     virtual IMsg_Thread *handle() = 0;
     virtual void result() = 0;
+    virtual ~IMsg_Thread();
 };
 
 class Msg_Thread_Queue_List {
