@@ -1,4 +1,4 @@
-/* $Id: msg-thread.cpp,v 1.9 2005-09-26 09:22:59 adam Exp $
+/* $Id: msg-thread.cpp,v 1.10 2005-10-05 12:05:40 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -101,7 +101,7 @@ Msg_Thread::~Msg_Thread()
 {
     pthread_mutex_lock(&m_mutex_input_data);
     m_stop_flag = true;
-    pthread_cond_signal(&m_cond_input_data);
+    pthread_cond_broadcast(&m_cond_input_data);
     pthread_mutex_unlock(&m_mutex_input_data);
     
     int i;
