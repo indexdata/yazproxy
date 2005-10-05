@@ -1,4 +1,4 @@
-/* $Id: tstthreads.cpp,v 1.7 2005-09-12 20:09:14 adam Exp $
+/* $Id: tstthreads.cpp,v 1.8 2005-10-05 12:05:59 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -69,7 +69,7 @@ My_Timer_Thread::My_Timer_Thread(ISocketObservable *obs,
     m_t = t;
     obs->addObserver(m_fd[0], this);
     obs->maskObserver(this, SOCKET_OBSERVE_READ);
-    obs->timeoutObserver(this, 2);
+    obs->timeoutObserver(this, 1);
 }
 
 void My_Timer_Thread::socketNotify(int event)
@@ -85,7 +85,7 @@ int main(int argc, char **argv)
 {
     SocketManager mySocketManager;
 
-    Msg_Thread m(&mySocketManager, 1);
+    Msg_Thread m(&mySocketManager, 3);
     My_Timer_Thread t(&mySocketManager, &m) ;
     int i = 0;
     while (++i < 5 && mySocketManager.processEvent() > 0)
