@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 1998-2005, Index Data.
+ * Copyright (c) 2005, Index Data.
  * See the file LICENSE for details.
  * 
- * $Id: t-server.cpp,v 1.5 2005-09-26 09:24:14 adam Exp $
+ * $Id: t-server.cpp,v 1.6 2005-10-05 12:07:15 adam Exp $
  */
 
 #include <stdlib.h>
