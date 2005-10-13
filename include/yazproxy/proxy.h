@@ -1,4 +1,4 @@
-/* $Id: proxy.h,v 1.24 2005-09-26 09:25:05 adam Exp $
+/* $Id: proxy.h,v 1.25 2005-10-13 09:58:52 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -29,6 +29,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include <yaz++/cql2rpn.h>
 #include <yaz/cql.h>
 #include <yaz++/gdu.h>
+#include <yaz++/gduqueue.h>
 #include <yazproxy/bw.h>
 
 class Yaz_Proxy;

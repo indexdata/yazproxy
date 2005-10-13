@@ -2,7 +2,7 @@
  * Copyright (c) 2005, Index Data.
  * See the file LICENSE for details.
  * 
- * $Id: t-server.cpp,v 1.6 2005-10-05 12:07:15 adam Exp $
+ * $Id: t-server.cpp,v 1.7 2005-10-13 09:58:52 adam Exp $
  */
 
 #include <stdlib.h>
@@ -14,6 +14,7 @@
 #include <yaz++/z-assoc.h>
 #include <yaz++/pdu-assoc.h>
 #include <yaz++/gdu.h>
+#include <yaz++/gduqueue.h>
 #include <yaz++/socket-manager.h>
 
 using namespace yazpp_1;

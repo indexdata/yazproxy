@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.37 2005-09-26 09:25:06 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.38 2005-10-13 09:58:52 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -1830,8 +1830,8 @@ void Yaz_Proxy::recv_GDU_more(bool normal)
 
 void Yaz_Proxy::recv_GDU_normal(GDU *gdu)
 {
-    Z_GDU *apdu = gdu->get();
-    gdu->extract_odr_to(odr_decode());
+    Z_GDU *apdu = 0;
+    gdu->move_away_gdu(odr_decode(), &apdu);
     delete gdu;
 
     if (apdu->which == Z_GDU_Z3950)
@@ -2606,7 +2606,8 @@ void Yaz_Proxy::handle_incoming_HTTP(Z_HTTP_Request *hreq)
                     const char *pqf_msg;
                     size_t off;
                     int code = yaz_pqf_error (pqf_parser, &pqf_msg, &off);
-                    yaz_log(YLOG_LOG, "%*s^\n", off+4, "");
+                    int ioff = off;
+                    yaz_log(YLOG_LOG, "%*s^\n", ioff+4, "");
                     yaz_log(YLOG_LOG, "Bad PQF: %s (code %d)\n", pqf_msg, code);
                     
                     send_to_srw_client_error(10, 0);
