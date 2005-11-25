@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.38 2005-10-13 09:58:52 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.39 2005-11-25 19:37:28 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -1107,6 +1107,9 @@ int Yaz_Proxy::send_http_response(int code)
     m_bytes_sent += len;
     m_bw_stat.add_bytes(len);
     logtime();
+
+    recv_GDU_more(true);
+
     return r;
 }
 
@@ -1153,6 +1156,9 @@ int Yaz_Proxy::send_srw_response(Z_SRW_PDU *srw_pdu)
     m_bytes_sent += len;
     m_bw_stat.add_bytes(len);
     logtime();
+
+    recv_GDU_more(true);
+
     return r;
 }
 
@@ -2453,6 +2459,7 @@ int Yaz_Proxy::file_access(Z_HTTP_Request *hreq)
     }
     int len;
     send_GDU(gdu, &len);
+    recv_GDU_more(true);
     return 1;
 }
         
