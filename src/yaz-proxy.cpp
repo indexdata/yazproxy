@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.39 2005-11-25 19:37:28 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.40 2005-11-29 09:17:37 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -2019,9 +2019,10 @@ void Yaz_Proxy::handle_charset_lang_negotiation(Z_APDU *apdu)
                 {
                     ODR_MASK_SET(initResponse->options,
                                  Z_Options_negotiationModel);
-                    ODR_MASK_SET(m_initRequest_options,
-                                 Z_Options_negotiationModel);
-
+                    if (m_initRequest_options)
+                        ODR_MASK_SET(m_initRequest_options,
+                                     Z_Options_negotiationModel);
+                    
                     oi->which = Z_OtherInfo_externallyDefinedInfo;    
                     oi->information.externallyDefinedInfo =
                         yaz_set_response_charneg(
