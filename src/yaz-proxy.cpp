@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.40 2005-11-29 09:17:37 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.41 2005-11-30 11:38:46 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -106,18 +106,18 @@ void Auth_Msg::result()
 {
     yaz_log(YLOG_LOG, "Auth_Msg:result proxy ok buf=%p len=%d",
             m_apdu_buf, m_apdu_len);
-    odr_setbuf(m_proxy->odr_decode(), m_apdu_buf, m_apdu_len, 0);
-    Z_APDU *apdu = 0;
-    int r = z_APDU(m_proxy->odr_decode(), &apdu, 0, 0);
-    if (r)
-        yaz_log(YLOG_LOG, "Auth_Msg::result z_APDU OK");
-    else
-        yaz_log(YLOG_LOG, "Auth_Msg::result z_APDU failed");
-    if (m_proxy->dec_ref())
+    if (m_proxy->dec_ref(false))
         yaz_log(YLOG_LOG, "Auth_Msg::proxy deleted meanwhile");
     else
     {
         yaz_log(YLOG_LOG, "Auth_Msg::proxy still alive");
+        odr_setbuf(m_proxy->odr_decode(), m_apdu_buf, m_apdu_len, 0);
+        Z_APDU *apdu = 0;
+        int r = z_APDU(m_proxy->odr_decode(), &apdu, 0, 0);
+        if (r)
+            yaz_log(YLOG_LOG, "Auth_Msg::result z_APDU OK");
+        else
+            yaz_log(YLOG_LOG, "Auth_Msg::result z_APDU failed");
         m_proxy->result_authentication(apdu, m_ret);
     }
     delete this;
@@ -132,7 +132,7 @@ void Yaz_Proxy::result_authentication(Z_APDU *apdu, int ret)
         Z_APDU *apdu_reject = zget_APDU(odr_encode(), Z_APDU_initResponse);
         *apdu_reject->u.initResponse->result = 0;
         send_to_client(apdu_reject);
-        dec_ref();
+        dec_ref(false);
     }
     else
         handle_incoming_Z_PDU_2(apdu);
@@ -280,6 +280,7 @@ Yaz_Proxy::Yaz_Proxy(IPDU_Observable *the_PDU_Observable,
         low_socket_open();
     m_my_thread = 0;
     m_ref_count = 1;
+    m_main_ptr_dec = false;
     m_peername = 0;
 }
 
@@ -1165,14 +1166,11 @@ int Yaz_Proxy::send_srw_response(Z_SRW_PDU *srw_pdu)
 int Yaz_Proxy::send_to_srw_client_error(int srw_error, const char *add)
 {
     ODR o = odr_encode();
-    Z_SRW_PDU *srw_pdu = yaz_srw_get(o, Z_SRW_searchRetrieve_response);
-    Z_SRW_searchRetrieveResponse *srw_res = srw_pdu->u.response;
-
-    srw_res->num_diagnostics = 1;
-    srw_res->diagnostics = (Z_SRW_diagnostic *)
-        odr_malloc(o, sizeof(*srw_res->diagnostics));
-    yaz_mk_std_diagnostic(o, srw_res->diagnostics, srw_error, add);
-    return send_srw_response(srw_pdu);
+    Z_SRW_diagnostic *diagnostic = (Z_SRW_diagnostic *)
+        odr_malloc(o, sizeof(*diagnostic));
+    int num_diagnostic = 1;
+    yaz_mk_std_diagnostic(o, diagnostic, srw_error, add);
+    return send_srw_search_response(diagnostic, num_diagnostic);
 }
 
 int Yaz_Proxy::z_to_srw_diag(ODR o, Z_SRW_searchRetrieveResponse *srw_res,
@@ -1247,6 +1245,18 @@ int Yaz_Proxy::send_to_srw_client_ok(int hits, Z_Records *records, int start)
     }
     return send_srw_response(srw_pdu);
     
+}
+
+int Yaz_Proxy::send_srw_search_response(Z_SRW_diagnostic *diagnostics,
+                                        int num_diagnostics)
+{
+    ODR o = odr_encode();
+    Z_SRW_PDU *srw_pdu = yaz_srw_get(o, Z_SRW_searchRetrieve_response);
+    Z_SRW_searchRetrieveResponse *srw_res = srw_pdu->u.response;
+
+    srw_res->num_diagnostics = num_diagnostics;
+    srw_res->diagnostics = diagnostics;
+    return send_srw_response(srw_pdu);
 }
 
 int Yaz_Proxy::send_srw_explain_response(Z_SRW_diagnostic *diagnostics,
@@ -3059,10 +3069,19 @@ void Yaz_Proxy::releaseClient()
         m_parent->pre_init();
 }
 
-bool Yaz_Proxy::dec_ref()
+bool Yaz_Proxy::dec_ref(bool main_ptr)
 {
     yaz_log(YLOG_LOG, "%sdec_ref count=%d", m_session_str, m_ref_count);
+
     assert(m_ref_count > 0);
+    if (main_ptr)
+    {
+        if (m_main_ptr_dec)
+            return false;
+        m_main_ptr_dec = true;
+    }
+
+    m_http_keepalive = 0;
 
     --m_ref_count;
     if (m_ref_count > 0)
@@ -3089,7 +3108,7 @@ void Yaz_ProxyClient::shutdown()
     if (m_server)
     {
         m_waiting = 1;      // ensure it's released from Proxy in releaseClient
-        m_server->dec_ref();
+        m_server->dec_ref(true);
     }
     else
         delete this;
@@ -3100,15 +3119,35 @@ void Yaz_Proxy::failNotify()
     inc_request_no();
     yaz_log (YLOG_LOG, "%sConnection closed by client",
              get_session_str());
-    dec_ref();
+    dec_ref(true);
 }
 
+void Yaz_Proxy::send_response_fail_client(const char *addr)
+{
+    yaz_log(YLOG_LOG, "%ssend_close_response", get_session_str());
+    if (m_http_version)
+    {
+        Z_SRW_diagnostic *diagnostic = 0;
+        int num_diagnostic = 0;
+        
+        yaz_add_srw_diagnostic(odr_encode(),
+                               &diagnostic, &num_diagnostic,
+                               YAZ_SRW_SYSTEM_TEMPORARILY_UNAVAILABLE, addr);
+        if (m_s2z_search_apdu)
+            send_srw_search_response(diagnostic, num_diagnostic);
+        else
+            send_srw_explain_response(diagnostic, num_diagnostic);
+    }            
+}
 void Yaz_ProxyClient::failNotify()
 {
     if (m_server)
         m_server->inc_request_no();
     yaz_log (YLOG_LOG, "%sConnection closed by target %s", 
              get_session_str(), get_hostname());
+
+    if (m_server)
+        m_server->send_response_fail_client(get_hostname());
     shutdown();
 }
 
@@ -3280,7 +3319,7 @@ void Yaz_Proxy::timeoutNotify()
             inc_request_no();
             m_in_queue.clear();
             yaz_log (YLOG_LOG, "%sTimeout (client to proxy)", m_session_str);
-            dec_ref();
+            dec_ref(true);
             break;
         case timeout_reduce:
             timeout(m_client_idletime);
@@ -3315,17 +3354,12 @@ void Yaz_ProxyClient::timeoutNotify()
 
     yaz_log (YLOG_LOG, "%sTimeout (proxy to target) %s", get_session_str(),
              get_hostname());
-    m_waiting = 1;
-    m_root->pre_init();
-    if (m_server && m_init_flag)
-    {
-        // target timed out in a session that was properly initialized
-        // server object stay alive but we mark it as invalid so it
-        // gets initialized again
-        m_server->markInvalid();
-        m_server = 0;
-    }
+
+    if (m_server)
+        m_server->send_response_fail_client(get_hostname());
     shutdown();
+
+    m_root->pre_init();
 }
 
 Yaz_ProxyClient::Yaz_ProxyClient(IPDU_Observable *the_PDU_Observable,
