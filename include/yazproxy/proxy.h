@@ -1,4 +1,4 @@
-/* $Id: proxy.h,v 1.25 2005-10-13 09:58:52 adam Exp $
+/* $Id: proxy.h,v 1.26 2005-11-30 11:48:19 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -59,6 +59,7 @@ class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Z_Assoc {
  private:
     char *m_peername;
     int m_ref_count;
+    bool m_main_ptr_dec;
     char *get_cookie(Z_OtherInformation **otherInfo);
     char *get_proxy(Z_OtherInformation **otherInfo);
     void get_charset_and_lang_negotiation(Z_OtherInformation **otherInfo,
@@ -170,6 +171,8 @@ class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Z_Assoc {
     int send_to_srw_client_ok(int hits, Z_Records *records, int start);
     int send_http_response(int code);
     int send_srw_response(Z_SRW_PDU *srw_pdu);
+    int send_srw_search_response(Z_SRW_diagnostic *diagnostics,
+                                 int num_diagnostics);
     int send_srw_explain_response(Z_SRW_diagnostic *diagnostics,
                                   int num_diagnostics);
     int z_to_srw_diag(ODR o, Z_SRW_searchRetrieveResponse *srw_res,
@@ -200,7 +203,7 @@ class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Z_Assoc {
 
 
     void inc_ref();
-    bool dec_ref();
+    bool dec_ref(bool main_ptr);
 
 
     int handle_authentication(Z_APDU *apdu);
@@ -238,6 +241,7 @@ class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Z_Assoc {
     int get_log_mask() { return m_log_mask; };
     int handle_init_response_for_invalid_session(Z_APDU *apdu);
     void set_debug_mode(int mode);
+    void send_response_fail_client(const char *addr);
     Msg_Thread *m_my_thread;
 };
 
