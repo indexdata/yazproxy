@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy-config.cpp,v 1.23 2005-09-26 09:25:06 adam Exp $
+/* $Id: yaz-proxy-config.cpp,v 1.24 2006-03-09 14:12:57 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -576,7 +576,9 @@ void Yaz_ProxyConfig::target_authentication(const char *name,
             }
             const char *t = m_cp->get_text(ptr);
             if (!t || !strcmp(type, "none"))
+            {
                 req->idAuthentication = 0;
+            }
             else if (!strcmp(type, "anonymous"))
             {
                 req->idAuthentication =

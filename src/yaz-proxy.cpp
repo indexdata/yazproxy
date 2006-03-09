@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.42 2006-03-09 00:08:29 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.43 2006-03-09 14:12:57 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -135,7 +135,16 @@ void Yaz_Proxy::result_authentication(Z_APDU *apdu, int ret)
         dec_ref(false);
     }
     else
+    {
+        if (apdu->which == Z_APDU_initRequest)
+        {
+            Yaz_ProxyConfig *cfg = check_reconfigure();
+            if (cfg)
+                cfg->target_authentication(m_default_target, odr_encode(), 
+                                           apdu->u.initRequest);
+        }
         handle_incoming_Z_PDU_2(apdu);
+    }
 }
 
 static const char *apdu_name(Z_APDU *apdu)
@@ -620,10 +629,10 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
             }
         }
     }
-    else if (!c &&
-            apdu->which == Z_APDU_initRequest &&
-            apdu->u.initRequest->idAuthentication == 0 &&
-            !ODR_MASK_GET(apdu->u.initRequest->options, Z_Options_negotiationModel))
+    else if (!c 
+             && apdu->which == Z_APDU_initRequest 
+             && !ODR_MASK_GET(apdu->u.initRequest->options,
+                              Z_Options_negotiationModel))
     {
         // anonymous sessions without cookie.
         // if authentication is set it is NOT anonymous se we can't share them.
@@ -632,9 +641,9 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
         {
             assert(c->m_prev);
             assert(*c->m_prev == c);
-            if (c->m_server == 0 && c->m_cookie == 0 && 
-                c->m_waiting == 0 && 
-                !strcmp(m_proxyTarget, c->get_hostname()))
+            if (c->m_server == 0 && c->m_cookie == 0 &&  c->m_waiting == 0 
+                && c->compare_idAuthentication(apdu)
+                && !strcmp(m_proxyTarget, c->get_hostname()))
             {
                 // found it in cache
                 yaz_log (YLOG_LOG, "%sREUSE %d %s",
@@ -663,14 +672,6 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
         {
             yaz_log (YLOG_LOG, "%sno init request as first PDU", m_session_str);
             return 0;
-        }
-        Z_InitRequest *initRequest = apdu->u.initRequest;
-
-        if (initRequest->idAuthentication)
-        {
-            // the client uses authentication. We set the keepalive PDU
-            // to 0 so we don't cache it in releaseClient
-            m_keepalive_limit_pdu = 0;
         }
         // go through list of clients - and find the lowest/oldest one.
         Yaz_ProxyClient *c_min = 0;
@@ -766,6 +767,8 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
             c->set_APDU_yazlog(1);
         else
             c->set_APDU_yazlog(0);
+
+        c->set_idAuthentication(apdu);
     }
     yaz_log (YLOG_DEBUG, "get_client 3 %p %p", this, c);
     return c;
@@ -1509,6 +1512,38 @@ int Yaz_Proxy::send_to_client(Z_APDU *apdu)
     return r;
 }
 
+void Yaz_ProxyClient::set_idAuthentication(Z_APDU *apdu)
+{
+    Z_IdAuthentication *t = apdu->u.initRequest->idAuthentication;
+    
+    odr_reset(m_idAuthentication_odr);
+    z_IdAuthentication(m_idAuthentication_odr, &t, 1, 0);
+    m_idAuthentication_ber_buf =
+        odr_getbuf(m_idAuthentication_odr, 
+                   &m_idAuthentication_ber_size, 0);
+}
+
+bool Yaz_ProxyClient::compare_idAuthentication(Z_APDU *apdu)
+{
+    Z_IdAuthentication *t = apdu->u.initRequest->idAuthentication;
+    ODR odr = odr_createmem(ODR_ENCODE);
+
+    z_IdAuthentication(odr, &t, 1, 0);
+    int sz;
+    char *buf = odr_getbuf(odr, &sz, 0);
+    if (buf && m_idAuthentication_ber_buf
+        && sz == m_idAuthentication_ber_size
+        && !memcmp(m_idAuthentication_ber_buf, buf, sz))
+    {
+        odr_destroy(odr);
+        return true;
+    }
+    odr_destroy(odr);
+    if (!buf && !m_idAuthentication_ber_buf)
+        return true;
+    return false;
+}
+
 int Yaz_ProxyClient::send_to_target(Z_APDU *apdu)
 {
     int len = 0;
@@ -2198,9 +2233,6 @@ int Yaz_Proxy::handle_authentication(Z_APDU *apdu)
     else
         ret = cfg->client_authentication(m_default_target, 0, 0, 0,
                                          m_peername);
-
-    cfg->target_authentication(m_default_target, odr_encode(), req);
-
     return ret;
 }
 
@@ -3176,6 +3208,7 @@ Yaz_ProxyClient::~Yaz_ProxyClient()
         m_next->m_prev = m_prev;
     m_waiting = 2;     // for debugging purposes only.
     odr_destroy(m_init_odr);
+    odr_destroy(m_idAuthentication_odr);
     delete m_last_query;
     xfree (m_last_resultSetId);
     xfree (m_cookie);
@@ -3389,6 +3422,9 @@ Yaz_ProxyClient::Yaz_ProxyClient(IPDU_Observable *the_PDU_Observable,
     m_seqno = 0;
     m_target_idletime = 600;
     m_root = parent;
+    m_idAuthentication_odr = odr_createmem(ODR_ENCODE);
+    m_idAuthentication_ber_buf = 0;
+    m_idAuthentication_ber_size = 0;
 }
 
 const char *Yaz_Proxy::option(const char *name, const char *value)

@@ -1,4 +1,4 @@
-/* $Id: proxyp.h,v 1.10 2005-09-26 09:25:05 adam Exp $
+/* $Id: proxyp.h,v 1.11 2006-03-09 14:12:57 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -185,6 +185,11 @@ class Yaz_ProxyClient : public yazpp_1::Z_Assoc {
     void pre_init_client();
     int m_target_idletime;
     Yaz_Proxy *m_root;
+    char *m_idAuthentication_ber_buf;
+    int m_idAuthentication_ber_size;
+    ODR m_idAuthentication_odr;
+    void set_idAuthentication(Z_APDU *apdu);
+    bool compare_idAuthentication(Z_APDU *apdu);
 };
 
 /*
