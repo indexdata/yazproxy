@@ -1,4 +1,4 @@
-/* $Id: modules.cpp,v 1.4 2005-06-25 15:58:33 adam Exp $
+/* $Id: modules.cpp,v 1.5 2006-03-09 14:12:24 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -169,18 +169,24 @@ int Yaz_ProxyModules::add_module(const char *fname)
             m_list = m;
 
             m_no_open++;
-            yaz_log(YLOG_LOG, "Loaded module no_open=%d", m_no_open);
+            yaz_log(YLOG_LOG, "Loaded module %s OK", fname);
             return 0;
         }
         else
         {
+            yaz_log(YLOG_WARN, "Failed loading module %s - missing symbols",
+                    fname);
             return -1;
             dlclose(dl_handle);
         }
     }
     else
+    {
+        yaz_log(YLOG_WARN, "Failed loading module %s", fname);
         return -1;
+    }
 #else
+    yaz_log(YLOG_WARN, "Failed loading module %s - no module support", fname);
     return -1;
 #endif
 }
