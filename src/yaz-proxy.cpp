@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.41 2005-11-30 11:38:46 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.42 2006-03-09 00:08:29 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -1041,7 +1041,7 @@ void Yaz_Proxy::convert_to_marcxml(Z_NamePlusRecordList *p,
             {
                 WRBUF w = wrbuf_alloc();
 
-                yaz_display_OPAC(w, r->u.opac, 0);
+                yaz_opac_decode_wrbuf(mt, r->u.opac, w);
                 npr->u.databaseRecord = z_ext_record(
                     odr_encode(), VAL_TEXT_XML,
                     wrbuf_buf(w), wrbuf_len(w)
