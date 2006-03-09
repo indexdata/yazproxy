@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: buildconf.sh,v 1.7 2005-06-21 18:46:04 adam Exp $
+# $Id: buildconf.sh,v 1.8 2006-03-09 14:14:06 adam Exp $
 set -x
 aclocal -I .
 libtoolize --automake --force 
@@ -31,7 +31,7 @@ esac
 
 if $enable_configure; then
     if test -n "$sh_flags"; then
-	CXXFLAGS="$sh_flags" ./configure $*
+	CXXFLAGS="$sh_flags" ./configure --disable-shared --enable-static $*
     else
 	./configure $*
     fi
