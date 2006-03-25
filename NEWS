@@ -1,4 +1,7 @@
 
+New directive default-client-charset which serves as charset
+to be negotiated if client does NOT supports one.
+
 Added support for threaded authentication modules. See
 etc/config-modules.xml + mod_sample.cpp for an example.
 

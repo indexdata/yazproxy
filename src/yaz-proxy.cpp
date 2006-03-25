@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.43 2006-03-09 14:12:57 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.44 2006-03-25 10:59:14 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -55,6 +55,10 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 
 using namespace yazpp_1;
 
+#ifdef WIN32
+#define strncasecmp _strnicmp
+#endif
+
 #define USE_AUTH_MSG 1
 
 #if USE_AUTH_MSG
@@ -80,7 +84,7 @@ Auth_Msg::~Auth_Msg()
 {
     nmem_destroy(m_nmem);
 }
-    
+
 IMsg_Thread *Auth_Msg::handle()
 {
     yaz_log(YLOG_LOG, "Auth_Msg:handle begin");
@@ -201,7 +205,7 @@ static const char *gdu_name(Z_GDU *gdu)
 
 Yaz_Proxy::Yaz_Proxy(IPDU_Observable *the_PDU_Observable,
                      ISocketObservable *the_socket_observable,
-                     Yaz_Proxy *parent) 
+                     Yaz_Proxy *parent)
     :
     Z_Assoc(the_PDU_Observable), m_bw_stat(60), m_pdu_stat(60)
 {
@@ -217,6 +221,7 @@ Yaz_Proxy::Yaz_Proxy(IPDU_Observable *the_PDU_Observable,
     m_default_target = 0;
     m_proxy_negotiation_charset = 0;
     m_proxy_negotiation_lang = 0;
+    m_proxy_negotiation_default_charset = 0;
     m_charset_converter = new Yaz_CharsetConverter;
     m_max_clients = 150;
     m_log_mask = 0;
@@ -310,6 +315,7 @@ Yaz_Proxy::~Yaz_Proxy()
     xfree(m_default_target);
     xfree(m_proxy_negotiation_charset);
     xfree(m_proxy_negotiation_lang);
+    xfree(m_proxy_negotiation_default_charset);
     delete m_charset_converter;
     xfree(m_optimize);
 
@@ -362,10 +368,13 @@ void Yaz_Proxy::set_default_target(const char *target)
         m_default_target = (char *) xstrdup (target);
 }
 
-void Yaz_Proxy::set_proxy_negotiation (const char *charset, const char *lang)
+void Yaz_Proxy::set_proxy_negotiation (const char *charset, const char *lang,
+                                       const char *default_charset)
 {
     yaz_log(YLOG_LOG, "%sSet the proxy negotiation: charset to '%s', "
-        "language to '%s'", m_session_str, charset?charset:"none",
+        "default charset to '%s', language to '%s'", m_session_str, 
+        charset?charset:"none",
+        default_charset?default_charset:"none",
         lang?lang:"none");
     xfree (m_proxy_negotiation_charset);
     xfree (m_proxy_negotiation_lang);
@@ -374,6 +383,9 @@ void Yaz_Proxy::set_proxy_negotiation (const char *charset, const char *lang)
         m_proxy_negotiation_charset = (char *) xstrdup (charset);
     if (lang)
         m_proxy_negotiation_lang = (char *) xstrdup (lang);
+    if (default_charset)
+        m_proxy_negotiation_default_charset =
+            (char *) xstrdup (default_charset);
 }
 
 Yaz_ProxyConfig *Yaz_Proxy::check_reconfigure()
@@ -429,7 +441,7 @@ IPDU_Observer *Yaz_Proxy::sessionNotify(IPDU_Observable
     yaz_log (YLOG_LOG, "%sNew session %s", new_proxy->m_session_str,
              new_proxy->m_peername);
     new_proxy->set_proxy_negotiation(m_proxy_negotiation_charset,
-        m_proxy_negotiation_lang);
+        m_proxy_negotiation_lang, m_proxy_negotiation_default_charset);
     // create thread object the first time we get an incoming connection
     if (!m_my_thread)
         m_my_thread = new Msg_Thread(m_socket_observable, 1);
@@ -447,7 +459,7 @@ char *Yaz_Proxy::get_cookie(Z_OtherInformation **otherInfo)
     ent.value = (oid_value) VAL_COOKIE;
     assert (oid_ent_to_oid (&ent, oid));
 
-    if (oid_ent_to_oid (&ent, oid) && 
+    if (oid_ent_to_oid (&ent, oid) &&
         (oi = update_otherInformation(otherInfo, 0, oid, 1, 1)) &&
         oi->which == Z_OtherInfo_characterInfo)
         return oi->information.characterInfo;
@@ -504,7 +516,7 @@ const char *Yaz_Proxy::load_balance(const char **url)
             min_use = zurl_in_use[i];
             spare_for_min = zurl_in_spare[i];
         }
-        if (max_spare < zurl_in_spare[i]) 
+        if (max_spare < zurl_in_spare[i])
         {
             ret_spare = url[i];
             max_spare = zurl_in_spare[i];
@@ -519,7 +531,7 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
     assert (m_parent);
     Yaz_Proxy *parent = m_parent;
     Yaz_ProxyClient *c = m_client;
-    
+
     if (!m_proxyTarget)
     {
         const char *url[MAX_ZURL_PLEX];
@@ -541,6 +553,7 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
         const char *negotiation_charset = 0;
         const char *negotiation_lang = 0;
         const char *query_charset = 0;
+        const char *default_client_query_charset = 0;
         url[0] = m_default_target;
         url[1] = 0;
         if (cfg)
@@ -557,7 +570,8 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
                                  &cql2rpn_fname,
                                  &negotiation_charset,
                                  &negotiation_lang,
-                                 &query_charset);
+                                 &query_charset,
+                                 &default_client_query_charset);
         }
         if (client_idletime != -1)
         {
@@ -566,10 +580,10 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
         }
         if (cql2rpn_fname)
             m_cql2rpn.set_pqf_file(cql2rpn_fname);
-        if (negotiation_charset || negotiation_lang)
+        if (negotiation_charset || negotiation_lang || default_client_query_charset)
         {
             set_proxy_negotiation(negotiation_charset,
-                negotiation_lang);
+                negotiation_lang, default_client_query_charset);
         }
         m_charset_converter->set_target_query_charset(query_charset);
         if (!url[0])
@@ -604,7 +618,7 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
                              c->get_hostname());
                     c->close();
                     c->m_init_flag = 0;
-                    
+
                     c->m_last_ok = 0;
                     c->m_cache.clear();
                     c->m_last_resultCount = 0;
@@ -617,7 +631,7 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
                         delete c;
                         return 0;
                     }
-                    c->timeout(30); 
+                    c->timeout(30);
                 }
                 c->m_seqno = parent->m_seqno;
                 if (c->m_server && c->m_server != this)
@@ -629,10 +643,7 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
             }
         }
     }
-    else if (!c 
-             && apdu->which == Z_APDU_initRequest 
-             && !ODR_MASK_GET(apdu->u.initRequest->options,
-                              Z_Options_negotiationModel))
+    else if (!c && apdu->which == Z_APDU_initRequest )
     {
         // anonymous sessions without cookie.
         // if authentication is set it is NOT anonymous se we can't share them.
@@ -643,6 +654,7 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
             assert(*c->m_prev == c);
             if (c->m_server == 0 && c->m_cookie == 0 &&  c->m_waiting == 0 
                 && c->compare_idAuthentication(apdu)
+                && c->compare_charset(apdu)
                 && !strcmp(m_proxyTarget, c->get_hostname()))
             {
                 // found it in cache
@@ -659,9 +671,9 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
                     c->set_APDU_yazlog(0);
 
                 (parent->m_seqno)++;
-                
+
                 parent->pre_init();
-                
+
                 return c;
             }
         }
@@ -720,7 +732,7 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
                 (parent->m_seqno)++;
                 c->m_target_idletime = m_target_idletime;
                 c->timeout(m_target_idletime);
-                
+
                 if (parent->m_log_mask & PROXY_LOG_APDU_SERVER)
                     c->set_APDU_yazlog(1);
                 else
@@ -842,7 +854,7 @@ void Yaz_Proxy::convert_xsl_delay()
                 (char*) r->u.octet_aligned->buf,
                 r->u.octet_aligned->len);
 
-            
+
             yaz_log(YLOG_LOG, "%sXSLT convert %d",
                     m_session_str, m_stylesheet_offset);
             res = xsltApplyStylesheet((xsltStylesheetPtr) m_stylesheet_xsp,
@@ -853,9 +865,9 @@ void Yaz_Proxy::convert_xsl_delay()
                 xmlChar *out_buf;
                 int out_len;
                 xmlDocDumpFormatMemory (res, &out_buf, &out_len, 1);
-                
+
                 m_stylesheet_nprl->records[m_stylesheet_offset]->
-                    u.databaseRecord = 
+                    u.databaseRecord =
                     z_ext_record(odr_encode(), VAL_TEXT_XML,
                                  (char*) out_buf, out_len);
                 xmlFree(out_buf);
@@ -1100,7 +1112,7 @@ int Yaz_Proxy::send_http_response(int code)
         z_HTTP_header_add(o, &hres->headers, "Connection", "Keep-Alive");
     else
         timeout(0);
-    
+
     if (m_log_mask & PROXY_LOG_REQ_CLIENT)
     {
         yaz_log (YLOG_LOG, "%sSending %s to client", m_session_str,
@@ -1117,11 +1129,11 @@ int Yaz_Proxy::send_http_response(int code)
     return r;
 }
 
-int Yaz_Proxy::send_srw_response(Z_SRW_PDU *srw_pdu)
+int Yaz_Proxy::send_srw_response(Z_SRW_PDU *srw_pdu, int http_code /* = 200 */)
 {
     ODR o = odr_encode();
     const char *ctype = "text/xml";
-    Z_GDU *gdu = z_get_HTTP_Response(o, 200);
+    Z_GDU *gdu = z_get_HTTP_Response(o, http_code);
     Z_HTTP_Response *hres = gdu->u.HTTP_Response;
     if (m_http_version)
         hres->version = odr_strdup(o, m_http_version);
@@ -1130,6 +1142,8 @@ int Yaz_Proxy::send_srw_response(Z_SRW_PDU *srw_pdu)
         z_HTTP_header_add(o, &hres->headers, "Connection", "Keep-Alive");
     else
         timeout(0);
+    if (http_code == 401)
+        z_HTTP_header_add(o, &hres->headers, "WWW-Authenticate", "Basic realm=\"YAZ Proxy\"");
 
     static Z_SOAP_Handler soap_handlers[2] = {
 #if HAVE_XSLT
@@ -1138,10 +1152,10 @@ int Yaz_Proxy::send_srw_response(Z_SRW_PDU *srw_pdu)
 #endif
         {0, 0, 0}
     };
-    
+
     Z_SOAP *soap_package = (Z_SOAP*) odr_malloc(o, sizeof(Z_SOAP));
     soap_package->which = Z_SOAP_generic;
-    soap_package->u.generic = 
+    soap_package->u.generic =
         (Z_SOAP_Generic *) odr_malloc(o,  sizeof(*soap_package->u.generic));
     soap_package->u.generic->no = 0;
     soap_package->u.generic->ns = soap_handlers[0].ns;
@@ -1173,7 +1187,7 @@ int Yaz_Proxy::send_to_srw_client_error(int srw_error, const char *add)
         odr_malloc(o, sizeof(*diagnostic));
     int num_diagnostic = 1;
     yaz_mk_std_diagnostic(o, diagnostic, srw_error, add);
-    return send_srw_search_response(diagnostic, num_diagnostic);
+    return send_srw_search_response(diagnostic, num_diagnostic, srw_error == 3 ? 401 : 200);
 }
 
 int Yaz_Proxy::z_to_srw_diag(ODR o, Z_SRW_searchRetrieveResponse *srw_res,
@@ -1186,7 +1200,7 @@ int Yaz_Proxy::z_to_srw_diag(ODR o, Z_SRW_searchRetrieveResponse *srw_res,
     srw_res->diagnostics = (Z_SRW_diagnostic *)
         odr_malloc(o, sizeof(*srw_res->diagnostics));
     yaz_mk_std_diagnostic(o, srw_res->diagnostics,
-                          yaz_diag_bib1_to_srw(*ddf->condition), 
+                          yaz_diag_bib1_to_srw(*ddf->condition),
                           ddf->u.v2Addinfo);
     return 0;
 }
@@ -1223,7 +1237,7 @@ int Yaz_Proxy::send_to_srw_client_ok(int hits, Z_Records *records, int start)
             {
                 srw_res->records[i].recordSchema = m_schema;
                 srw_res->records[i].recordPacking = m_s2z_packing;
-                srw_res->records[i].recordData_buf = (char*) 
+                srw_res->records[i].recordData_buf = (char*)
                     r->u.octet_aligned->buf;
                 srw_res->records[i].recordData_len = r->u.octet_aligned->len;
                 srw_res->records[i].recordPosition = odr_intdup(o, i+start);
@@ -1247,11 +1261,11 @@ int Yaz_Proxy::send_to_srw_client_ok(int hits, Z_Records *records, int start)
             return send_http_response(http_code);
     }
     return send_srw_response(srw_pdu);
-    
+
 }
 
 int Yaz_Proxy::send_srw_search_response(Z_SRW_diagnostic *diagnostics,
-                                        int num_diagnostics)
+                                        int num_diagnostics, int http_code /* = 200 */)
 {
     ODR o = odr_encode();
     Z_SRW_PDU *srw_pdu = yaz_srw_get(o, Z_SRW_searchRetrieve_response);
@@ -1259,7 +1273,7 @@ int Yaz_Proxy::send_srw_search_response(Z_SRW_diagnostic *diagnostics,
 
     srw_res->num_diagnostics = num_diagnostics;
     srw_res->diagnostics = diagnostics;
-    return send_srw_response(srw_pdu);
+    return send_srw_response(srw_pdu, http_code);
 }
 
 int Yaz_Proxy::send_srw_explain_response(Z_SRW_diagnostic *diagnostics,
@@ -1320,9 +1334,9 @@ int Yaz_Proxy::send_PDU_convert(Z_APDU *apdu)
             }
             else if (m_s2z_present_apdu && m_s2z_hit_count > 0)
             {
-                // adjust 
+                // adjust
                 Z_PresentRequest *pr = m_s2z_present_apdu->u.presentRequest;
-                
+
                 if (*pr->resultSetStartPoint <= m_s2z_hit_count)
                 {
                     if (*pr->numberOfRecordsRequested+ *pr->resultSetStartPoint
@@ -1340,7 +1354,7 @@ int Yaz_Proxy::send_PDU_convert(Z_APDU *apdu)
         }
         else if (m_s2z_present_apdu && apdu->which == Z_APDU_presentResponse)
         {
-            int start = 
+            int start =
                 *m_s2z_present_apdu->u.presentRequest->resultSetStartPoint;
 
             m_s2z_present_apdu = 0;
@@ -1370,7 +1384,7 @@ int Yaz_Proxy::send_to_client(Z_APDU *apdu)
 
     if (new_id)
         *new_id = m_referenceId;
-    
+
     if (apdu->which == Z_APDU_searchResponse)
     {
         Z_SearchResponse *sr = apdu->u.searchResponse;
@@ -1402,7 +1416,7 @@ int Yaz_Proxy::send_to_client(Z_APDU *apdu)
                                             m_backend_charset);
                 if (convert_xsl(p->u.databaseOrSurDiagnostics, apdu))
                     return 0;
-                    
+
             }
             if (sr->resultCount)
             {
@@ -1436,7 +1450,7 @@ int Yaz_Proxy::send_to_client(Z_APDU *apdu)
         }
         if (p && p->which == Z_Records_DBOSD)
         {
-            if (m_backend_type 
+            if (m_backend_type
 #if HAVE_USEMARCON
                 || m_usemarcon_ini_stage1 || m_usemarcon_ini_stage2
 #endif
@@ -1457,10 +1471,10 @@ int Yaz_Proxy::send_to_client(Z_APDU *apdu)
         //Get and check negotiation record
         //from init response.
         handle_charset_lang_negotiation(apdu);
-        
+
         if (m_initRequest_options)
         {
-            Z_Options *nopt = 
+            Z_Options *nopt =
                 (Odr_bitmask *)odr_malloc(odr_encode(),
                                           sizeof(Odr_bitmask));
             ODR_MASK_ZERO(nopt);
@@ -1470,11 +1484,11 @@ int Yaz_Proxy::send_to_client(Z_APDU *apdu)
                 if (ODR_MASK_GET(m_initRequest_options, i) &&
                     ODR_MASK_GET(apdu->u.initResponse->options, i))
                     ODR_MASK_SET(nopt, i);
-            apdu->u.initResponse->options = nopt;           
+            apdu->u.initResponse->options = nopt;
         }
         if (m_initRequest_version)
         {
-            Z_ProtocolVersion *nopt = 
+            Z_ProtocolVersion *nopt =
                 (Odr_bitmask *)odr_malloc(odr_encode(),
                                           sizeof(Odr_bitmask));
             ODR_MASK_ZERO(nopt);
@@ -1484,7 +1498,7 @@ int Yaz_Proxy::send_to_client(Z_APDU *apdu)
                 if (ODR_MASK_GET(m_initRequest_version, i) &&
                     ODR_MASK_GET(apdu->u.initResponse->protocolVersion, i))
                     ODR_MASK_SET(nopt, i);
-            apdu->u.initResponse->protocolVersion = nopt;           
+            apdu->u.initResponse->protocolVersion = nopt;
         }
         apdu->u.initResponse->preferredMessageSize =
             odr_intdup(odr_encode(),
@@ -1499,7 +1513,7 @@ int Yaz_Proxy::send_to_client(Z_APDU *apdu)
                        m_initRequest_maximumRecordSize :
                        m_client->m_initResponse_maximumRecordSize);
     }
-    
+
     int r = send_PDU_convert(apdu);
     if (r)
         return r;
@@ -1521,6 +1535,11 @@ void Yaz_ProxyClient::set_idAuthentication(Z_APDU *apdu)
     m_idAuthentication_ber_buf =
         odr_getbuf(m_idAuthentication_odr, 
                    &m_idAuthentication_ber_size, 0);
+}
+
+bool Yaz_ProxyClient::compare_charset(Z_APDU *apdu)
+{
+    return true;
 }
 
 bool Yaz_ProxyClient::compare_idAuthentication(Z_APDU *apdu)
@@ -1600,14 +1619,14 @@ Z_APDU *Yaz_Proxy::result_set_optimize(Z_APDU *apdu)
                                           pr->preferredRecordSyntax,
                                           pr->recordComposition))
             {
-                yaz_log (YLOG_LOG, "%sReturned cached records for present request", 
+                yaz_log (YLOG_LOG, "%sReturned cached records for present request",
                          m_session_str);
                 Z_APDU *new_apdu = create_Z_PDU(Z_APDU_presentResponse);
                 new_apdu->u.presentResponse->referenceId = pr->referenceId;
-                
+
                 new_apdu->u.presentResponse->numberOfRecordsReturned
                     = odr_intdup(odr_encode(), toget);
-                                                                 
+
                 new_apdu->u.presentResponse->records = (Z_Records*)
                     odr_malloc(odr_encode(), sizeof(Z_Records));
                 new_apdu->u.presentResponse->records->which = Z_Records_DBOSD;
@@ -1629,7 +1648,7 @@ Z_APDU *Yaz_Proxy::result_set_optimize(Z_APDU *apdu)
 
     this_databases.set(sr->num_databaseNames, (const char **)
                        sr->databaseNames);
-    
+
     this_query->set_Z_Query(sr->query);
 
     char query_str[120];
@@ -1652,7 +1671,7 @@ Z_APDU *Yaz_Proxy::result_set_optimize(Z_APDU *apdu)
 
             if (toget > m_client->m_last_resultCount)
                 toget = m_client->m_last_resultCount;
-            
+
             if (sr->mediumSetElementSetNames)
             {
                 comp = (Z_RecordComposition *)
@@ -1660,7 +1679,7 @@ Z_APDU *Yaz_Proxy::result_set_optimize(Z_APDU *apdu)
                 comp->which = Z_RecordComp_simple;
                 comp->u.simple = sr->mediumSetElementSetNames;
             }
- 
+
             if (m_client->m_cache.lookup (odr_encode(), &npr, 1, toget,
                                           sr->preferredRecordSyntax, comp))
             {
@@ -1670,10 +1689,10 @@ Z_APDU *Yaz_Proxy::result_set_optimize(Z_APDU *apdu)
                 new_apdu->u.searchResponse->referenceId = sr->referenceId;
                 new_apdu->u.searchResponse->resultCount =
                     &m_client->m_last_resultCount;
-                
+
                 new_apdu->u.searchResponse->numberOfRecordsReturned
                     = odr_intdup(odr_encode(), toget);
-                                                        
+
                 new_apdu->u.searchResponse->presentStatus =
                     odr_intdup(odr_encode(), Z_PresentStatus_success);
                 new_apdu->u.searchResponse->records = (Z_Records*)
@@ -1723,7 +1742,7 @@ Z_APDU *Yaz_Proxy::result_set_optimize(Z_APDU *apdu)
             Z_RecordComposition *comp = 0;
             // small set
             // send a present request (small set)
-            
+
             if (sr->smallSetElementSetNames)
             {
                 comp = (Z_RecordComposition *)
@@ -1741,10 +1760,10 @@ Z_APDU *Yaz_Proxy::result_set_optimize(Z_APDU *apdu)
                 new_apdu->u.searchResponse->referenceId = sr->referenceId;
                 new_apdu->u.searchResponse->resultCount =
                     &m_client->m_last_resultCount;
-                
+
                 new_apdu->u.searchResponse->numberOfRecordsReturned
                     = odr_intdup(odr_encode(), toget);
-                                                                 
+
                 new_apdu->u.searchResponse->presentStatus =
                     odr_intdup(odr_encode(), Z_PresentStatus_success);
                 new_apdu->u.searchResponse->records = (Z_Records*)
@@ -1803,17 +1822,17 @@ void Yaz_Proxy::recv_GDU(Z_GDU *apdu, int len)
     inc_request_no();
 
     m_bytes_recv += len;
-    
+
     if (m_log_mask & PROXY_LOG_REQ_CLIENT)
         yaz_log (YLOG_LOG, "%sReceiving %s from client %d bytes",
                  m_session_str, gdu_name(apdu), len);
-    
+
 #if HAVE_GETTIMEOFDAY
     gettimeofday((struct timeval *) m_time_tv, 0);
 #endif
     m_bw_stat.add_bytes(len);
     m_pdu_stat.add_bytes(1);
-    
+
     GDU *gdu = new GDU(apdu);
     m_in_queue.enqueue(gdu);
 
@@ -1828,7 +1847,7 @@ void Yaz_Proxy::recv_GDU_reduce(GDU *gdu)
 
     assert(m_timeout_mode == timeout_busy);
     assert(m_timeout_gdu == 0);
-    
+
     if (m_bw_max)
     {
         if (bw_total > m_bw_max)
@@ -1852,13 +1871,13 @@ void Yaz_Proxy::recv_GDU_reduce(GDU *gdu)
     m_timeout_gdu = gdu;
     timeout(3);       // call us reduce seconds later
     return;
-#endif    
-    if (reduce)  
+#endif
+    if (reduce)
     {
         yaz_log(YLOG_LOG, "%sdelay=%d bw=%d pdu=%d limit-bw=%d limit-pdu=%d",
                 m_session_str, reduce, bw_total, pdu_total,
                 m_bw_max, m_pdu_max);
-        
+
         m_timeout_mode = timeout_reduce;
         m_timeout_gdu = gdu;
         timeout(reduce);       // call us reduce seconds later
@@ -1898,7 +1917,7 @@ void Yaz_Proxy::handle_max_record_retrieve(Z_APDU *apdu)
         if (apdu->which == Z_APDU_presentRequest)
         {
             Z_PresentRequest *pr = apdu->u.presentRequest;
-            if (pr->numberOfRecordsRequested && 
+            if (pr->numberOfRecordsRequested &&
                 *pr->numberOfRecordsRequested > m_max_record_retrieve)
                 *pr->numberOfRecordsRequested = m_max_record_retrieve;
         }
@@ -1909,7 +1928,7 @@ void Yaz_Proxy::handle_charset_lang_negotiation(Z_APDU *apdu)
 {
     if (apdu->which == Z_APDU_initRequest)
     {
-        yaz_log(YLOG_LOG, "%shandle_charset_lang_negotiation", 
+        yaz_log(YLOG_LOG, "%shandle_charset_lang_negotiation",
                 m_session_str);
         if (m_initRequest_options &&
             !ODR_MASK_GET(m_initRequest_options, Z_Options_negotiationModel) &&
@@ -1919,7 +1938,7 @@ void Yaz_Proxy::handle_charset_lang_negotiation(Z_APDU *apdu)
             // client's side. OK. The proxy negotiation
             // in use, only.
             Z_InitRequest *initRequest = apdu->u.initRequest;
-            Z_OtherInformation **otherInfo;  
+            Z_OtherInformation **otherInfo;
             Z_OtherInformationUnit *oi;
             get_otherInfoAPDU(apdu, &otherInfo);
             oi = update_otherInformation(otherInfo, 1, NULL, 0, 0);
@@ -1927,7 +1946,7 @@ void Yaz_Proxy::handle_charset_lang_negotiation(Z_APDU *apdu)
             {
                 ODR_MASK_SET(initRequest->options,
                     Z_Options_negotiationModel);
-                oi->which = Z_OtherInfo_externallyDefinedInfo;    
+                oi->which = Z_OtherInfo_externallyDefinedInfo;
                 oi->information.externallyDefinedInfo =
                 yaz_set_proposal_charneg(odr_encode(),
                     (const char**)&m_proxy_negotiation_charset,
@@ -1947,7 +1966,7 @@ void Yaz_Proxy::handle_charset_lang_negotiation(Z_APDU *apdu)
                     m_charset_converter->get_target_query_charset());
             Z_InitRequest *initRequest = apdu->u.initRequest;
             Z_CharSetandLanguageNegotiation *negotiation =
-                yaz_get_charneg_record (initRequest->otherInfo);        
+                yaz_get_charneg_record (initRequest->otherInfo);
             if (negotiation &&
                 negotiation->which == Z_CharSetandLanguageNegotiation_proposal)
             {
@@ -1987,7 +2006,7 @@ void Yaz_Proxy::handle_charset_lang_negotiation(Z_APDU *apdu)
                     m_charset_converter->set_client_charset_selected(selected);
                 }
                 nmem_destroy(nmem);
-                ODR_MASK_CLEAR(m_initRequest_options, 
+                ODR_MASK_CLEAR(m_initRequest_options,
                                Z_Options_negotiationModel);
                 yaz_del_charneg_record(&initRequest->otherInfo);
             }
@@ -1997,40 +2016,40 @@ void Yaz_Proxy::handle_charset_lang_negotiation(Z_APDU *apdu)
                         m_session_str);
             }
         }
+        else if (m_charset_converter->get_target_query_charset() &&
+            m_proxy_negotiation_default_charset)
+        {
+            m_charset_converter->
+                set_client_query_charset(m_proxy_negotiation_default_charset);
+        }
     }
     else if (apdu->which == Z_APDU_initResponse)
     {
-        Z_InitResponse *initResponse = apdu->u.initResponse;    
-        Z_OtherInformation **otherInfo;  
+        Z_InitResponse *initResponse = apdu->u.initResponse;
+        Z_OtherInformation **otherInfo;
+        get_otherInfoAPDU(apdu, &otherInfo);
         
-        if (ODR_MASK_GET(initResponse->options, Z_Options_negotiationModel))
+        Z_CharSetandLanguageNegotiation *charneg = 0;
+
+        if (otherInfo && *otherInfo && 
+            ODR_MASK_GET(initResponse->options, Z_Options_negotiationModel)
+            && (charneg = yaz_get_charneg_record(*otherInfo)))
         {
             char *charset = 0;
             char *lang = 0;
             int selected = 0;
-            
-            get_otherInfoAPDU(apdu, &otherInfo);
-            
-            if (!otherInfo && !(*otherInfo))
-                return;
-            
-            Z_CharSetandLanguageNegotiation *charneg =
-                yaz_get_charneg_record(*otherInfo);
-                
-            if (!charneg)
-                return;
-                                
+
             yaz_get_response_charneg(m_referenceId_mem, charneg,
                 &charset, &lang, &selected);
-                                
+
             yaz_log(YLOG_LOG, "%sAccepted charset - '%s' and lang - '%s'",
                 m_session_str, (charset)?charset:"none", (lang)?lang:"none");
-                
+
             if (m_initRequest_options &&
                 ODR_MASK_GET(m_initRequest_options, Z_Options_negotiationModel))
             {
                 yaz_log(YLOG_LOG, "%sClient's negotiation record in use",
-                    m_session_str);          
+                    m_session_str);
             }
             else if (m_proxy_negotiation_charset || m_proxy_negotiation_lang)
             {
@@ -2042,7 +2061,7 @@ void Yaz_Proxy::handle_charset_lang_negotiation(Z_APDU *apdu)
 
                 // clear negotiation option.
                 ODR_MASK_CLEAR(initResponse->options, Z_Options_negotiationModel);
-                
+
                 // Delete negotiation (charneg-3) entry.
                 yaz_del_charneg_record(otherInfo);
             }
@@ -2056,7 +2075,7 @@ void Yaz_Proxy::handle_charset_lang_negotiation(Z_APDU *apdu)
             }
             else if (m_charset_converter->get_client_query_charset())
             {
-                Z_OtherInformation **otherInfo;  
+                Z_OtherInformation **otherInfo;
                 Z_OtherInformationUnit *oi;
                 get_otherInfoAPDU(apdu, &otherInfo);
                 oi = update_otherInformation(otherInfo, 1, NULL, 0, 0);
@@ -2114,7 +2133,7 @@ Z_APDU *Yaz_Proxy::handle_query_transformation(Z_APDU *apdu)
         Z_RPNQuery *rpnquery = 0;
         Z_SearchRequest *sr = apdu->u.searchRequest;
         char *addinfo = 0;
-        
+
         yaz_log(YLOG_LOG, "%sCQL: %s", m_session_str,
                 sr->query->u.type_104->u.cql);
 
@@ -2294,7 +2313,7 @@ Z_APDU *Yaz_Proxy::handle_syntax_validation(Z_APDU *apdu)
             m_marcxml_mode = marcxml;
             if (m_backend_type)
             {
-                
+
                 sr->preferredRecordSyntax =
                     yaz_str_to_z3950oid(odr_encode(), CLASS_RECSYN,
                                         m_backend_type);
@@ -2307,14 +2326,14 @@ Z_APDU *Yaz_Proxy::handle_syntax_validation(Z_APDU *apdu)
         else if (err)
         {
             Z_APDU *new_apdu = create_Z_PDU(Z_APDU_searchResponse);
-            
+
             new_apdu->u.searchResponse->referenceId = sr->referenceId;
             new_apdu->u.searchResponse->records =
                 create_nonSurrogateDiagnostics(odr_encode(), err, addinfo);
             *new_apdu->u.searchResponse->searchStatus = 0;
-            
+
             send_to_client(new_apdu);
-            
+
             return 0;
         }
         else if (m_backend_type)
@@ -2370,7 +2389,7 @@ Z_APDU *Yaz_Proxy::handle_syntax_validation(Z_APDU *apdu)
             m_marcxml_mode = marcxml;
             if (m_backend_type)
             {
-                
+
                 pr->preferredRecordSyntax =
                     yaz_str_to_z3950oid(odr_encode(), CLASS_RECSYN,
                                         m_backend_type);
@@ -2383,15 +2402,15 @@ Z_APDU *Yaz_Proxy::handle_syntax_validation(Z_APDU *apdu)
         else if (err)
         {
             Z_APDU *new_apdu = create_Z_PDU(Z_APDU_presentResponse);
-            
+
             new_apdu->u.presentResponse->referenceId = pr->referenceId;
             new_apdu->u.presentResponse->records =
                 create_nonSurrogateDiagnostics(odr_encode(), err, addinfo);
             *new_apdu->u.presentResponse->presentStatus =
                 Z_PresentStatus_failure;
-            
+
             send_to_client(new_apdu);
-            
+
             return 0;
         }
         else if (m_backend_type)
@@ -2425,7 +2444,7 @@ void Yaz_Proxy::srw_get_client(const char *db, const char **backend_db)
     {
         releaseClient();
     }
-    
+
     if (t)
     {
         xfree(m_default_target);
@@ -2469,7 +2488,7 @@ int Yaz_Proxy::file_access(Z_HTTP_Request *hreq)
         yaz_log(YLOG_WARN, "%s: too large for transfer", fname);
         return 0;
     }
-    
+
     ODR o = odr_encode();
     Yaz_ProxyConfig *cfg = check_reconfigure();
     const char *ctype = cfg->check_mime_type(fname);
@@ -2505,7 +2524,7 @@ int Yaz_Proxy::file_access(Z_HTTP_Request *hreq)
     recv_GDU_more(true);
     return 1;
 }
-        
+
 void Yaz_Proxy::handle_incoming_HTTP(Z_HTTP_Request *hreq)
 {
     if (m_s2z_odr_init)
@@ -2521,7 +2540,7 @@ void Yaz_Proxy::handle_incoming_HTTP(Z_HTTP_Request *hreq)
 
     m_http_keepalive = 0;
     m_http_version = 0;
-    if (!strcmp(hreq->version, "1.0")) 
+    if (!strcmp(hreq->version, "1.0"))
     {
         const char *v = z_HTTP_header_lookup(hreq->headers, "Connection");
         if (v && !strcmp(v, "Keep-Alive"))
@@ -2539,6 +2558,12 @@ void Yaz_Proxy::handle_incoming_HTTP(Z_HTTP_Request *hreq)
             m_http_keepalive = 1;
         m_http_version = "1.1";
     }
+
+    const char *a = z_HTTP_header_lookup(hreq->headers, "Authorization");
+    char authorization_str[255];
+    *authorization_str = '\0';
+    if (a && strncasecmp(a, "Basic ", 6) == 0)
+        base64_decode(a + 6, authorization_str, 254);
 
     Z_SRW_PDU *srw_pdu = 0;
     Z_SOAP *soap_package = 0;
@@ -2563,7 +2588,24 @@ void Yaz_Proxy::handle_incoming_HTTP(Z_HTTP_Request *hreq)
         m_s2z_present_apdu = 0;
 
         m_s2z_stylesheet = 0;
-        
+
+        Z_IdAuthentication *auth = NULL;
+        if (*authorization_str)
+        {
+            auth = (Z_IdAuthentication *) odr_malloc(m_s2z_odr_init, sizeof(Z_IdAuthentication));
+            auth->which = Z_IdAuthentication_idPass;
+            auth->u.idPass = (Z_IdPass *) odr_malloc(m_s2z_odr_init, sizeof(Z_IdPass));
+            auth->u.idPass->groupId = NULL;
+            char *p = strchr(authorization_str, ':');
+            if (p)
+            {
+                *p = '\0';
+                p++;
+                auth->u.idPass->password = odr_strdup(m_s2z_odr_init, p);
+            }
+            auth->u.idPass->userId = odr_strdup(m_s2z_odr_init, authorization_str);
+        }
+
         if (srw_pdu->which == Z_SRW_searchRetrieve_request)
         {
             Z_SRW_searchRetrieveRequest *srw_req = srw_pdu->u.request;
@@ -2590,7 +2632,7 @@ void Yaz_Proxy::handle_incoming_HTTP(Z_HTTP_Request *hreq)
             if (srw_req->stylesheet)
                 m_s2z_stylesheet =
                     odr_strdup(m_s2z_odr_init, srw_req->stylesheet);
-                                              
+
             // set packing for response records ..
             if (srw_req->recordPacking &&
                 !strcmp(srw_req->recordPacking, "xml"))
@@ -2604,7 +2646,7 @@ void Yaz_Proxy::handle_incoming_HTTP(Z_HTTP_Request *hreq)
                     yaz_srw_get(odr_encode(),
                                 Z_SRW_searchRetrieve_response);
                 Z_SRW_searchRetrieveResponse *srw_res = srw_pdu->u.response;
-                
+
                 srw_res->diagnostics = diagnostic;
                 srw_res->num_diagnostics = num_diagnostic;
                 send_srw_response(srw_pdu);
@@ -2622,23 +2664,23 @@ void Yaz_Proxy::handle_incoming_HTTP(Z_HTTP_Request *hreq)
                 odr_malloc(m_s2z_odr_search, sizeof(char *));
             z_searchRequest->databaseNames[0] = odr_strdup(m_s2z_odr_search,
                                                            backend_db);
-            
+
             // query transformation
             Z_Query *query = (Z_Query *)
                 odr_malloc(m_s2z_odr_search, sizeof(Z_Query));
             z_searchRequest->query = query;
-            
+
             if (srw_req->query_type == Z_SRW_query_type_cql)
             {
-                Z_External *ext = (Z_External *) 
+                Z_External *ext = (Z_External *)
                     odr_malloc(m_s2z_odr_search, sizeof(*ext));
-                ext->direct_reference = 
+                ext->direct_reference =
                     odr_getoidbystr(m_s2z_odr_search, "1.2.840.10003.16.2");
                 ext->indirect_reference = 0;
                 ext->descriptor = 0;
                 ext->which = Z_External_CQL;
                 ext->u.cql = srw_req->query.cql;
-                
+
                 query->which = Z_Query_type_104;
                 query->u.type_104 =  ext;
             }
@@ -2646,9 +2688,9 @@ void Yaz_Proxy::handle_incoming_HTTP(Z_HTTP_Request *hreq)
             {
                 Z_RPNQuery *RPNquery;
                 YAZ_PQF_Parser pqf_parser;
-                
+
                 pqf_parser = yaz_pqf_create ();
-                
+
                 RPNquery = yaz_pqf_parse (pqf_parser, m_s2z_odr_search,
                                           srw_req->query.pqf);
                 if (!RPNquery)
@@ -2659,13 +2701,13 @@ void Yaz_Proxy::handle_incoming_HTTP(Z_HTTP_Request *hreq)
                     int ioff = off;
                     yaz_log(YLOG_LOG, "%*s^\n", ioff+4, "");
                     yaz_log(YLOG_LOG, "Bad PQF: %s (code %d)\n", pqf_msg, code);
-                    
+
                     send_to_srw_client_error(10, 0);
                     return;
                 }
                 query->which = Z_Query_type_1;
                 query->u.type_1 =  RPNquery;
-                
+
                 yaz_pqf_destroy (pqf_parser);
             }
             else
@@ -2705,9 +2747,9 @@ void Yaz_Proxy::handle_incoming_HTTP(Z_HTTP_Request *hreq)
                 }
                 else   // Z39.50 present
                 {
-                    m_s2z_present_apdu = zget_APDU(m_s2z_odr_search, 
+                    m_s2z_present_apdu = zget_APDU(m_s2z_odr_search,
                                                    Z_APDU_presentRequest);
-                    Z_PresentRequest *z_presentRequest = 
+                    Z_PresentRequest *z_presentRequest =
                         m_s2z_present_apdu->u.presentRequest;
                     *z_presentRequest->resultSetStartPoint = start;
                     *z_presentRequest->numberOfRecordsRequested = max;
@@ -2720,8 +2762,8 @@ void Yaz_Proxy::handle_incoming_HTTP(Z_HTTP_Request *hreq)
                             (Z_RecordComposition *)
                             odr_malloc(m_s2z_odr_search,
                                        sizeof(Z_RecordComposition));
-                        z_presentRequest->recordComposition->which = 
-                            Z_RecordComp_simple;                    
+                        z_presentRequest->recordComposition->which =
+                            Z_RecordComp_simple;
                         z_presentRequest->recordComposition->u.simple =
                             mk_esn_from_schema(m_s2z_odr_search,
                                                srw_req->recordSchema);
@@ -2732,7 +2774,9 @@ void Yaz_Proxy::handle_incoming_HTTP(Z_HTTP_Request *hreq)
             {
                 m_s2z_init_apdu = zget_APDU(m_s2z_odr_init,
                                             Z_APDU_initRequest);
-                
+
+                m_s2z_init_apdu->u.initRequest->idAuthentication = auth;
+
                 // prevent m_initRequest_apdu memory from being grabbed
                 // in Yaz_Proxy::handle_incoming_Z_PDU
                 m_initRequest_apdu = m_s2z_init_apdu;
@@ -2775,6 +2819,8 @@ void Yaz_Proxy::handle_incoming_HTTP(Z_HTTP_Request *hreq)
             {
                 m_s2z_init_apdu = zget_APDU(m_s2z_odr_init,
                                             Z_APDU_initRequest);
+
+                m_s2z_init_apdu->u.initRequest->idAuthentication = auth;
                 
                 // prevent m_initRequest_apdu memory from being grabbed
                 // in Yaz_Proxy::handle_incoming_Z_PDU
@@ -2797,7 +2843,7 @@ void Yaz_Proxy::handle_incoming_HTTP(Z_HTTP_Request *hreq)
                 yaz_srw_get(odr_encode(),
                             Z_SRW_scan_response);
             Z_SRW_scanResponse *srw_res = srw_pdu->u.scan_response;
-            
+
             srw_res->diagnostics = diagnostic;
             srw_res->num_diagnostics = num_diagnostic;
             send_srw_response(srw_pdu);
@@ -2815,6 +2861,7 @@ void Yaz_Proxy::handle_incoming_HTTP(Z_HTTP_Request *hreq)
 
 void Yaz_Proxy::handle_init(Z_APDU *apdu)
 {
+
     Z_OtherInformation **oi;
     get_otherInfoAPDU(apdu, &oi);
 
@@ -2831,10 +2878,10 @@ void Yaz_Proxy::handle_init(Z_APDU *apdu)
     {
         if (m_initRequest_mem)
             nmem_destroy(m_initRequest_mem);
-        
+
         m_initRequest_apdu = apdu;
         m_initRequest_mem = odr_extract_mem(odr_decode());
-        
+
         m_initRequest_preferredMessageSize = *apdu->u.initRequest->
             preferredMessageSize;
         *apdu->u.initRequest->preferredMessageSize = 1024*1024;
@@ -2844,13 +2891,13 @@ void Yaz_Proxy::handle_init(Z_APDU *apdu)
 
         Z_CharSetandLanguageNegotiation *charSetandLangRecord =
             yaz_get_charneg_record(*oi);
-        
+
         // Save proposal charsets and langs.
         if (ODR_MASK_GET(apdu->u.initRequest->options,
-                         Z_Options_negotiationModel) 
+                         Z_Options_negotiationModel)
             && charSetandLangRecord)
         {
-            
+
             yaz_get_proposal_charneg(m_referenceId_mem,
                                      charSetandLangRecord,
                                      &m_initRequest_oi_negotiation_charsets,
@@ -2858,7 +2905,7 @@ void Yaz_Proxy::handle_init(Z_APDU *apdu)
                                      &m_initRequest_oi_negotiation_langs,
                                      &m_initRequest_oi_negotiation_num_langs,
                                      &m_initRequest_oi_negotiation_selected);
-            
+
             for (int i = 0; i<m_initRequest_oi_negotiation_num_charsets; i++)
             {
                 yaz_log(YLOG_LOG, "%scharacters set proposal: %s",
@@ -2873,11 +2920,11 @@ void Yaz_Proxy::handle_init(Z_APDU *apdu)
             }
             yaz_log(YLOG_LOG, "%sselected proposal: %d (boolean)",
                     m_session_str, m_initRequest_oi_negotiation_selected);
-        }       
+        }
         // save init options for the response..
         m_initRequest_options = apdu->u.initRequest->options;
-        
-        apdu->u.initRequest->options = 
+
+        apdu->u.initRequest->options =
             (Odr_bitmask *)nmem_malloc(m_initRequest_mem,
                                        sizeof(Odr_bitmask));
         ODR_MASK_ZERO(apdu->u.initRequest->options);
@@ -2895,14 +2942,15 @@ void Yaz_Proxy::handle_init(Z_APDU *apdu)
                        Z_Options_concurrentOperations);
         // make new version
         m_initRequest_version = apdu->u.initRequest->protocolVersion;
-        apdu->u.initRequest->protocolVersion = 
+        apdu->u.initRequest->protocolVersion =
             (Odr_bitmask *)nmem_malloc(m_initRequest_mem,
                                        sizeof(Odr_bitmask));
         ODR_MASK_ZERO(apdu->u.initRequest->protocolVersion);
-        
+
         for (i = 0; i<= 8; i++)
             ODR_MASK_SET(apdu->u.initRequest->protocolVersion, i);
     }
+    handle_charset_lang_negotiation(apdu);
     if (m_client->m_init_flag)
     {
         if (handle_init_response_for_invalid_session(apdu))
@@ -2917,16 +2965,18 @@ void Yaz_Proxy::handle_init(Z_APDU *apdu)
             apdu2->u.initResponse->referenceId =
                 apdu->u.initRequest->referenceId;
             apdu2->u.initResponse->options = m_client->m_initResponse_options;
-            apdu2->u.initResponse->protocolVersion = 
+            apdu2->u.initResponse->protocolVersion =
                 m_client->m_initResponse_version;
-            
+
+            handle_charset_lang_negotiation(apdu2);
+
             send_to_client(apdu2);
             m_timeout_mode = timeout_normal;
             return;
         }
     }
     m_client->m_init_flag = 1;
-    
+
 #if USE_AUTH_MSG
     yaz_log(YLOG_LOG, "%suse_auth_msg", m_session_str);
     Auth_Msg *m = new Auth_Msg;
@@ -2968,7 +3018,7 @@ void Yaz_Proxy::handle_incoming_Z_PDU(Z_APDU *apdu)
         m_mem_invalid_session = odr_extract_mem(odr_decode());
         apdu = m_initRequest_apdu;     // but throw an init to the target
     }
-    
+
     // Determine our client.
     Z_OtherInformation **oi;
     get_otherInfoAPDU(apdu, &oi);
@@ -2987,7 +3037,7 @@ void Yaz_Proxy::handle_incoming_Z_PDU(Z_APDU *apdu)
             return;
         }
     }
-    
+
     m_client->m_server = this;
 
     if (apdu->which == Z_APDU_initRequest)
@@ -2999,7 +3049,7 @@ void Yaz_Proxy::handle_incoming_Z_PDU(Z_APDU *apdu)
 void Yaz_Proxy::handle_incoming_Z_PDU_2(Z_APDU *apdu)
 {
     handle_max_record_retrieve(apdu);
-    
+
     if (apdu)
         apdu = handle_syntax_validation(apdu);
 
@@ -3017,15 +3067,11 @@ void Yaz_Proxy::handle_incoming_Z_PDU_2(Z_APDU *apdu)
 
     if (!apdu)
     {
-        m_client->timeout(m_target_idletime);  // mark it active even 
+        m_client->timeout(m_target_idletime);  // mark it active even
         recv_GDU_more(true);
         // though we didn't use it
         return;
     }
-    // Add otherInformation entry in APDU if
-    // negotiation is in use.
-    if (apdu)
-        handle_charset_lang_negotiation(apdu);
 
     // delete other info construct completely if 0 elements
     Z_OtherInformation **oi;
@@ -3060,7 +3106,7 @@ void Yaz_Proxy::releaseClient()
     m_proxyTarget = 0;
     m_flag_invalid_session = 0;
     // only keep if keep_alive flag is set...
-    if (m_client && 
+    if (m_client &&
         m_client->m_pdu_recv < m_keepalive_limit_pdu &&
         m_client->m_bytes_recv+m_client->m_bytes_sent < m_keepalive_limit_bw &&
         m_client->m_waiting == 0)
@@ -3092,7 +3138,7 @@ void Yaz_Proxy::releaseClient()
                  m_session_str);
         assert (m_parent);
     }
-    else 
+    else
     {
         yaz_log (YLOG_LOG, "%sShutdown (client to proxy)",
                  m_session_str);
@@ -3125,7 +3171,7 @@ bool Yaz_Proxy::dec_ref(bool main_ptr)
     return true;
 }
 
-const char *Yaz_ProxyClient::get_session_str() 
+const char *Yaz_ProxyClient::get_session_str()
 {
     if (!m_server)
         return "0 ";
@@ -3175,7 +3221,7 @@ void Yaz_ProxyClient::failNotify()
 {
     if (m_server)
         m_server->inc_request_no();
-    yaz_log (YLOG_LOG, "%sConnection closed by target %s", 
+    yaz_log (YLOG_LOG, "%sConnection closed by target %s",
              get_session_str(), get_hostname());
 
     if (m_server)
@@ -3218,7 +3264,7 @@ void Yaz_ProxyClient::pre_init_client()
 {
     Z_APDU *apdu = create_Z_PDU(Z_APDU_initRequest);
     Z_InitRequest *req = apdu->u.initRequest;
-    
+
     int i;
     for (i = 0; i<= 24; i++)
         ODR_MASK_SET(req->options, i);
@@ -3268,7 +3314,7 @@ void Yaz_Proxy::pre_init()
                                           &limit_bw, &limit_pdu, &limit_req,
                                           &limit_search, &limit_connect,
                                           &target_idletime, &client_idletime,
-                                          &max_clients, 
+                                          &max_clients,
                                           &keepalive_limit_bw,
                                           &keepalive_limit_pdu,
                                           &pre_init,
@@ -3276,6 +3322,7 @@ void Yaz_Proxy::pre_init()
                                           &authentication,
                                           &negotiation_charset,
                                           &negotiation_lang,
+                                          0,
                                           0) ; i++)
     {
         if (pre_init)
@@ -3318,7 +3365,7 @@ void Yaz_Proxy::pre_init()
                         c->m_next->m_prev = &c->m_next;
                     m_clientPool = c;
                     c->m_prev = &m_clientPool;
-                    
+
                     if (m_log_mask & PROXY_LOG_APDU_SERVER)
                         c->set_APDU_yazlog(1);
                     else
@@ -3431,7 +3478,7 @@ const char *Yaz_Proxy::option(const char *name, const char *value)
 {
     if (!strcmp (name, "optimize")) {
         if (value) {
-            xfree (m_optimize); 
+            xfree (m_optimize);
             m_optimize = xstrdup (value);
         }
         return m_optimize;
@@ -3485,15 +3532,15 @@ void Yaz_ProxyClient::recv_Z_PDU(Z_APDU *apdu, int len)
         m_initResponse = apdu;
         m_initResponse_options = apdu->u.initResponse->options;
         m_initResponse_version = apdu->u.initResponse->protocolVersion;
-        m_initResponse_preferredMessageSize = 
+        m_initResponse_preferredMessageSize =
             *apdu->u.initResponse->preferredMessageSize;
-        m_initResponse_maximumRecordSize = 
+        m_initResponse_maximumRecordSize =
             *apdu->u.initResponse->maximumRecordSize;
 
         Z_InitResponse *ir = apdu->u.initResponse;
         char *im0 = ir->implementationName;
-        
-        char *im1 = (char*) 
+
+        char *im1 = (char*)
             odr_malloc(m_init_odr, 20 + (im0 ? strlen(im0) : 0));
         *im1 = '\0';
         if (im0)
@@ -3517,7 +3564,7 @@ void Yaz_ProxyClient::recv_Z_PDU(Z_APDU *apdu, int len)
         if (status && (!sr->records || sr->records->which == Z_Records_DBOSD))
         {
             m_last_ok = 1;
-            
+
             if (sr->records && sr->records->which == Z_Records_DBOSD)
             {
                 m_cache.add(odr_decode(),
@@ -3541,7 +3588,7 @@ void Yaz_ProxyClient::recv_Z_PDU(Z_APDU *apdu, int len)
             sr->numberOfRecordsReturned = pr->numberOfRecordsReturned;
             apdu = new_apdu;
         }
-        if (pr->records && 
+        if (pr->records &&
             pr->records->which == Z_Records_DBOSD && m_resultSetStartPoint)
         {
             m_cache.add(odr_decode(),
@@ -3589,14 +3636,55 @@ int Yaz_Proxy::server(const char *addr)
     int r = Z_Assoc::server(addr);
     if (!r)
     {
-        yaz_log(YLOG_LOG, "%sStarted proxy " 
+        yaz_log(YLOG_LOG, "%sStarted proxy "
 #ifdef VERSION
-            VERSION 
+            VERSION
 #endif
             " on %s", m_session_str, addr);
         timeout(1);
     }
     return r;
+}
+
+void Yaz_Proxy::base64_decode(const char *base64, char *buf, int buf_len)
+{
+    const char *base64_chars =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    int len = strlen(base64);
+    int buf_pos = 0;
+    int index = 1;
+
+    for (int pos = 0; pos <= len; pos++)
+    {
+        if (base64[pos] == '=' || buf_pos + 1 >= buf_len)
+            break;
+
+        const char *ch_ptr = strchr(base64_chars, base64[pos]);
+        if (!ch_ptr)
+            break;
+        char ch = (char) (ch_ptr - base64_chars);
+        switch (index)
+        {
+            case 1:
+                buf[buf_pos] = ch << 2;
+                break;
+            case 2:
+                buf[buf_pos++] += (ch & 0x30) >> 4;
+                buf[buf_pos] = (ch & 0x0f) << 4;
+                break;
+            case 3:
+                buf[buf_pos++] += (ch & 0x3c) >> 2;
+                buf[buf_pos] = (ch & 0x03) << 6;
+                break;
+            case 4:
+                buf[buf_pos++] += ch;
+        }
+        if (index < 4)
+            index++;
+        else
+            index = 1;
+    }
+    buf[buf_pos] = '\0';
 }
 
 /*

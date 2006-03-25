@@ -1,4 +1,4 @@
-/* $Id: modules.cpp,v 1.5 2006-03-09 14:12:24 adam Exp $
+/* $Id: modules.cpp,v 1.6 2006-03-25 10:59:14 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -33,13 +33,13 @@ class Yaz_ProxyModule {
 private:
     void *m_dl_handle;                /* dlopen/close handle */
     Yaz_ProxyModule_entry *m_entry;
-    Yaz_ProxyModule *m_next; 
+    Yaz_ProxyModule *m_next;
     void *m_user_handle;              /* user handle */
 public:
     Yaz_ProxyModule(void *dl_handle, Yaz_ProxyModule_entry *ent,
                     Yaz_ProxyModule *next);
     ~Yaz_ProxyModule();
-    
+
     Yaz_ProxyModule *get_next() { return m_next; };
     int is_module(const char *name);
     int authenticate(const char *target_name, void *element_ptr,
@@ -94,7 +94,7 @@ int Yaz_ProxyModule::authenticate(const char *name,
     {
         struct Yaz_ProxyModule_int0 *int0 =
             reinterpret_cast<Yaz_ProxyModule_int0 *>(m_entry->fl);
-        
+
         if (!int0->authenticate)
             return YAZPROXY_RET_NOT_ME;
         return (*int0->authenticate)(m_user_handle, name, element_ptr,
@@ -159,7 +159,7 @@ int Yaz_ProxyModules::add_module(const char *fname)
     if (dl_handle)
     {
         Yaz_ProxyModule_entry *fl_ptr = 0;
-        fl_ptr = reinterpret_cast<Yaz_ProxyModule_entry *> 
+        fl_ptr = reinterpret_cast<Yaz_ProxyModule_entry *>
             (dlsym(dl_handle, "yazproxy_module"));
         if (fl_ptr)
         {

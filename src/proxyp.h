@@ -1,4 +1,4 @@
-/* $Id: proxyp.h,v 1.11 2006-03-09 14:12:57 adam Exp $
+/* $Id: proxyp.h,v 1.12 2006-03-25 10:59:14 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -102,8 +102,9 @@ public:
                       const char **authentication,
                       const char **negotiation_charset,
                       const char **negotiation_lang,
-                      const char **query_charset);
-    
+                      const char **query_charset,
+                      const char **default_client_query_charset);
+
     void get_generic_info(int *log_mask, int *max_clients);
 
     void get_target_info(const char *name, const char **url,
@@ -116,7 +117,8 @@ public:
                          const char **cql2rpn,
                          const char **negotiation_charset,
                          const char **negotiation_lang,
-                         const char **query_charset);
+                         const char **query_charset,
+                         const char **default_client_query_charset);
 
     const char *check_mime_type(const char *path);
     int check_query(ODR odr, const char *name, Z_Query *query, char **addinfo);
@@ -190,6 +192,7 @@ class Yaz_ProxyClient : public yazpp_1::Z_Assoc {
     ODR m_idAuthentication_odr;
     void set_idAuthentication(Z_APDU *apdu);
     bool compare_idAuthentication(Z_APDU *apdu);
+    bool compare_charset(Z_APDU *apdu);
 };
 
 /*

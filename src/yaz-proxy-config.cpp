@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy-config.cpp,v 1.24 2006-03-09 14:12:57 adam Exp $
+/* $Id: yaz-proxy-config.cpp,v 1.25 2006-03-25 10:59:14 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -45,7 +45,8 @@ class Yaz_ProxyConfigP {
                             int *pre_init, const char **cql2rpn,
                             const char **negotiation_charset,
                             const char **negotiation_lang,
-                            const char **target_charset);
+                            const char **target_charset,
+                            const char **default_client_query_charset);
     void return_limit(xmlNodePtr ptr,
                       int *limit_bw, int *limit_pdu, int *limit_req,
                       int *limit_search, int *limit_connect);
@@ -101,7 +102,7 @@ void Yaz_ProxyConfigP::load_modules()
     for (ptr = m_proxyPtr->children; ptr; ptr = ptr->next)
     {
         const char *fname;
-        if (ptr->type == XML_ELEMENT_NODE 
+        if (ptr->type == XML_ELEMENT_NODE
             && !strcmp((const char *) ptr->name, "module")
             && (fname = get_text(ptr)))
         {
@@ -176,21 +177,21 @@ void Yaz_ProxyConfigP::return_limit(xmlNodePtr ptr,
 {
     for (ptr = ptr->children; ptr; ptr = ptr->next)
     {
-        if (ptr->type == XML_ELEMENT_NODE 
+        if (ptr->type == XML_ELEMENT_NODE
             && !strcmp((const char *) ptr->name, "bandwidth"))
         {
             const char *t = get_text(ptr);
             if (t)
                 *limit_bw = atoi(t);
         }
-        if (ptr->type == XML_ELEMENT_NODE 
+        if (ptr->type == XML_ELEMENT_NODE
             && !strcmp((const char *) ptr->name, "retrieve"))
         {
             const char *t = get_text(ptr);
             if (t)
                 *limit_req = atoi(t);
         }
-        if (ptr->type == XML_ELEMENT_NODE 
+        if (ptr->type == XML_ELEMENT_NODE
             && !strcmp((const char *) ptr->name, "pdu"))
         {
             const char *t = get_text(ptr);
@@ -231,20 +232,21 @@ void Yaz_ProxyConfigP::return_target_info(xmlNodePtr ptr,
                                           const char **cql2rpn,
                                           const char **negotiation_charset,
                                           const char **negotiation_lang,
-                                          const char **target_charset)
+                                          const char **target_charset,
+                                          const char **default_client_query_charset)
 {
     *pre_init = 0;
     int no_url = 0;
     ptr = ptr->children;
     for (; ptr; ptr = ptr->next)
     {
-        if (ptr->type == XML_ELEMENT_NODE 
+        if (ptr->type == XML_ELEMENT_NODE
             && !strcmp((const char *) ptr->name, "preinit"))
         {
             const char *v = get_text(ptr);
             *pre_init = v ? atoi(v) : 1;
         }
-        if (ptr->type == XML_ELEMENT_NODE 
+        if (ptr->type == XML_ELEMENT_NODE
             && !strcmp((const char *) ptr->name, "url"))
         {
             const char *t = get_text(ptr);
@@ -254,7 +256,7 @@ void Yaz_ProxyConfigP::return_target_info(xmlNodePtr ptr,
                 url[no_url] = 0;
             }
         }
-        if (ptr->type == XML_ELEMENT_NODE 
+        if (ptr->type == XML_ELEMENT_NODE
             && !strcmp((const char *) ptr->name, "keepalive"))
         {
             int dummy;
@@ -278,7 +280,7 @@ void Yaz_ProxyConfigP::return_target_info(xmlNodePtr ptr,
                     *target_idletime = 0;
             }
         }
-        if (ptr->type == XML_ELEMENT_NODE 
+        if (ptr->type == XML_ELEMENT_NODE
             && !strcmp((const char *) ptr->name, "client-timeout"))
         {
             const char *t = get_text(ptr);
@@ -289,28 +291,35 @@ void Yaz_ProxyConfigP::return_target_info(xmlNodePtr ptr,
                     *client_idletime = 0;
             }
         }
-        if (ptr->type == XML_ELEMENT_NODE 
+        if (ptr->type == XML_ELEMENT_NODE
             && !strcmp((const char *) ptr->name, "cql2rpn"))
         {
             const char *t = get_text(ptr);
             if (t)
                 *cql2rpn = t;
         }
-        if (ptr->type == XML_ELEMENT_NODE 
+        if (ptr->type == XML_ELEMENT_NODE
             && !strcmp((const char *) ptr->name, "target-charset"))
         {
             const char *t = get_text(ptr);
             if (t && target_charset)
                 *target_charset = t;
         }
-        if (ptr->type == XML_ELEMENT_NODE 
+        if (ptr->type == XML_ELEMENT_NODE
+            && !strcmp((const char *) ptr->name, "default-client-charset"))
+        {
+            const char *t = get_text(ptr);
+            if (t && default_client_query_charset)
+                *default_client_query_charset = t;
+        }
+        if (ptr->type == XML_ELEMENT_NODE
             && !strcmp((const char *) ptr->name, "negotiation-charset"))
         {
             const char *t = get_text(ptr);
             if (t)
                 *negotiation_charset = t;
         }
-        if (ptr->type == XML_ELEMENT_NODE 
+        if (ptr->type == XML_ELEMENT_NODE
             && !strcmp((const char *) ptr->name, "negotiation-lang"))
         {
             const char *t = get_text(ptr);
@@ -364,15 +373,15 @@ int Yaz_ProxyConfigP::check_type_1_attributes(ODR odr, xmlNodePtr ptrl,
     for (i = 0; i<attrs->num_attributes; i++)
     {
         Z_AttributeElement *el = attrs->attributes[i];
-        
+
         if (!el->attributeType)
             continue;
         int type = *el->attributeType;
         int *value = 0;
-        
+
         if (el->which == Z_AttributeValue_numeric && el->value.numeric)
             value = el->value.numeric;
-        
+
         xmlNodePtr ptr;
         for(ptr = ptrl->children; ptr; ptr = ptr->next)
         {
@@ -400,7 +409,7 @@ int Yaz_ProxyConfigP::check_type_1_attributes(ODR odr, xmlNodePtr ptrl,
                     char addinfo_str[20];
                     if (!match_list(type, match_type))
                         continue;
-                    
+
                     *addinfo_str = '\0';
                     if (!strcmp(match_type, "*"))
                         sprintf (addinfo_str, "%d", type);
@@ -412,7 +421,7 @@ int Yaz_ProxyConfigP::check_type_1_attributes(ODR odr, xmlNodePtr ptrl,
                     }
                     else
                         continue;
-                    
+
                     if (match_error)
                     {
                         if (*addinfo_str)
@@ -468,7 +477,7 @@ int Yaz_ProxyConfig::check_query(ODR odr, const char *name, Z_Query *query,
 {
 #if HAVE_XSLT
     xmlNodePtr ptr;
-    
+
     ptr = m_cp->find_target_node(name, 0);
     if (ptr)
     {
@@ -499,7 +508,7 @@ int Yaz_ProxyConfigP::check_schema(xmlNodePtr ptr, Z_RecordComposition *comp,
     // Check each name element
     for (; ptr; ptr = ptr->next)
     {
-        if (ptr->type == XML_ELEMENT_NODE 
+        if (ptr->type == XML_ELEMENT_NODE
             && !strcmp((const char *) ptr->name, "name"))
         {
             xmlNodePtr tptr = ptr->children;
@@ -561,7 +570,7 @@ void Yaz_ProxyConfig::target_authentication(const char *name,
     xmlNodePtr ptr = m_cp->find_target_node(name, 0);
     if (!ptr)
         return ;
-    
+
     for (ptr = ptr->children; ptr; ptr = ptr->next)
         if (ptr->type == XML_ELEMENT_NODE &&
             !strcmp((const char *) ptr->name, "target-authentication"))
@@ -604,7 +613,7 @@ void Yaz_ProxyConfig::target_authentication(const char *name,
                 *password = '\0';
                 *user = '\0';
                 sscanf(t, "%63[^:]:%63[^:]:%63s", user, group, password);
-                
+
                 req->idAuthentication =
                     (Z_IdAuthentication *)
                     odr_malloc (odr, sizeof(*req->idAuthentication));
@@ -704,7 +713,7 @@ int Yaz_ProxyConfig::check_syntax(ODR odr, const char *name,
 #if HAVE_XSLT
     int syntax_has_matched = 0;
     xmlNodePtr ptr;
-    
+
     ptr = m_cp->find_target_node(name, 0);
     if (!ptr)
         return 0;
@@ -856,7 +865,7 @@ xmlNodePtr Yaz_ProxyConfigP::find_target_db(xmlNodePtr ptr, const char *db)
                 {
                     if (attr->children
                         && attr->children->type==XML_TEXT_NODE
-                        && attr->children->content 
+                        && attr->children->content
                         && (!strcmp((const char *) attr->children->content, db)
                             || !strcmp((const char *) attr->children->content,
                                        "*")))
@@ -865,7 +874,7 @@ xmlNodePtr Yaz_ProxyConfigP::find_target_db(xmlNodePtr ptr, const char *db)
         }
     return ptr;
 }
-    
+
 xmlNodePtr Yaz_ProxyConfigP::find_target_node(const char *name, const char *db)
 {
     xmlNodePtr ptr;
@@ -876,7 +885,7 @@ xmlNodePtr Yaz_ProxyConfigP::find_target_node(const char *name, const char *db)
         if (ptr->type == XML_ELEMENT_NODE &&
             !strcmp((const char *) ptr->name, "target"))
         {
-            // default one ? 
+            // default one ?
             if (!name)
             {
                 // <target default="1"> ?
@@ -901,7 +910,7 @@ xmlNodePtr Yaz_ProxyConfigP::find_target_node(const char *name, const char *db)
                     {
                         if (attr->children
                             && attr->children->type==XML_TEXT_NODE
-                            && attr->children->content 
+                            && attr->children->content
                             && (!strcmp((const char *) attr->children->content,
                                         name)
                                 || !strcmp((const char *) attr->children->content,
@@ -935,7 +944,8 @@ int Yaz_ProxyConfig::get_target_no(int no,
                                    const char **authentication,
                                    const char **negotiation_charset,
                                    const char **negotiation_lang,
-                                   const char **target_charset)
+                                   const char **target_charset,
+                                   const char **default_client_query_charset)
 {
 #if HAVE_XSLT
     xmlNodePtr ptr;
@@ -964,7 +974,8 @@ int Yaz_ProxyConfig::get_target_no(int no,
                     target_idletime, client_idletime,
                     keepalive_limit_bw, keepalive_limit_pdu,
                     pre_init, cql2rpn,
-                    negotiation_charset, negotiation_lang, target_charset);
+                    negotiation_charset, negotiation_lang, target_charset,
+                    default_client_query_charset);
                 return 1;
             }
             i++;
@@ -989,7 +1000,7 @@ void Yaz_ProxyConfig::get_generic_info(int *log_mask,
         return;
     for (ptr = m_cp->m_proxyPtr->children; ptr; ptr = ptr->next)
     {
-        if (ptr->type == XML_ELEMENT_NODE 
+        if (ptr->type == XML_ELEMENT_NODE
             && !strcmp((const char *) ptr->name, "log"))
         {
             const char *v = m_cp->get_text(ptr);
@@ -1067,7 +1078,7 @@ int Yaz_ProxyConfigP::get_explain_ptr(const char *host, const char *db,
                         if (ptr->type == XML_ELEMENT_NODE &&
                             !strcmp((const char *) ptr->name, "database"))
                             break;
-                    
+
                     if (!ptr)
                         continue;
                     for (ptr = ptr->children; ptr; ptr = ptr->next)
@@ -1096,12 +1107,12 @@ const char *Yaz_ProxyConfig::get_explain_name(const char *db,
     {
         struct _xmlAttr *attr;
         const char *name = 0;
-        
+
         for (attr = ptr_target->properties; attr; attr = attr->next)
             if (!strcmp((const char *) attr->name, "name")
                 && attr->children
                 && attr->children->type==XML_TEXT_NODE
-                && attr->children->content 
+                && attr->children->content
                 && attr->children->content[0])
             {
                 name = (const char *)attr->children->content;
@@ -1132,16 +1143,16 @@ char *Yaz_ProxyConfig::get_explain_doc(ODR odr, const char *name,
     if (m_cp->get_explain_ptr(0 /* host */, db, &ptr_target, &ptr_explain))
     {
         xmlNodePtr ptr2 = xmlCopyNode(ptr_explain, 1);
-        
+
         xmlDocPtr doc = xmlNewDoc((const xmlChar *) "1.0");
-        
+
         xmlDocSetRootElement(doc, ptr2);
-        
+
         xmlChar *buf_out;
         xmlDocDumpMemory(doc, &buf_out, len);
         char *content = (char*) odr_malloc(odr, *len);
         memcpy(content, buf_out, *len);
-        
+
         xmlFree(buf_out);
         xmlFreeDoc(doc);
         return content;
@@ -1166,7 +1177,8 @@ void Yaz_ProxyConfig::get_target_info(const char *name,
                                       const char **cql2rpn,
                                       const char **negotiation_charset,
                                       const char **negotiation_lang,
-                                      const char **target_charset)
+                                      const char **target_charset,
+                                      const char **default_client_query_charset)
 {
 #if HAVE_XSLT
     xmlNodePtr ptr;
@@ -1205,7 +1217,8 @@ void Yaz_ProxyConfig::get_target_info(const char *name,
                                  keepalive_limit_bw, keepalive_limit_pdu,
                                  pre_init, cql2rpn,
                                  negotiation_charset, negotiation_lang,
-                                 target_charset);
+                                 target_charset,
+                                 default_client_query_charset);
     }
 #else
     *url = name;

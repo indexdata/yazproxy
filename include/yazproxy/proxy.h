@@ -1,4 +1,4 @@
-/* $Id: proxy.h,v 1.26 2005-11-30 11:48:19 adam Exp $
+/* $Id: proxy.h,v 1.27 2006-03-25 10:59:14 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -68,7 +68,7 @@ class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Z_Assoc {
                                 const char *proxy_host);
     void srw_get_client(const char *db, const char **backend_db);
     Z_APDU *result_set_optimize(Z_APDU *apdu);
-    void releaseClient();    
+    void releaseClient();
     Yaz_ProxyClient *m_client;
     yazpp_1::IPDU_Observable *m_PDU_Observable;
     yazpp_1::ISocketObservable *m_socket_observable;
@@ -86,6 +86,7 @@ class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Z_Assoc {
     char *m_default_target;
     char *m_proxy_negotiation_charset;
     char *m_proxy_negotiation_lang;
+    char *m_proxy_negotiation_default_charset;
     long m_seed;
     char *m_optimize;
     int m_session_no;         // sequence for each client session
@@ -129,7 +130,7 @@ class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Z_Assoc {
     int m_request_no;
     int m_flag_invalid_session;
     YAZ_Proxy_MARCXML_mode m_marcxml_mode;
-    void *m_stylesheet_xsp;  // Really libxslt's xsltStylesheetPtr 
+    void *m_stylesheet_xsp;  // Really libxslt's xsltStylesheetPtr
     int m_stylesheet_offset;
     Z_APDU *m_stylesheet_apdu;
     Z_NamePlusRecordList *m_stylesheet_nprl;
@@ -170,9 +171,10 @@ class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Z_Assoc {
     int send_to_srw_client_error(int error, const char *add);
     int send_to_srw_client_ok(int hits, Z_Records *records, int start);
     int send_http_response(int code);
-    int send_srw_response(Z_SRW_PDU *srw_pdu);
+    int send_srw_response(Z_SRW_PDU *srw_pdu, int http_code = 200);
     int send_srw_search_response(Z_SRW_diagnostic *diagnostics,
-                                 int num_diagnostics);
+                                 int num_diagnostics,
+                                 int http_code = 200);
     int send_srw_explain_response(Z_SRW_diagnostic *diagnostics,
                                   int num_diagnostics);
     int z_to_srw_diag(ODR o, Z_SRW_searchRetrieveResponse *srw_res,
@@ -185,7 +187,7 @@ class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Z_Assoc {
     Z_ElementSetNames *mk_esn_from_schema(ODR o, const char *schema);
     Z_ReferenceId *m_referenceId;
     NMEM m_referenceId_mem;
-    
+
 #define NO_SPARE_SOLARIS_FD 10
     int m_lo_fd[NO_SPARE_SOLARIS_FD];
     void low_socket_open();
@@ -225,7 +227,8 @@ class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Z_Assoc {
     void markInvalid();
     const char *option(const char *name, const char *value);
     void set_default_target(const char *target);
-    void set_proxy_negotiation (const char *charset, const char *lang);
+    void set_proxy_negotiation(const char *charset, const char *lang,
+                               const char *default_charset);
     void set_target_charset(const char *charset);
     char *get_proxy_target() { return m_proxyTarget; };
     char *get_session_str() { return m_session_str; };
@@ -243,6 +246,7 @@ class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Z_Assoc {
     void set_debug_mode(int mode);
     void send_response_fail_client(const char *addr);
     Msg_Thread *m_my_thread;
+    void base64_decode(const char *base64, char *buf, int buf_len);
 };
 
 #endif
