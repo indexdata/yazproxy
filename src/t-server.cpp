@@ -2,7 +2,7 @@
  * Copyright (c) 2005, Index Data.
  * See the file LICENSE for details.
  * 
- * $Id: t-server.cpp,v 1.7 2005-10-13 09:58:52 adam Exp $
+ * $Id: t-server.cpp,v 1.8 2006-03-29 13:33:47 adam Exp $
  */
 
 #include <stdlib.h>
@@ -11,11 +11,11 @@
 #include <yaz/diagbib1.h>
 #include <yaz/options.h>
 #include "msg-thread.h"
-#include <yaz++/z-assoc.h>
-#include <yaz++/pdu-assoc.h>
-#include <yaz++/gdu.h>
-#include <yaz++/gduqueue.h>
-#include <yaz++/socket-manager.h>
+#include <yazpp/z-assoc.h>
+#include <yazpp/pdu-assoc.h>
+#include <yazpp/gdu.h>
+#include <yazpp/gduqueue.h>
+#include <yazpp/socket-manager.h>
 
 using namespace yazpp_1;
 

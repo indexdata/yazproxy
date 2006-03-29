@@ -1,4 +1,4 @@
-/* $Id: msg-thread.cpp,v 1.10 2005-10-05 12:05:40 adam Exp $
+/* $Id: msg-thread.cpp,v 1.11 2006-03-29 13:33:47 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -23,7 +23,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include <ctype.h>
 #include <stdio.h>
 
-#include <yaz++/socket-observer.h>
+#include <yazpp/socket-observer.h>
 #include <yaz/log.h>
 
 #include "msg-thread.h"

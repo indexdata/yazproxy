@@ -1,4 +1,4 @@
-/* $Id: proxyp.h,v 1.12 2006-03-25 10:59:14 adam Exp $
+/* $Id: proxyp.h,v 1.13 2006-03-29 13:33:47 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -31,7 +31,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include <objectlist.h>
 #endif
 
-#include <yaz++/record-cache.h>
+#include <yazpp/record-cache.h>
 #include <yazproxy/proxy.h>
 #include <yazproxy/module.h>
 

@@ -1,4 +1,4 @@
-/* $Id: proxy.h,v 1.27 2006-03-25 10:59:14 adam Exp $
+/* $Id: proxy.h,v 1.28 2006-03-29 13:33:46 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -22,14 +22,14 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #ifndef YAZ_PROXY_H_INCLUDED
 #define YAZ_PROXY_H_INCLUDED
 
-#include <yaz++/socket-observer.h>
-#include <yaz++/z-assoc.h>
-#include <yaz++/z-query.h>
-#include <yaz++/z-databases.h>
-#include <yaz++/cql2rpn.h>
+#include <yazpp/socket-observer.h>
+#include <yazpp/z-assoc.h>
+#include <yazpp/z-query.h>
+#include <yazpp/z-databases.h>
+#include <yazpp/cql2rpn.h>
 #include <yaz/cql.h>
-#include <yaz++/gdu.h>
-#include <yaz++/gduqueue.h>
+#include <yazpp/gdu.h>
+#include <yazpp/gduqueue.h>
 #include <yazproxy/bw.h>
 
 class Yaz_Proxy;

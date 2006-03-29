@@ -1,4 +1,4 @@
-/* $Id: tstthreads.cpp,v 1.8 2005-10-05 12:05:59 adam Exp $
+/* $Id: tstthreads.cpp,v 1.9 2006-03-29 13:33:48 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -22,8 +22,8 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include <stdlib.h>
 #include <ctype.h>
 
-#include <yaz++/pdu-assoc.h>
-#include <yaz++/socket-manager.h>
+#include <yazpp/pdu-assoc.h>
+#include <yazpp/socket-manager.h>
 #include <yaz/log.h>
 #include "msg-thread.h"
 

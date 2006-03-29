@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- $Id: config.xml,v 1.13 2005-06-21 18:46:04 adam Exp $ -->
+<!-- $Id: config.xml,v 1.14 2006-03-29 13:33:46 adam Exp $ -->
 <proxy xmlns="http://indexdata.dk/yazproxy/schema/0.9/"
  xmlns:xi="http://www.w3.org/2001/XInclude"
  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -25,6 +25,9 @@
     <syntax type="usmarc" backendcharset="iso-8859-1"/>
     <syntax type="none"/>
     <syntax type="sutrs" backendcharset="iso-8859-1"/>
+    <syntax type="xml">
+      <name>b</name>
+    </syntax>
     <syntax type="xml" marcxml="1" stylesheet="MARC21slim2SRWDC.xsl"
       identifier="info:srw/schema/1/dc-v1.1"
       >

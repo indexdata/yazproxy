@@ -6,24 +6,24 @@ AC_DEFUN([YAZPP_INIT],
         AC_SUBST(YAZPPVERSION)
         yazppconfig=NONE
         yazpppath=NONE
-        AC_ARG_WITH(yazpp, [  --with-yazpp=DIR        yaz++-config in DIR (example /home/yaz++-0.8)], [yazpppath=$withval])
+        AC_ARG_WITH(yazpp, [  --with-yazpp=DIR        yazpp-config in DIR (example /home/yazpp-1.0.0)], [yazpppath=$withval])
         if test "x$yazpppath" != "xNONE"; then
-                yazppconfig=$yazpppath/yaz++-config
+                yazppconfig=$yazpppath/yazpp-config
         else
                 if test "x$srcdir" = "x"; then
                         yazppsrcdir=.
                 else
                         yazppsrcdir=$srcdir
                 fi
-                for i in ${yazppsrcdir}/../../yaz++ ${yazppsrcdir}/../yaz++-* ${yazppsrcdir}/../yaz++; do
+                for i in ${yazppsrcdir}/../../yazpp ${yazppsrcdir}/../yazpp-* ${yazppsrcdir}/../yazpp; do
                         if test -d $i; then
-                                if test -r $i/yaz++-config; then
-                                        yazppconfig=$i/yaz++-config
+                                if test -r $i/yazpp-config; then
+                                        yazppconfig=$i/yazpp-config
                                 fi
                         fi
                 done
                 if test "x$yazppconfig" = "xNONE"; then
-                        AC_PATH_PROG(yazppconfig, yaz++-config, NONE)
+                        AC_PATH_PROG(yazppconfig, yazpp-config, NONE)
                 fi
         fi
         AC_MSG_CHECKING(for YAZ++)
