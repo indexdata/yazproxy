@@ -577,6 +577,53 @@
      </tip>
    </section>
 
+   <section id="proxy-config-target-authentication">
+    <title>target-authentication</title>
+    <para>
+     The element <literal>target-authentication</literal> specifies
+     fixed authentication information to be sent to the backend target.
+    </para>
+    <para>
+     This element takes a an attribute <literal>type</literal> which is
+     the authenticatin type to be used.. 
+    </para>
+    <variablelist>
+     <varlistentry><term><literal>none</literal></term>
+      <listitem>
+       <para>
+	No authentication. There is no CDATA associated with this.
+       </para>
+      </listitem>
+     </varlistentry>
+
+     <varlistentry><term><literal>anonymous</literal></term>
+      <listitem>
+       <para>
+	Anonymous authentication. There is no CDATA associated with this.
+       </para>
+      </listitem>
+     </varlistentry>
+
+     <varlistentry><term><literal>open</literal></term>
+      <listitem>
+       <para>
+	Open authentication. The CDATA consists of the
+	open authentication string.
+       </para>
+      </listitem>
+     </varlistentry>
+
+     <varlistentry><term><literal>idPass</literal></term>
+      <listitem>
+       <para>
+	IdPass authentication. The CDATA consists of
+	three terms: user, group and password.
+       </para>
+      </listitem>
+     </varlistentry>
+    </variablelist>
+   </section>
+
    <section id="proxy-config-log">
     <title>log</title>
     <para>
@@ -696,7 +743,7 @@
    <screen><![CDATA[
 <?xml version="1.0"?>
 <!-- XML Schema for YAZ proxy config file.
-    $Id: reference.xml,v 1.13 2005-09-07 09:28:46 adam Exp $
+    $Id: reference.xml,v 1.14 2006-03-29 18:09:01 adam Exp $
 -->
 <xs:schema
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
