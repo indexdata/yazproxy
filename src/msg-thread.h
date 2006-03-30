@@ -1,4 +1,4 @@
-/* $Id: msg-thread.h,v 1.9 2006-03-30 10:31:25 adam Exp $
+/* $Id: msg-thread.h,v 1.10 2006-03-30 13:29:23 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -19,13 +19,8 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 02111-1307, USA.
  */
 
-#include <pthread.h>
 #include <unistd.h>
 #include <ctype.h>
-
-#if HAVE_DLFCN_H
-#include <dlfcn.h>
-#endif
 
 #include <yazpp/socket-observer.h>
 #include <yaz/yconfig.h>
@@ -55,6 +50,7 @@ class Msg_Thread_Queue {
 };
 
 class Msg_Thread : public yazpp_1::ISocketObserver {
+    class Private;
  public:
     Msg_Thread(yazpp_1::ISocketObservable *obs, int no_threads);
     virtual ~Msg_Thread();
@@ -62,17 +58,8 @@ class Msg_Thread : public yazpp_1::ISocketObserver {
     void put(IMsg_Thread *m);
     IMsg_Thread *get();
     void run(void *p);
-    int m_fd[2];
 private:
-    yazpp_1::ISocketObservable *m_SocketObservable;
-    int m_no_threads;
-    pthread_t *m_thread_id;
-    Msg_Thread_Queue m_input;
-    Msg_Thread_Queue m_output;
-    pthread_mutex_t m_mutex_input_data;
-    pthread_cond_t m_cond_input_data;
-    pthread_mutex_t m_mutex_output_data;
-    bool m_stop_flag;
+    class Private *m_p;
 };
 
 /*
