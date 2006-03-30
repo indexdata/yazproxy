@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.45 2006-03-30 10:35:15 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.46 2006-03-30 11:59:34 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -418,6 +418,28 @@ IPDU_Observer *Yaz_Proxy::sessionNotify(IPDU_Observable
                                         *the_PDU_Observable, int fd)
 {
     check_reconfigure();
+
+    char session_str[200];
+    sprintf(session_str, "%ld:%d ", (long) time(0), m_session_no);
+    m_session_no++;
+
+    const char *peername = the_PDU_Observable->getpeername();
+    yaz_log (YLOG_LOG, "%sNew session %s", session_str, peername);
+
+    m_connect.cleanup(false);
+    m_connect.add_connect(peername);
+
+    int connect_total = m_connect.get_total(peername);
+    int connect_max = m_connect_max;
+    if (connect_max && connect_total > connect_max)
+    {
+        yaz_log(YLOG_LOG, "%sconnect not accepted total=%d max=%d",
+                session_str, connect_total, connect_max);
+        return 0;
+    }
+    yaz_log(YLOG_LOG, "%sconnect accepted total=%d", session_str,
+            connect_total);
+    
     Yaz_Proxy *new_proxy = new Yaz_Proxy(the_PDU_Observable,
                                          m_socket_observable, this);
     new_proxy->m_config = 0;
@@ -432,11 +454,8 @@ IPDU_Observer *Yaz_Proxy::sessionNotify(IPDU_Observable
         new_proxy->set_APDU_yazlog(1);
     else
         new_proxy->set_APDU_yazlog(0);
-    sprintf(new_proxy->m_session_str, "%ld:%d ", (long) time(0), m_session_no);
-    m_session_no++;
-    new_proxy->m_peername = xstrdup(the_PDU_Observable->getpeername());
-    yaz_log (YLOG_LOG, "%sNew session %s", new_proxy->m_session_str,
-             new_proxy->m_peername);
+    strcpy(new_proxy->m_session_str, session_str);
+    new_proxy->m_peername = xstrdup(peername);
     new_proxy->set_proxy_negotiation(m_proxy_negotiation_charset,
         m_proxy_negotiation_lang, m_proxy_negotiation_default_charset);
     // create thread object the first time we get an incoming connection
@@ -1839,25 +1858,6 @@ void Yaz_Proxy::recv_GDU(Z_GDU *apdu, int len)
 void Yaz_Proxy::recv_GDU_reduce(GDU *gdu)
 {
     int reduce = 0;
-
-    if (1)
-    {
-        m_parent->m_connect.add_connect(m_peername);
-        int connect_total = m_parent->m_connect.get_total(m_peername);
-        int connect_max = m_parent->m_connect_max;
-
-        if (connect_max && connect_total > connect_max)
-        {
-            yaz_log(YLOG_LOG, "%sconnect delay total=%d max=%d",
-                    m_session_str, connect_total, connect_max);
-            reduce = connect_total / connect_max;
-        }
-        else
-            yaz_log(YLOG_LOG, "%sconnect OK total=%d", m_session_str,
-                    connect_total);
-        m_parent->m_connect.cleanup(false);
-    }
-
 
     int bw_total = m_bw_stat.get_total();
     int pdu_total = m_pdu_stat.get_total();
