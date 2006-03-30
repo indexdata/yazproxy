@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.46 2006-03-30 11:59:34 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.47 2006-03-30 14:16:34 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -59,10 +59,12 @@ using namespace yazpp_1;
 #define strncasecmp _strnicmp
 #endif
 
-#define USE_AUTH_MSG 1
+#undef USE_AUTH_MSG
+#define USE_AUTH_MSG 0
 
 #if USE_AUTH_MSG
-class Auth_Msg : public IMsg_Thread {
+#error x
+class YAZ_EXPORT Auth_Msg : public IMsg_Thread {
 public:
     int m_ret;
     IMsg_Thread *handle();

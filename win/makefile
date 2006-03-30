@@ -1,6 +1,6 @@
-# Copyright (C) 1993-2004, Index Data ApS
+# Copyright (C) 1993-2006, Index Data ApS
 # All rights reserved.
-# $Id: makefile,v 1.4 2005-03-14 13:27:35 adam Exp $
+# $Id: makefile,v 1.5 2006-03-30 14:16:34 adam Exp $
 
 ###########################################################
 ############### Parameters 
@@ -9,8 +9,8 @@
 DEBUG=0   # 0 for release, 1 for debug
 
 # YAZ and YAZ++
-YAZ_DIR=c:\yaz
-YAZPP_DIR=c:\yaz++
+YAZ_DIR=..\..\yaz
+YAZPP_DIR=..\..\yazpp
 
 # iconv charcter conversion utility
 HAVE_ICONV=1
@@ -18,14 +18,14 @@ ICONV_DIR = c:\iconv-1.9.1.win32
 
 # libxslt
 HAVE_LIBXSLT=1
-LIBXSLT_DIR=c:\libxslt-1.1.12.win32
+LIBXSLT_DIR=c:\libxslt-1.1.14.win32
 
 # libxml2 (used by libxslt)
 HAVE_LIBXML2=1
-LIBXML2_DIR=c:\libxml2-2.6.15.win32
+LIBXML2_DIR=c:\libxml2-2.6.20.win32
 
 # zlib compression (used by libxml2)
-ZLIB_DIR = c:\zlib-1.2.1.win32
+ZLIB_DIR = c:\zlib-1.2.3.win32
 
 # get WIN32 binaries for libxslt, libxml, iconv, zlib from here:
 # http://www.zlatkovic.com/libxml.en.html
@@ -102,7 +102,7 @@ ICONV_LIB= \
 iconv: $(BINDIR)\iconv.dll
 
 $(BINDIR)\iconv.dll:
-  copy "$(ICONV_DIR)\lib\iconv.dll" $(BINDIR)
+  copy "$(ICONV_DIR)\bin\iconv.dll" $(BINDIR)
 !else
 ICONV_DEF= \
   /D HAVE_ICONV_H=0
@@ -238,6 +238,10 @@ YAZPROXY_DLL_OBJS = \
    "$(OBJDIR)\yaz-proxy.obj" \
    "$(OBJDIR)\yaz-proxy-config.obj" \
    "$(OBJDIR)\yaz-usemarcon.obj" \
+   "$(OBJDIR)\msg-thread.obj" \
+   "$(OBJDIR)\charset-converter.obj" \
+   "$(OBJDIR)\limit-connect.obj" \
+   "$(OBJDIR)\modules.obj" \
    "$(OBJDIR)\yaz-bw.obj"
 
 ###########################################################

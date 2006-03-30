@@ -1,4 +1,4 @@
-/* $Id: limit-connect.h,v 1.1 2006-03-30 10:35:15 adam Exp $
+/* $Id: limit-connect.h,v 1.2 2006-03-30 14:16:34 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -25,7 +25,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include <yaz/yconfig.h>
 #include <yazproxy/bw.h>
 
-class LimitConnect {
+class YAZ_EXPORT LimitConnect {
 public:
     LimitConnect();
     ~LimitConnect();

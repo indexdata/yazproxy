@@ -1,4 +1,4 @@
-/* $Id: msg-thread.cpp,v 1.13 2006-03-30 13:29:23 adam Exp $
+/* $Id: msg-thread.cpp,v 1.14 2006-03-30 14:16:34 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -23,7 +23,10 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include <pthread.h>
 #endif
 
+#if HAVE_UNISTD_H
 #include <unistd.h>
+#endif
+
 #include <ctype.h>
 #include <stdio.h>
 
@@ -34,7 +37,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 
 using namespace yazpp_1;
 
-struct Msg_Thread::Private {
+class Msg_Thread::Private {
 public:
     int m_no_threads;
     Msg_Thread_Queue m_input;
@@ -150,7 +153,7 @@ Msg_Thread::~Msg_Thread()
 
 void Msg_Thread::socketNotify(int event)
 {
-#if HAVE_POSIX_THREADS
+#if YAZ_POSIX_THREADS
     if (event & SOCKET_OBSERVE_READ)
     {
         char buf[2];

@@ -1,4 +1,4 @@
-/* $Id: msg-thread.h,v 1.10 2006-03-30 13:29:23 adam Exp $
+/* $Id: msg-thread.h,v 1.11 2006-03-30 14:16:34 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -19,27 +19,24 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 02111-1307, USA.
  */
 
-#include <unistd.h>
-#include <ctype.h>
-
 #include <yazpp/socket-observer.h>
 #include <yaz/yconfig.h>
 
-class IMsg_Thread {
+class YAZ_EXPORT IMsg_Thread {
 public:
     virtual IMsg_Thread *handle() = 0;
     virtual void result() = 0;
     virtual ~IMsg_Thread();
 };
 
-class Msg_Thread_Queue_List {
+class YAZ_EXPORT Msg_Thread_Queue_List {
     friend class Msg_Thread_Queue;
  private:
     IMsg_Thread *m_item;
     Msg_Thread_Queue_List *m_next;
 };
 
-class Msg_Thread_Queue {
+class YAZ_EXPORT Msg_Thread_Queue {
  public:
     Msg_Thread_Queue();
     void enqueue(IMsg_Thread *in);
@@ -49,7 +46,7 @@ class Msg_Thread_Queue {
     Msg_Thread_Queue_List *m_list;
 };
 
-class Msg_Thread : public yazpp_1::ISocketObserver {
+class YAZ_EXPORT Msg_Thread : public yazpp_1::ISocketObserver {
     class Private;
  public:
     Msg_Thread(yazpp_1::ISocketObservable *obs, int no_threads);
