@@ -1,4 +1,4 @@
-/* $Id: tstthreads.cpp,v 1.10 2006-03-30 10:32:16 adam Exp $
+/* $Id: tstthreads.cpp,v 1.11 2006-03-30 14:19:19 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -27,6 +27,10 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include <yaz/log.h>
 #include "msg-thread.h"
 
+#if HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
 using namespace yazpp_1;
 
 class My_Msg : public IMsg_Thread {
@@ -43,7 +47,9 @@ IMsg_Thread *My_Msg::handle()
 
     res->m_val = m_val;
     printf("My_Msg::handle val=%d sleep=%d\n", m_val, sl);
+#if HAVE_UNISTD_H
     sleep(sl);
+#endif
     return res;
 }
 

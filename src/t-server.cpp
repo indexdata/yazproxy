@@ -2,7 +2,7 @@
  * Copyright (c) 2005, Index Data.
  * See the file LICENSE for details.
  * 
- * $Id: t-server.cpp,v 1.8 2006-03-29 13:33:47 adam Exp $
+ * $Id: t-server.cpp,v 1.9 2006-03-30 14:19:19 adam Exp $
  */
 
 #include <stdlib.h>
@@ -16,6 +16,10 @@
 #include <yazpp/gdu.h>
 #include <yazpp/gduqueue.h>
 #include <yazpp/socket-manager.h>
+
+#if HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 
 using namespace yazpp_1;
 
@@ -64,7 +68,9 @@ IMsg_Thread *Auth_Msg::handle()
             ODR_MASK_SET(apdu->u.initResponse->options, Z_Options_present);
             break;
         case Z_APDU_searchRequest:
+#if HAVE_UNISTD_H
             sleep(5);
+#endif
             apdu = zget_APDU(odr, Z_APDU_searchResponse);
             break;
         case Z_APDU_triggerResourceControlRequest:

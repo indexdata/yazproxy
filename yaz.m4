@@ -126,7 +126,7 @@ AC_DEFUN([YAZ_INIT],
 			have_yaz_version=`echo "$YAZVERSION" | awk 'BEGIN { FS = "."; } { printf "%d", ([$]1 * 1000 + [$]2) * 1000 + [$]3;}'`
 			req_yaz_version=`echo "$2" | awk 'BEGIN { FS = "."; } { printf "%d", ([$]1 * 1000 + [$]2) * 1000 + [$]3;}'`
 			if test "$have_yaz_version" -lt "$req_yaz_version"; then
-				AC_MSG_ERROR([$YAZVERSION. Requires $2 or later])
+				AC_MSG_ERROR([$YAZVERSION. Requires YAZ $2 or later])
 			fi
 			if test "$req_yaz_version" -gt "2000028"; then
 				YAZINC="$YAZINC -DYAZ_USE_NEW_LOG=1"
