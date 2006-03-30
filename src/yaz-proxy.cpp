@@ -1,7 +1,7 @@
-/* $Id: yaz-proxy.cpp,v 1.44 2006-03-25 10:59:14 adam Exp $
-   Copyright (c) 1998-2005, Index Data.
+/* $Id: yaz-proxy.cpp,v 1.45 2006-03-30 10:35:15 adam Exp $
+   Copyright (c) 1998-2006, Index Data.
 
-This file is part of the yaz-proxy.
+This file is part of the yazproxy.
 
 YAZ proxy is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free
@@ -87,7 +87,6 @@ Auth_Msg::~Auth_Msg()
 
 IMsg_Thread *Auth_Msg::handle()
 {
-    yaz_log(YLOG_LOG, "Auth_Msg:handle begin");
     ODR decode = odr_createmem(ODR_DECODE);
     Z_APDU *apdu;
 
@@ -101,26 +100,22 @@ IMsg_Thread *Auth_Msg::handle()
     {
         m_ret = m_proxy->handle_authentication(apdu);
     }
-    yaz_log(YLOG_LOG, "Auth_Msg:handle end");
     odr_destroy(decode);
     return this;
 }
 
 void Auth_Msg::result()
 {
-    yaz_log(YLOG_LOG, "Auth_Msg:result proxy ok buf=%p len=%d",
-            m_apdu_buf, m_apdu_len);
     if (m_proxy->dec_ref(false))
+    {
         yaz_log(YLOG_LOG, "Auth_Msg::proxy deleted meanwhile");
+    }
     else
     {
-        yaz_log(YLOG_LOG, "Auth_Msg::proxy still alive");
         odr_setbuf(m_proxy->odr_decode(), m_apdu_buf, m_apdu_len, 0);
         Z_APDU *apdu = 0;
         int r = z_APDU(m_proxy->odr_decode(), &apdu, 0, 0);
-        if (r)
-            yaz_log(YLOG_LOG, "Auth_Msg::result z_APDU OK");
-        else
+        if (!r)
             yaz_log(YLOG_LOG, "Auth_Msg::result z_APDU failed");
         m_proxy->result_authentication(apdu, m_ret);
     }
@@ -356,7 +351,8 @@ int Yaz_Proxy::set_config(const char *config)
     m_config_fname = xstrdup(config);
     int r = m_config->read_xml(config);
     if (!r)
-        m_config->get_generic_info(&m_log_mask, &m_max_clients);
+        m_config->get_generic_info(&m_log_mask, &m_max_clients,
+                                   &m_connect_max);
     return r;
 }
 
@@ -407,7 +403,8 @@ Yaz_ProxyConfig *Yaz_Proxy::check_reconfigure()
             else
             {
                 m_log_mask = 0;
-                cfg->get_generic_info(&m_log_mask, &m_max_clients);
+                cfg->get_generic_info(&m_log_mask, &m_max_clients,
+                                      &m_connect_max);
             }
         }
         else
@@ -561,7 +558,7 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
             int pre_init = 0;
             cfg->get_target_info(proxy_host, url, &m_bw_max,
                                  &m_pdu_max, &m_max_record_retrieve,
-                                 &m_search_max, &m_connect_max,
+                                 &m_search_max,
                                  &m_target_idletime, &client_idletime,
                                  &parent->m_max_clients,
                                  &m_keepalive_limit_bw,
@@ -1841,9 +1838,29 @@ void Yaz_Proxy::recv_GDU(Z_GDU *apdu, int len)
 
 void Yaz_Proxy::recv_GDU_reduce(GDU *gdu)
 {
+    int reduce = 0;
+
+    if (1)
+    {
+        m_parent->m_connect.add_connect(m_peername);
+        int connect_total = m_parent->m_connect.get_total(m_peername);
+        int connect_max = m_parent->m_connect_max;
+
+        if (connect_max && connect_total > connect_max)
+        {
+            yaz_log(YLOG_LOG, "%sconnect delay total=%d max=%d",
+                    m_session_str, connect_total, connect_max);
+            reduce = connect_total / connect_max;
+        }
+        else
+            yaz_log(YLOG_LOG, "%sconnect OK total=%d", m_session_str,
+                    connect_total);
+        m_parent->m_connect.cleanup(false);
+    }
+
+
     int bw_total = m_bw_stat.get_total();
     int pdu_total = m_pdu_stat.get_total();
-    int reduce = 0;
 
     assert(m_timeout_mode == timeout_busy);
     assert(m_timeout_gdu == 0);
@@ -1928,8 +1945,6 @@ void Yaz_Proxy::handle_charset_lang_negotiation(Z_APDU *apdu)
 {
     if (apdu->which == Z_APDU_initRequest)
     {
-        yaz_log(YLOG_LOG, "%shandle_charset_lang_negotiation",
-                m_session_str);
         if (m_initRequest_options &&
             !ODR_MASK_GET(m_initRequest_options, Z_Options_negotiationModel) &&
             (m_proxy_negotiation_charset || m_proxy_negotiation_lang))
@@ -2978,7 +2993,6 @@ void Yaz_Proxy::handle_init(Z_APDU *apdu)
     m_client->m_init_flag = 1;
 
 #if USE_AUTH_MSG
-    yaz_log(YLOG_LOG, "%suse_auth_msg", m_session_str);
     Auth_Msg *m = new Auth_Msg;
     m->m_proxy = this;
     z_APDU(odr_encode(), &apdu, 0, "encode");
@@ -3149,8 +3163,6 @@ void Yaz_Proxy::releaseClient()
 
 bool Yaz_Proxy::dec_ref(bool main_ptr)
 {
-    yaz_log(YLOG_LOG, "%sdec_ref count=%d", m_session_str, m_ref_count);
-
     assert(m_ref_count > 0);
     if (main_ptr)
     {
@@ -3202,7 +3214,6 @@ void Yaz_Proxy::failNotify()
 
 void Yaz_Proxy::send_response_fail_client(const char *addr)
 {
-    yaz_log(YLOG_LOG, "%ssend_close_response", get_session_str());
     if (m_http_version)
     {
         Z_SRW_diagnostic *diagnostic = 0;
@@ -3291,7 +3302,7 @@ void Yaz_Proxy::pre_init()
     int i;
     const char *name = 0;
     const char *zurl_in_use[MAX_ZURL_PLEX];
-    int limit_bw, limit_pdu, limit_req, limit_search, limit_connect;
+    int limit_bw, limit_pdu, limit_req, limit_search;
     int target_idletime, client_idletime;
     int max_clients;
     int keepalive_limit_bw, keepalive_limit_pdu;
@@ -3312,7 +3323,7 @@ void Yaz_Proxy::pre_init()
 
     for (i = 0; cfg && cfg->get_target_no(i, &name, zurl_in_use,
                                           &limit_bw, &limit_pdu, &limit_req,
-                                          &limit_search, &limit_connect,
+                                          &limit_search,
                                           &target_idletime, &client_idletime,
                                           &max_clients,
                                           &keepalive_limit_bw,

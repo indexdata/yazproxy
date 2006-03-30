@@ -1,7 +1,7 @@
-/* $Id: proxyp.h,v 1.13 2006-03-29 13:33:47 adam Exp $
-   Copyright (c) 1998-2005, Index Data.
+/* $Id: proxyp.h,v 1.14 2006-03-30 10:35:15 adam Exp $
+   Copyright (c) 1998-2006, Index Data.
 
-This file is part of the yaz-proxy.
+This file is part of the yazproxy.
 
 YAZ proxy is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free
@@ -91,7 +91,6 @@ public:
                       int *limit_pdu,
                       int *limit_req,
                       int *limit_search,
-                      int *limit_connect,
                       int *target_idletime,
                       int *client_idletime,
                       int *max_clients,
@@ -105,11 +104,12 @@ public:
                       const char **query_charset,
                       const char **default_client_query_charset);
 
-    void get_generic_info(int *log_mask, int *max_clients);
+    void get_generic_info(int *log_mask, int *max_clients,
+                          int *max_connect);
 
     void get_target_info(const char *name, const char **url,
                          int *limit_bw, int *limit_pdu, int *limit_req,
-                         int *limit_search, int *limit_connect,
+                         int *limit_search,
                          int *target_idletime, int *client_idletime,
                          int *max_clients,
                          int *keepalive_limit_bw, int *keepalive_limit_pdu,

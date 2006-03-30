@@ -1,7 +1,7 @@
-/* $Id: proxy.h,v 1.28 2006-03-29 13:33:46 adam Exp $
-   Copyright (c) 1998-2005, Index Data.
+/* $Id: proxy.h,v 1.29 2006-03-30 10:35:15 adam Exp $
+   Copyright (c) 1998-2006, Index Data.
 
-This file is part of the yaz-proxy.
+This file is part of the yazproxy.
 
 YAZ proxy is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free
@@ -31,6 +31,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include <yazpp/gdu.h>
 #include <yazpp/gduqueue.h>
 #include <yazproxy/bw.h>
+#include <yazproxy/limit-connect.h>
 
 class Yaz_Proxy;
 
@@ -197,6 +198,7 @@ class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Z_Assoc {
     Yaz_usemarcon *m_usemarcon;
     Yaz_CharsetConverter *m_charset_converter;
     yazpp_1::GDUQueue m_in_queue;
+    LimitConnect m_connect;
  public:
     Yaz_Proxy(yazpp_1::IPDU_Observable *the_PDU_Observable,
               yazpp_1::ISocketObservable *the_socket_observable,

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!-- XML Schema for YAZ proxy config file.
-    $Id: yazproxy.xsd,v 1.9 2005-05-18 20:15:22 adam Exp $
+    $Id: yazproxy.xsd,v 1.10 2006-03-30 10:35:14 adam Exp $
 -->
 <xs:schema
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
@@ -15,6 +15,7 @@
    <xs:sequence>
     <xs:element ref="target" minOccurs="0" maxOccurs="unbounded"/>
     <xs:element ref="max-clients" minOccurs="0"/>
+    <xs:element ref="max-connect" minOccurs="0"/>
     <xs:element ref="log" minOccurs="0"/>
     <xs:element ref="module" minOccurs="0"/>
    </xs:sequence>

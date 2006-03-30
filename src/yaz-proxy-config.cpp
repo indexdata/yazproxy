@@ -1,7 +1,7 @@
-/* $Id: yaz-proxy-config.cpp,v 1.25 2006-03-25 10:59:14 adam Exp $
-   Copyright (c) 1998-2005, Index Data.
+/* $Id: yaz-proxy-config.cpp,v 1.26 2006-03-30 10:35:15 adam Exp $
+   Copyright (c) 1998-2006, Index Data.
 
-This file is part of the yaz-proxy.
+This file is part of the yazproxy.
 
 YAZ proxy is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free
@@ -39,7 +39,7 @@ class Yaz_ProxyConfigP {
     xmlNodePtr m_proxyPtr;
     void return_target_info(xmlNodePtr ptr, const char **url,
                             int *limit_bw, int *limit_pdu, int *limit_req,
-                            int *limit_search, int *limit_connect,
+                            int *limit_search,
                             int *target_idletime, int *client_idletime,
                             int *keepalive_limit_bw, int *keepalive_limit_pdu,
                             int *pre_init, const char **cql2rpn,
@@ -49,7 +49,7 @@ class Yaz_ProxyConfigP {
                             const char **default_client_query_charset);
     void return_limit(xmlNodePtr ptr,
                       int *limit_bw, int *limit_pdu, int *limit_req,
-                      int *limit_search, int *limit_connect);
+                      int *limit_search);
     int check_type_1(ODR odr, xmlNodePtr ptr, Z_RPNQuery *query,
                      char **addinfo);
     xmlNodePtr find_target_node(const char *name, const char *db);
@@ -172,8 +172,7 @@ void Yaz_ProxyConfigP::return_limit(xmlNodePtr ptr,
                                     int *limit_bw,
                                     int *limit_pdu,
                                     int *limit_req,
-                                    int *limit_search,
-                                    int *limit_connect)
+                                    int *limit_search)
 {
     for (ptr = ptr->children; ptr; ptr = ptr->next)
     {
@@ -205,13 +204,6 @@ void Yaz_ProxyConfigP::return_limit(xmlNodePtr ptr,
             if (t)
                 *limit_search = atoi(t);
         }
-        if (ptr->type == XML_ELEMENT_NODE 
-            && !strcmp((const char *) ptr->name, "connect"))
-        {
-            const char *t = get_text(ptr);
-            if (t)
-                *limit_connect = atoi(t);
-        }
     }
 }
 #endif
@@ -223,7 +215,6 @@ void Yaz_ProxyConfigP::return_target_info(xmlNodePtr ptr,
                                           int *limit_pdu,
                                           int *limit_req,
                                           int *limit_search,
-                                          int *limit_connect,
                                           int *target_idletime,
                                           int *client_idletime,
                                           int *keepalive_limit_bw,
@@ -263,12 +254,12 @@ void Yaz_ProxyConfigP::return_target_info(xmlNodePtr ptr,
             *keepalive_limit_bw = 500000;
             *keepalive_limit_pdu = 1000;
             return_limit(ptr, keepalive_limit_bw, keepalive_limit_pdu,
-                         &dummy, &dummy, &dummy);
+                         &dummy, &dummy);
         }
         if (ptr->type == XML_ELEMENT_NODE 
             && !strcmp((const char *) ptr->name, "limit"))
             return_limit(ptr, limit_bw, limit_pdu, limit_req,
-                         limit_search, limit_connect);
+                         limit_search);
         if (ptr->type == XML_ELEMENT_NODE 
             && !strcmp((const char *) ptr->name, "target-timeout"))
         {
@@ -933,7 +924,6 @@ int Yaz_ProxyConfig::get_target_no(int no,
                                    int *limit_pdu,
                                    int *limit_req,
                                    int *limit_search,
-                                   int *limit_connect,
                                    int *target_idletime,
                                    int *client_idletime,
                                    int *max_clients,
@@ -970,7 +960,7 @@ int Yaz_ProxyConfig::get_target_no(int no,
                 m_cp->return_target_info(
                     ptr, url,
                     limit_bw, limit_pdu, limit_req,
-                    limit_search, limit_connect,
+                    limit_search,
                     target_idletime, client_idletime,
                     keepalive_limit_bw, keepalive_limit_pdu,
                     pre_init, cql2rpn,
@@ -992,8 +982,10 @@ int Yaz_ProxyConfigP::mycmp(const char *hay, const char *item, size_t len)
 }
 
 void Yaz_ProxyConfig::get_generic_info(int *log_mask,
-                                       int *max_clients)
+                                       int *max_clients,
+                                       int *max_connect)
 {
+    *max_connect = 0;
 #if HAVE_XSLT
     xmlNodePtr ptr;
     if (!m_cp->m_proxyPtr)
@@ -1038,6 +1030,13 @@ void Yaz_ProxyConfig::get_generic_info(int *log_mask,
                 if (*max_clients  < 1)
                     *max_clients = 1;
             }
+        }
+        if (ptr->type == XML_ELEMENT_NODE &&
+            !strcmp((const char *) ptr->name, "max-connect"))
+        {
+            const char *t = m_cp->get_text(ptr);
+            if (t)
+                *max_connect = atoi(t);
         }
     }
 #endif
@@ -1167,7 +1166,6 @@ void Yaz_ProxyConfig::get_target_info(const char *name,
                                       int *limit_pdu,
                                       int *limit_req,
                                       int *limit_search,
-                                      int *limit_connect,
                                       int *target_idletime,
                                       int *client_idletime,
                                       int *max_clients,
@@ -1212,7 +1210,7 @@ void Yaz_ProxyConfig::get_target_info(const char *name,
             url[1] = 0;
         }
         m_cp->return_target_info(ptr, url, limit_bw, limit_pdu, limit_req,
-                                 limit_search, limit_connect,
+                                 limit_search,
                                  target_idletime, client_idletime,
                                  keepalive_limit_bw, keepalive_limit_pdu,
                                  pre_init, cql2rpn,

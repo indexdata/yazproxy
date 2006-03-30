@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.12 2006-03-25 10:56:28 adam Exp $
+## $Id: Makefile.am,v 1.13 2006-03-30 10:35:15 adam Exp $
 
 AM_CXXFLAGS = $(YAZPPINC) -I$(srcdir)/../include $(XSLT_CFLAGS) $(USEMARCONINC)
 
@@ -7,7 +7,7 @@ libyazproxy_la_LDFLAGS=-version-info 1:0:0
 
 libyazproxy_la_SOURCES= yaz-proxy.cpp yaz-proxy-config.cpp yaz-bw.cpp \
  proxyp.h yaz-usemarcon.cpp charset-converter.cpp msg-thread.cpp msg-thread.h \
- modules.cpp
+ modules.cpp limit-connect.cpp
 
 bin_PROGRAMS = yazproxy
 check_PROGRAMS = cdetails

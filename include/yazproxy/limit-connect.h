@@ -1,4 +1,4 @@
-/* $Id: bw.h,v 1.5 2006-03-30 10:35:15 adam Exp $
+/* $Id: limit-connect.h,v 1.1 2006-03-30 10:35:15 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -19,23 +19,27 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 02111-1307, USA.
  */
 
-#ifndef YAZPROXY_YAZ_BW_H
-#define YAZPROXY_YAZ_BW_H
+#ifndef YAZPROXY_LIMIT_CONNECT_H
+#define YAZPROXY_LIMIT_CONNECT_H
 
 #include <yaz/yconfig.h>
+#include <yazproxy/bw.h>
 
-class YAZ_EXPORT Yaz_bw {
- public:
-    Yaz_bw(int sz);
-    ~Yaz_bw();
-    void add_bytes(int m);
-    int get_total();
- private:
-    long m_sec;   // time of most recent bucket
-    int *m_bucket;
-    int m_ptr;
-    int m_size;
+class LimitConnect {
+public:
+    LimitConnect();
+    ~LimitConnect();
+    void add_connect(const char *peername);
+    int get_total(const char *peername);
+    void cleanup(bool all);
+private:
+    struct Peer;
+
+    int m_period; 
+    Peer *m_peers;
+    Peer **lookup(const char *peername);
 };
+
 #endif
 
 /*

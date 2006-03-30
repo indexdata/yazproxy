@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- $Id: config.xml,v 1.15 2006-03-29 18:09:01 adam Exp $ -->
+<!-- $Id: config.xml,v 1.16 2006-03-30 10:35:14 adam Exp $ -->
 <proxy xmlns="http://indexdata.dk/yazproxy/schema/0.9/"
  xmlns:xi="http://www.w3.org/2001/XInclude"
  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -19,6 +19,7 @@
       <bandwidth>2000000</bandwidth>
       <pdu>60</pdu>
       <retrieve>100</retrieve>
+      <connect>3</connect>
     </limit>
     <attribute type="1" value="1-11,13-1016"/>
     <attribute type="1" value="*" error="114"/>
@@ -47,5 +48,6 @@
     <!-- everything else -->
   </target>
   <max-clients>2</max-clients>
+  <max-connect>3</max-connect>
   <log>client-requests server-requests</log>
 </proxy>
