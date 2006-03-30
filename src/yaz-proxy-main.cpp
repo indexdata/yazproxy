@@ -1,7 +1,7 @@
-/* $Id: yaz-proxy-main.cpp,v 1.18 2006-03-29 13:33:48 adam Exp $
-   Copyright (c) 1998-2005, Index Data.
+/* $Id: yaz-proxy-main.cpp,v 1.19 2006-03-30 10:32:16 adam Exp $
+   Copyright (c) 1998-2006, Index Data.
 
-This file is part of the yaz-proxy.
+This file is part of the yazproxy.
 
 YAZ proxy is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free

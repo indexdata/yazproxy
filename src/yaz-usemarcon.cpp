@@ -1,7 +1,7 @@
-/* $Id: yaz-usemarcon.cpp,v 1.2 2005-06-25 15:58:34 adam Exp $
-   Copyright (c) 1998-2004, Index Data.
+/* $Id: yaz-usemarcon.cpp,v 1.3 2006-03-30 10:31:37 adam Exp $
+   Copyright (c) 1998-2006, Index Data.
 
-This file is part of the yaz-proxy.
+This file is part of the yazproxy.
 
 YAZ proxy is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free

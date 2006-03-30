@@ -1,7 +1,7 @@
-/* $Id: modules.cpp,v 1.6 2006-03-25 10:59:14 adam Exp $
-   Copyright (c) 1998-2005, Index Data.
+/* $Id: modules.cpp,v 1.7 2006-03-30 10:32:16 adam Exp $
+   Copyright (c) 1998-2006, Index Data.
 
-This file is part of the yaz-proxy.
+This file is part of the yazproxy.
 
 YAZ proxy is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free
