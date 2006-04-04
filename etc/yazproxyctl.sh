@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: yazproxyctl.sh,v 1.2 2004-09-15 20:31:25 adam Exp $
+# $Id: yazproxyctl.sh,v 1.3 2006-04-04 20:52:04 adam Exp $
 # YAZ proxy start/stop init.d script.
 #
 PATH=/usr/local/bin:/bin:/usr/bin
@@ -25,7 +25,7 @@ RUNAS=nobody
 # Extra args . Config file _WITH_ option
 ARGS="-c config.xml"
 
-if test -n "RUNAS"; then
+if test -n "$RUNAS"; then
 	ARGS="-u $RUNAS $ARGS"
 fi
 
