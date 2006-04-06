@@ -352,18 +352,20 @@
     </para>
     <para>
      The following sets maximum number of bytes transferred per minute to
-     500Kbytes and maximum number of requests to 40.
+     500Kbytes, maximum number of records retrievals to 40
+     and maximum number of searches to 20.
      <screen>
       &lt;limit>
        &lt;bandwidth>524288&lt;/bandwidth>
        &lt;retrieve>40&lt;/retrieve>
+       &lt;search>20&lt;/search>
       &lt;/limit>
      </screen>
     </para>
     <note>
      <para>
-      Typically the limits for keepalive are much higher than
-      those for session minute average.
+      Typically the values in the keepalive section are mugh higher
+      than their equivalent limit counterparts (bandwidth, pdu).
      </para>
     </note>
    </section>
@@ -439,6 +441,9 @@
      <literal>type</literal> should be XML. The proxy will use
      preferred record syntax USMARC/MARC21 or <literal>backendtype</literal> 
      (if given) against the backend target.
+     For the special case where <literal>backendtype</literal> is
+     <literal>opac</literal> the proxy will convert the OPAC
+     record to OPACXML.
     </para>
     <para>
      If attribute <literal>backendtype</literal> is given, that holds the
@@ -448,8 +453,8 @@
      If attribute <literal>stylesheet</literal> is given, the proxy
      will convert XML record from server via XSLT. It is important
      that the content from server is XML. If used in conjunction with
-     attribute <literal>marcxml</literal> the MARC to MARCXML conversion
-     takes place before the XSLT conversion takes place.
+     attribute <literal>marcxml</literal>, the MARC to MARCXML/OPACXML
+     conversion takes place before the XSLT conversion takes place.
     </para>
     <para>
      If attribute <literal>identifier</literal> is given that is the
@@ -554,32 +559,6 @@
     </para>
    </section>
 
-   <section id="proxy-config-max-clients">
-    <title>max-clients</title>
-    <para>
-     The element <literal>max-clients</literal> is the child of element
-     <literal>proxy</literal> and specifies the total number of
-     allowed connections to targets (all targets). If this limit
-     is reached the proxy will close the least recently used connection.
-    </para>
-    <para>
-     Note, that many Unix systems impose a system on the number of
-     open files allowed in a single process, typically in the 
-     range 256 (Solaris) to 1024 (Linux).
-     The proxy uses 2 sockets per session + a few files
-     for logging. As a rule of thumb, ensure that 2*max-clients + 5
-     can be opened by the proxy process.
-    </para>
-    <tip>
-     <para>
-      Using the <ulink url="http://www.gnu.org/software/bash/bash.html">
-       bash</ulink> shell, you can set the limit with
-      <literal>ulimit -n</literal><replaceable>no</replaceable>. 
-       Use <literal>ulimit -a</literal> to display limits.
-     </para>
-     </tip>
-   </section>
-
    <section id="proxy-config-target-authentication">
     <title>target-authentication</title>
     <para>
@@ -625,6 +604,46 @@
       </listitem>
      </varlistentry>
     </variablelist>
+   </section>
+
+   <section id="proxy-config-target-charset">
+    <title>target-charset</title>
+    <para>
+     The element <literal>target-charset</literal> specifies the
+     native character set that the target uses for queries.
+    </para>
+    <para>
+     If this is specified the proxy will act as a Z39.50 server
+     supporting character set negotiation. And in SRW/SRU mode
+     it will convert from UTF-8 (UNICODE) to this native character
+     set (if possible).
+    </para>
+   </section>
+
+   <section id="proxy-config-max-clients">
+    <title>max-clients</title>
+    <para>
+     The element <literal>max-clients</literal> is the child of element
+     <literal>proxy</literal> and specifies the total number of
+     allowed connections to targets (all targets). If this limit
+     is reached the proxy will close the least recently used connection.
+    </para>
+    <para>
+     Note, that many Unix systems impose a system on the number of
+     open files allowed in a single process, typically in the 
+     range 256 (Solaris) to 1024 (Linux).
+     The proxy uses 2 sockets per session + a few files
+     for logging. As a rule of thumb, ensure that 2*max-clients + 5
+     can be opened by the proxy process.
+    </para>
+    <tip>
+     <para>
+      Using the <ulink url="http://www.gnu.org/software/bash/bash.html">
+       bash</ulink> shell, you can set the limit with
+      <literal>ulimit -n</literal><replaceable>no</replaceable>. 
+       Use <literal>ulimit -a</literal> to display limits.
+     </para>
+     </tip>
    </section>
 
    <section id="proxy-config-log">
@@ -798,7 +817,7 @@
    <screen><![CDATA[
 <?xml version="1.0"?>
 <!-- XML Schema for YAZ proxy config file.
-    $Id: reference.xml,v 1.15 2006-04-06 01:16:54 adam Exp $
+    $Id: reference.xml,v 1.16 2006-04-06 10:30:16 adam Exp $
 -->
 <xs:schema
   xmlns:xs="http://www.w3.org/2001/XMLSchema"

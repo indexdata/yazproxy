@@ -1,4 +1,4 @@
-<!-- $Id: introduction.xml,v 1.5 2004-04-23 16:25:18 adam Exp $ -->
+<!-- $Id: introduction.xml,v 1.6 2006-04-06 10:30:16 adam Exp $ -->
  <chapter id="introduction"><title>Introduction</title>
   <para>
    The <ulink url="http://www.indexdata.dk/yazproxy/">YAZ Proxy</ulink> is
@@ -65,7 +65,13 @@
       and very high performance
      </para>
     </listitem>
-    
+
+    <listitem>
+     <para>
+      Z39.50 character set negotiation support.
+     </para>
+    </listitem>
+
    </itemizedlist>
   </para>
   <section>
