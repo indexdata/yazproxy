@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy-config.cpp,v 1.26 2006-03-30 10:35:15 adam Exp $
+/* $Id: yaz-proxy-config.cpp,v 1.27 2006-04-06 01:16:55 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -981,11 +981,35 @@ int Yaz_ProxyConfigP::mycmp(const char *hay, const char *item, size_t len)
     return 0;
 }
 
+int Yaz_ProxyConfig::get_file_access_info(const char *path)
+{
+#if HAVE_XSLT
+    xmlNodePtr ptr;
+    if (!m_cp->m_proxyPtr)
+        return 0;
+    for (ptr = m_cp->m_proxyPtr->children; ptr; ptr = ptr->next)
+    {
+        if (ptr->type == XML_ELEMENT_NODE
+            && !strcmp((const char *) ptr->name, "docpath"))
+        {
+            const char *docpath = m_cp->get_text(ptr);
+            size_t docpath_len = strlen(docpath);
+            if (docpath_len < strlen(path) && path[docpath_len] == '/'
+                && !memcmp(docpath, path, docpath_len))
+                return 1;
+        }
+    }
+#endif
+    return 0;
+}
+
 void Yaz_ProxyConfig::get_generic_info(int *log_mask,
                                        int *max_clients,
-                                       int *max_connect)
+                                       int *max_connect,
+                                       int *limit_connect)
 {
     *max_connect = 0;
+    *limit_connect = 0;
 #if HAVE_XSLT
     xmlNodePtr ptr;
     if (!m_cp->m_proxyPtr)
@@ -1020,7 +1044,7 @@ void Yaz_ProxyConfig::get_generic_info(int *log_mask,
                 v = cp;
             }
         }
-        if (ptr->type == XML_ELEMENT_NODE &&
+        else if (ptr->type == XML_ELEMENT_NODE &&
             !strcmp((const char *) ptr->name, "max-clients"))
         {
             const char *t = m_cp->get_text(ptr);
@@ -1031,12 +1055,30 @@ void Yaz_ProxyConfig::get_generic_info(int *log_mask,
                     *max_clients = 1;
             }
         }
-        if (ptr->type == XML_ELEMENT_NODE &&
+        else if (ptr->type == XML_ELEMENT_NODE &&
             !strcmp((const char *) ptr->name, "max-connect"))
         {
             const char *t = m_cp->get_text(ptr);
             if (t)
                 *max_connect = atoi(t);
+        }
+        else if (ptr->type == XML_ELEMENT_NODE &&
+            !strcmp((const char *) ptr->name, "limit-connect"))
+        {
+            const char *t = m_cp->get_text(ptr);
+            if (t)
+                *limit_connect = atoi(t);
+        }
+        else if (ptr->type == XML_ELEMENT_NODE &&
+            !strcmp((const char *) ptr->name, "target"))
+            ;
+        else if (ptr->type == XML_ELEMENT_NODE &&
+            !strcmp((const char *) ptr->name, "docpath"))
+            ;
+        else if (ptr->type == XML_ELEMENT_NODE)
+        {
+            yaz_log(YLOG_WARN, "0 Unknown element %s in yazproxy config",
+                    ptr->name);
         }
     }
 #endif

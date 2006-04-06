@@ -247,7 +247,7 @@
     <para>
      <screen>
      &lt;?xml version="1.0"?>
-     &lt;proxy xmlns="http://indexdata.dk/yazproxy/schema/0.8/">
+     &lt;proxy xmlns="http://indexdata.dk/yazproxy/schema/0.9/">
       &lt;target name="server1" default="1">
        &lt;!-- description of server1 .. -->
       &lt;/target>
@@ -335,14 +335,17 @@
      The proxy records bandwidth/pdu requests during the last 60 seconds
      (1 minute). The <literal>limit</literal> may include the
      elements <literal>bandwidth</literal>, <literal>pdu</literal>,
-     and <literal>retrieve</literal>. The <literal>bandwidth</literal>
+     <literal>retrieve</literal> and <literal>search</literal>.
+     The <literal>bandwidth</literal>
      measures the number of bytes transferred within the last minute.
      The <literal>pdu</literal> is the number of requests in the last
      minute. The <literal>retrieve</literal> holds the maximum records to
-     be retrieved in one Present Request.
+     which may be retrieved in one Present Request.
+     The <literal>search</literal> is the maximum number of searches
+     within the last minute.
     </para>
     <para>
-     If a bandwidth/pdu limit is reached the proxy will postpone the
+     If a bandwidth/pdu/search limit is reached the proxy will postpone the
      requests to the target and wait one or more seconds. The idea of the
      limit is to ensure that clients that downloads hundreds or thousands of
      records do not hurt other users.
@@ -696,6 +699,58 @@
      </screen>
     </para>
    </section>
+
+   <section id="proxy-max-connect">
+    <title>max-connect</title>
+    <para>
+     The element <literal>max-connect</literal> is a child of element
+     <literal>proxy</literal> and specifies the maximum number
+     of connections to be initiated within the last minute.
+    </para>
+    <para>
+     If the maximum number is reached the proxy will terminate the
+     just initiated session (connection terminated).
+    </para>
+   </section>
+
+   <section id="proxy-limit-connect">
+    <title>limit-connect</title>
+    <para>
+     The element <literal>max-connect</literal> is a child of element
+     <literal>proxy</literal> and specifies the limit of number
+     of connections to be initiated within the last minute.
+    </para>
+    <para>
+     If the maximum number is reached the proxy delay the first operatation
+     in the session (Thus delaying the connection).
+    </para>
+   </section>
+
+   <section id="proxy-docpath">
+    <title>docpath</title>
+    <para>
+     The element <literal>docpath</literal> is a child of element
+     <literal>proxy</literal> and specifies an allowed HTTP path
+     for local file access. Using <literal>docpath</literal> the
+     proxy may return static file content.
+    </para>
+    <para>
+     The value of docpath both serves as a HTTP path prefix 
+     <emphasis>and</emphasis> as a local file prefix. 
+     If a value of <literal>etc</literal> is used only URLs with the
+     prefix <literal>/etc/</literal> results in a local file access to the
+     directory <literal>etc</literal> within the working directory
+     of yazproxy.
+    </para>
+    <note>
+    <para>
+      Care has been taken to ensure that hostile URLs are rejected - including
+      strings such as <literal>..</literal> and <literal>/</literal> (absolute
+      file system access).
+     </para>
+    </note>
+   </section>
+
   </section>
   <section id="proxy-usage">
    <title>Proxy Manual Pages</title>
@@ -743,7 +798,7 @@
    <screen><![CDATA[
 <?xml version="1.0"?>
 <!-- XML Schema for YAZ proxy config file.
-    $Id: reference.xml,v 1.14 2006-03-29 18:09:01 adam Exp $
+    $Id: reference.xml,v 1.15 2006-04-06 01:16:54 adam Exp $
 -->
 <xs:schema
   xmlns:xs="http://www.w3.org/2001/XMLSchema"

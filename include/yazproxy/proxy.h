@@ -1,4 +1,4 @@
-/* $Id: proxy.h,v 1.29 2006-03-30 10:35:15 adam Exp $
+/* $Id: proxy.h,v 1.30 2006-04-06 01:16:55 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -106,12 +106,16 @@ class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Z_Assoc {
         timeout_xsl
     } m_timeout_mode;
 
+    int m_initial_reduce;
     int m_connect_max;
+    int m_limit_connect;
     int m_search_max;
     Yaz_bw m_bw_stat;
     int m_pdu_max;
     Yaz_bw m_pdu_stat;
     int m_max_record_retrieve;
+    Yaz_bw m_search_stat;
+
     void handle_max_record_retrieve(Z_APDU *apdu);
     void display_diagrecs(Z_DiagRec **pp, int num);
     Z_Records *create_nonSurrogateDiagnostics(ODR o, int error,

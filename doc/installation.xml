@@ -1,5 +1,5 @@
 <chapter id="installation">
-  <!-- $Id: installation.xml,v 1.8 2005-02-07 09:50:23 adam Exp $ -->
+  <!-- $Id: installation.xml,v 1.9 2006-04-06 01:16:54 adam Exp $ -->
   <title>Installation</title>
   <para>
    You need a C++ compiler to compile and use YAZ proxy.
@@ -61,14 +61,14 @@
      <varlistentry>
       <term><literal>--with-yazpp </literal>directory</term>
       <listitem><para>
-        Specifies the location of <filename>yaz++-config</filename>.
-        The <filename>yaz++-config</filename> program is generated in
+        Specifies the location of <filename>yazpp-config</filename>.
+        The <filename>yazpp-config</filename> program is generated in
         the source directory of YAZ++ as well as the binaries
         directory when YAZ++ is installed (via make install).
         </para>
        <para>
         If you don't supply this option, <literal>configure</literal> will
-        look for <filename>yaz++-config</filename> in directories of the
+        look for <filename>yazpp-config</filename> in directories of the
         <envar>PATH</envar> environment - which is nearly always
         what you want.
        </para></listitem>

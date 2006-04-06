@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.48 2006-03-30 14:22:06 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.49 2006-04-06 01:16:55 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -202,7 +202,8 @@ Yaz_Proxy::Yaz_Proxy(IPDU_Observable *the_PDU_Observable,
                      ISocketObservable *the_socket_observable,
                      Yaz_Proxy *parent)
     :
-    Z_Assoc(the_PDU_Observable), m_bw_stat(60), m_pdu_stat(60)
+    Z_Assoc(the_PDU_Observable),
+    m_bw_stat(60), m_pdu_stat(60), m_search_stat(60)
 {
     m_PDU_Observable = the_PDU_Observable;
     m_socket_observable = the_socket_observable;
@@ -232,6 +233,7 @@ Yaz_Proxy::Yaz_Proxy(IPDU_Observable *the_PDU_Observable,
     m_pdu_max = 0;
     m_search_max = 0;
     m_connect_max = 0;
+    m_limit_connect = 0;
     m_timeout_mode = timeout_normal;
     m_timeout_gdu = 0;
     m_max_record_retrieve = 0;
@@ -291,6 +293,7 @@ Yaz_Proxy::Yaz_Proxy(IPDU_Observable *the_PDU_Observable,
     m_ref_count = 1;
     m_main_ptr_dec = false;
     m_peername = 0;
+    m_initial_reduce = 0;
 }
 
 void Yaz_Proxy::inc_ref()
@@ -352,7 +355,7 @@ int Yaz_Proxy::set_config(const char *config)
     int r = m_config->read_xml(config);
     if (!r)
         m_config->get_generic_info(&m_log_mask, &m_max_clients,
-                                   &m_connect_max);
+                                   &m_connect_max, &m_limit_connect);
     return r;
 }
 
@@ -404,7 +407,7 @@ Yaz_ProxyConfig *Yaz_Proxy::check_reconfigure()
             {
                 m_log_mask = 0;
                 cfg->get_generic_info(&m_log_mask, &m_max_clients,
-                                      &m_connect_max);
+                                      &m_connect_max, &m_limit_connect);
             }
         }
         else
@@ -442,6 +445,10 @@ IPDU_Observer *Yaz_Proxy::sessionNotify(IPDU_Observable
     
     Yaz_Proxy *new_proxy = new Yaz_Proxy(the_PDU_Observable,
                                          m_socket_observable, this);
+
+    if (m_limit_connect)
+        new_proxy->m_initial_reduce = connect_total / m_limit_connect;
+
     new_proxy->m_config = 0;
     new_proxy->m_config_fname = 0;
     new_proxy->timeout(m_client_idletime);
@@ -987,7 +994,6 @@ void Yaz_Proxy::convert_to_frontend_type(Z_NamePlusRecordList *p)
 void Yaz_Proxy::convert_records_charset(Z_NamePlusRecordList *p,
                                         const char *backend_charset)
 {
-    yaz_log(YLOG_LOG, "%sconvert_to_marc", m_session_str);
     int sel =   m_charset_converter->get_client_charset_selected();
     const char *client_record_charset =
         m_charset_converter->get_client_query_charset();
@@ -1045,10 +1051,6 @@ void Yaz_Proxy::convert_records_charset(Z_NamePlusRecordList *p,
         if (cd)
             yaz_iconv_close(cd);
         yaz_marc_destroy(mt);
-    }
-    else
-    {
-        yaz_log(YLOG_LOG, "%sSkipping marc convert", m_session_str);
     }
 }
 
@@ -1857,21 +1859,20 @@ void Yaz_Proxy::recv_GDU(Z_GDU *apdu, int len)
 
 void Yaz_Proxy::recv_GDU_reduce(GDU *gdu)
 {
-    int reduce = 0;
+    int reduce = m_initial_reduce; // initial reduce from connect phase..
+    m_initial_reduce = 0;  // reset it..
 
     int bw_total = m_bw_stat.get_total();
     int pdu_total = m_pdu_stat.get_total();
+    int search_total = m_search_stat.get_total();
 
     assert(m_timeout_mode == timeout_busy);
     assert(m_timeout_gdu == 0);
 
+    if (m_search_max)
+        reduce += search_total / m_search_max;
     if (m_bw_max)
-    {
-        if (bw_total > m_bw_max)
-        {
-            reduce = (bw_total/m_bw_max);
-        }
-    }
+        reduce += (bw_total/m_bw_max);
     if (m_pdu_max)
     {
         if (pdu_total > m_pdu_max)
@@ -1891,9 +1892,9 @@ void Yaz_Proxy::recv_GDU_reduce(GDU *gdu)
 #endif
     if (reduce)
     {
-        yaz_log(YLOG_LOG, "%sdelay=%d bw=%d pdu=%d limit-bw=%d limit-pdu=%d",
-                m_session_str, reduce, bw_total, pdu_total,
-                m_bw_max, m_pdu_max);
+        yaz_log(YLOG_LOG, "%sdelay=%d bw=%d pdu=%d search=%d limit-bw=%d limit-pdu=%d limit-search=%d",
+                m_session_str, reduce, bw_total, pdu_total, search_total,
+                m_bw_max, m_pdu_max, m_search_max);
 
         m_timeout_mode = timeout_reduce;
         m_timeout_gdu = gdu;
@@ -2473,39 +2474,45 @@ int Yaz_Proxy::file_access(Z_HTTP_Request *hreq)
     if (strcmp(hreq->method, "GET"))
         return 0;
     if (hreq->path[0] != '/')
-    {
-        yaz_log(YLOG_WARN, "Bad path: %s", hreq->path);
         return 0;
-    }
     const char *cp = hreq->path;
     while (*cp)
     {
         if (*cp == '/' && strchr("/.", cp[1]))
         {
-            yaz_log(YLOG_WARN, "Bad path: %s", hreq->path);
+            yaz_log(YLOG_LOG, "%sRejecting path %s", m_session_str,
+                    hreq->path);
             return 0;
         }
         cp++;
     }
+
+    Yaz_ProxyConfig *cfg = check_reconfigure();
+
+    if (!cfg->get_file_access_info(hreq->path+1))
+        return 0;
+
     const char *fname = hreq->path+1;
     if (stat(fname, &sbuf))
     {
-        yaz_log(YLOG_WARN|YLOG_ERRNO, "%s: stat failed", fname);
+        yaz_log(YLOG_LOG|YLOG_ERRNO, "%sstat failed for %s", m_session_str,
+                fname);
         return 0;
     }
     if ((sbuf.st_mode & S_IFMT) != S_IFREG)
     {
-        yaz_log(YLOG_WARN, "%s: not a regular file", fname);
+        yaz_log(YLOG_LOG, "%sNot a regular file %s", m_session_str, fname);
         return 0;
     }
     if (sbuf.st_size > (off_t) 1000000)
     {
-        yaz_log(YLOG_WARN, "%s: too large for transfer", fname);
+        yaz_log(YLOG_WARN, "%sFile %s too large for transfer", m_session_str,
+                fname);
         return 0;
     }
 
     ODR o = odr_encode();
-    Yaz_ProxyConfig *cfg = check_reconfigure();
+
     const char *ctype = cfg->check_mime_type(fname);
     Z_GDU *gdu = z_get_HTTP_Response(o, 200);
     Z_HTTP_Response *hres = gdu->u.HTTP_Response;
@@ -2623,6 +2630,7 @@ void Yaz_Proxy::handle_incoming_HTTP(Z_HTTP_Request *hreq)
 
         if (srw_pdu->which == Z_SRW_searchRetrieve_request)
         {
+
             Z_SRW_searchRetrieveRequest *srw_req = srw_pdu->u.request;
 
             const char *backend_db = srw_req->database;
@@ -3032,6 +3040,9 @@ void Yaz_Proxy::handle_incoming_Z_PDU(Z_APDU *apdu)
         m_mem_invalid_session = odr_extract_mem(odr_decode());
         apdu = m_initRequest_apdu;     // but throw an init to the target
     }
+
+    if (apdu->which == Z_APDU_searchRequest)
+        m_search_stat.add_bytes(1);
 
     // Determine our client.
     Z_OtherInformation **oi;
