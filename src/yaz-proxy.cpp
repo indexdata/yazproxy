@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.49 2006-04-06 01:16:55 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.50 2006-04-06 12:04:20 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -423,10 +423,15 @@ IPDU_Observer *Yaz_Proxy::sessionNotify(IPDU_Observable
     check_reconfigure();
 
     char session_str[200];
-    sprintf(session_str, "%ld:%d ", (long) time(0), m_session_no);
+    const char *peername = the_PDU_Observable->getpeername();
+    if (m_log_mask & PROXY_LOG_IP_CLIENT)
+        sprintf(session_str, "%ld:%d %s 0 ",
+                (long) time(0), m_session_no, peername);
+    else
+        sprintf(session_str, "%ld:%d 0 ",
+                (long) time(0), m_session_no);        
     m_session_no++;
 
-    const char *peername = the_PDU_Observable->getpeername();
     yaz_log (YLOG_LOG, "%sNew session %s", session_str, peername);
 
     m_connect.cleanup(false);
@@ -1829,9 +1834,12 @@ Z_APDU *Yaz_Proxy::result_set_optimize(Z_APDU *apdu)
 
 void Yaz_Proxy::inc_request_no()
 {
-    char *cp = strchr(m_session_str, ' ');
-    m_request_no++;
-    if (cp)
+    char *cp = m_session_str + strlen(m_session_str)-1;
+    if (*cp == ' ')
+        cp--;
+    while (*cp && *cp != ' ')
+        cp--;
+    if (*cp)
         sprintf(cp+1, "%d ", m_request_no);
 }
 

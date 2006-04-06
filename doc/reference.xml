@@ -703,6 +703,13 @@
 	  and the size of the APDU is logged.
 	 </entry>
 	</row>
+	<row>
+	 <entry><literal>client-ip</literal></entry>
+	 <entry>
+	  Log the client IP for each log entry. By default, the client IP
+	  is only logged when a new session starts.
+	 </entry>
+	</row>
        </tbody>
       </tgroup>
      </table>
@@ -817,7 +824,7 @@
    <screen><![CDATA[
 <?xml version="1.0"?>
 <!-- XML Schema for YAZ proxy config file.
-    $Id: reference.xml,v 1.16 2006-04-06 10:30:16 adam Exp $
+    $Id: reference.xml,v 1.17 2006-04-06 12:04:19 adam Exp $
 -->
 <xs:schema
   xmlns:xs="http://www.w3.org/2001/XMLSchema"

@@ -1,4 +1,4 @@
-/* $Id: proxy.h,v 1.30 2006-04-06 01:16:55 adam Exp $
+/* $Id: proxy.h,v 1.31 2006-04-06 12:04:19 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -41,6 +41,7 @@ class Yaz_Proxy;
 #define PROXY_LOG_APDU_SERVER 2
 #define PROXY_LOG_REQ_CLIENT 4
 #define PROXY_LOG_REQ_SERVER 8
+#define PROXY_LOG_IP_CLIENT 16
 
 class Yaz_usemarcon;
 class Yaz_ProxyConfig;

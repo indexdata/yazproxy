@@ -1,4 +1,7 @@
 
+Allow client-ip to be logged for each log entry. Speciy
+<log>client-ip</log> in the configuration.
+
 Added support for limiting the number of initiating connections
 from a single IP. limit-connect specifies a limit and if that
 is reached a delay is introduced (just as limit-pdu, etc).

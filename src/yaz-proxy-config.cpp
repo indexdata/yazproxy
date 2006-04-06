@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy-config.cpp,v 1.28 2006-04-06 01:20:02 adam Exp $
+/* $Id: yaz-proxy-config.cpp,v 1.29 2006-04-06 12:04:19 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -1037,6 +1037,8 @@ void Yaz_ProxyConfig::get_generic_info(int *log_mask,
                     *log_mask |= PROXY_LOG_REQ_CLIENT;
                 if (m_cp->mycmp(v, "server-requests", len))
                     *log_mask |= PROXY_LOG_REQ_SERVER;
+                if (m_cp->mycmp(v, "client-ip", len))
+                    *log_mask |= PROXY_LOG_IP_CLIENT;
                 if (isdigit(*v))
                     *log_mask |= atoi(v);
                 if (*cp == ',')
