@@ -1,4 +1,4 @@
-/* $Id: proxy.h,v 1.32 2006-04-06 16:25:21 adam Exp $
+/* $Id: proxy.h,v 1.33 2006-04-06 17:09:16 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -92,7 +92,7 @@ class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Z_Assoc {
     long m_seed;
     char *m_optimize;
     int m_session_no;         // sequence for each client session
-    char m_session_str[30];  // session string (time:session_no)
+    char m_session_str[200];  // session string (time:session_no)
     Yaz_ProxyConfig *m_config;
     char *m_config_fname;
     int m_bytes_sent;
