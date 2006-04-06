@@ -1,4 +1,11 @@
 
+Added support for limiting the number of initiating connections
+from a single IP. limit-connect specifies a limit and if that
+is reached a delay is introduced (just as limit-pdu, etc).
+Also added a new setting max-connect; if that max value is
+reached for a single IP the proxy will terminate the initiating
+session/connection immediately.
+
 New directive default-client-charset which serves as charset
 to be negotiated if client does NOT supports one.
 
