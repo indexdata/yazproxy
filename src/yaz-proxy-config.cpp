@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy-config.cpp,v 1.29 2006-04-06 12:04:19 adam Exp $
+/* $Id: yaz-proxy-config.cpp,v 1.30 2006-04-06 16:25:21 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -55,6 +55,7 @@ class Yaz_ProxyConfigP {
     xmlNodePtr find_target_node(const char *name, const char *db);
     xmlNodePtr find_target_db(xmlNodePtr ptr, const char *db);
     const char *get_text(xmlNodePtr ptr);
+    void get_period(xmlNodePtr ptr, int *period);
     int check_type_1_attributes(ODR odr, xmlNodePtr ptr,
                                 Z_AttributeList *attrs,
                                 char **addinfo);
@@ -164,6 +165,18 @@ const char *Yaz_ProxyConfigP::get_text(xmlNodePtr ptr)
             }
         }
     return 0;
+}
+
+void Yaz_ProxyConfigP::get_period(xmlNodePtr ptr, int *period)
+{
+    struct _xmlAttr *attr;
+    *period = 60;
+    for (attr = ptr->properties; attr; attr = attr->next)
+    {
+        if (!strcmp((const char *) attr->name, "period") &&
+            attr->children && attr->children->type == XML_TEXT_NODE)
+            *period = atoi((const char *) attr->children->content);
+    }
 }
 #endif
 
@@ -1008,7 +1021,8 @@ int Yaz_ProxyConfig::get_file_access_info(const char *path)
 void Yaz_ProxyConfig::get_generic_info(int *log_mask,
                                        int *max_clients,
                                        int *max_connect,
-                                       int *limit_connect)
+                                       int *limit_connect,
+                                       int *period_connect)
 {
     *max_connect = 0;
     *limit_connect = 0;
@@ -1060,18 +1074,29 @@ void Yaz_ProxyConfig::get_generic_info(int *log_mask,
             }
         }
         else if (ptr->type == XML_ELEMENT_NODE &&
+            !strcmp((const char *) ptr->name, "period-connect"))
+        {
+            const char *t = m_cp->get_text(ptr);
+            if (t)
+                *period_connect = atoi(t);
+        }
+        else if (ptr->type == XML_ELEMENT_NODE &&
             !strcmp((const char *) ptr->name, "max-connect"))
         {
             const char *t = m_cp->get_text(ptr);
             if (t)
+            {
                 *max_connect = atoi(t);
+            }
         }
         else if (ptr->type == XML_ELEMENT_NODE &&
             !strcmp((const char *) ptr->name, "limit-connect"))
         {
             const char *t = m_cp->get_text(ptr);
             if (t)
+            {
                 *limit_connect = atoi(t);
+            }
         }
         else if (ptr->type == XML_ELEMENT_NODE &&
             !strcmp((const char *) ptr->name, "target"))

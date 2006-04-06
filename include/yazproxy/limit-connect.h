@@ -1,4 +1,4 @@
-/* $Id: limit-connect.h,v 1.2 2006-03-30 14:16:34 adam Exp $
+/* $Id: limit-connect.h,v 1.3 2006-04-06 16:25:21 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -32,6 +32,7 @@ public:
     void add_connect(const char *peername);
     int get_total(const char *peername);
     void cleanup(bool all);
+    void set_period(int sec);
 private:
     struct Peer;
 

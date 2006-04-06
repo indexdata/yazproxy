@@ -1,4 +1,4 @@
-/* $Id: limit-connect.cpp,v 1.1 2006-03-30 10:35:15 adam Exp $
+/* $Id: limit-connect.cpp,v 1.2 2006-04-06 16:25:21 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -43,9 +43,15 @@ LimitConnect::LimitConnect()
     m_peers = 0;
 }
 
+
 LimitConnect::~LimitConnect()
 {
     cleanup(true);
+}
+
+void LimitConnect::set_period(int sec)
+{
+    m_period = sec;
 }
 
 LimitConnect::Peer::Peer(int sz, const char *peername) : m_bw(sz)

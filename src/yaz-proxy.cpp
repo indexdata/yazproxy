@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.50 2006-04-06 12:04:20 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.51 2006-04-06 16:25:21 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -232,8 +232,10 @@ Yaz_Proxy::Yaz_Proxy(IPDU_Observable *the_PDU_Observable,
     m_bw_max = 0;
     m_pdu_max = 0;
     m_search_max = 0;
-    m_connect_max = 0;
+    m_max_connect = 0;
+    m_max_connect_period = 0;
     m_limit_connect = 0;
+    m_limit_connect_period = 0;
     m_timeout_mode = timeout_normal;
     m_timeout_gdu = 0;
     m_max_record_retrieve = 0;
@@ -354,8 +356,12 @@ int Yaz_Proxy::set_config(const char *config)
     m_config_fname = xstrdup(config);
     int r = m_config->read_xml(config);
     if (!r)
+    {
+        int period = 60;
         m_config->get_generic_info(&m_log_mask, &m_max_clients,
-                                   &m_connect_max, &m_limit_connect);
+                                   &m_max_connect, &m_limit_connect, &period);
+        m_connect.set_period(period);
+    }
     return r;
 }
 
@@ -406,8 +412,11 @@ Yaz_ProxyConfig *Yaz_Proxy::check_reconfigure()
             else
             {
                 m_log_mask = 0;
+                int period = 60;
                 cfg->get_generic_info(&m_log_mask, &m_max_clients,
-                                      &m_connect_max, &m_limit_connect);
+                                      &m_max_connect, &m_limit_connect,
+                                      &period);
+                m_connect.set_period(period);
             }
         }
         else
@@ -438,7 +447,7 @@ IPDU_Observer *Yaz_Proxy::sessionNotify(IPDU_Observable
     m_connect.add_connect(peername);
 
     int connect_total = m_connect.get_total(peername);
-    int connect_max = m_connect_max;
+    int connect_max = m_max_connect;
     if (connect_max && connect_total > connect_max)
     {
         yaz_log(YLOG_LOG, "%sconnect not accepted total=%d max=%d",

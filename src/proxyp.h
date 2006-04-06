@@ -1,4 +1,4 @@
-/* $Id: proxyp.h,v 1.15 2006-04-06 01:16:55 adam Exp $
+/* $Id: proxyp.h,v 1.16 2006-04-06 16:25:21 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -105,7 +105,8 @@ public:
                       const char **default_client_query_charset);
 
     void get_generic_info(int *log_mask, int *max_clients,
-                          int *max_connect, int *limit_connect);
+                          int *max_connect, int *limit_connect,
+                          int *period_connect);
 
     int get_file_access_info(const char *path);
 
