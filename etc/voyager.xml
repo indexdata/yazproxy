@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- $Id: voyager.xml,v 1.7 2006-04-06 01:16:54 adam Exp $ -->
+<!-- $Id: voyager.xml,v 1.8 2006-04-06 17:23:14 adam Exp $ -->
 <proxy xmlns="http://indexdata.dk/yazproxy/schema/0.9/"
  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
  xsi:schemaLocation="http://indexdata.dk/yazproxy/schema/0.9/ yazproxy.xsd"
@@ -214,4 +214,5 @@
   <!-- <xlog></xlog> -->
   <max-connect>10</max-connect>
   <limit-connect>5</limit-connect>
+  <docpath>doc</docpath>
 </proxy>

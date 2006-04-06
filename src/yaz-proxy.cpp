@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.51 2006-04-06 16:25:21 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.52 2006-04-06 17:23:14 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -3577,8 +3577,19 @@ void Yaz_ProxyClient::recv_Z_PDU(Z_APDU *apdu, int len)
             *apdu->u.initResponse->maximumRecordSize;
 
         Z_InitResponse *ir = apdu->u.initResponse;
+       
+        // apply YAZ Proxy version
+        char *imv0 = ir->implementationVersion;
+        char *imv1 = (char*)
+            odr_malloc(m_init_odr, 20 + (imv0 ? strlen(imv0) : 0));
+        *imv1 = '\0';
+        if (imv0)
+            strcat(imv1, imv0);
+        strcat(imv1, "/" VERSION);
+        ir->implementationVersion = imv1;
+        
+        // apply YAZ Proxy implementation name
         char *im0 = ir->implementationName;
-
         char *im1 = (char*)
             odr_malloc(m_init_odr, 20 + (im0 ? strlen(im0) : 0));
         *im1 = '\0';
