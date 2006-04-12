@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- $Id: config.xml,v 1.19 2006-04-06 16:25:20 adam Exp $ -->
+<!-- $Id: config.xml,v 1.20 2006-04-12 11:55:38 adam Exp $ -->
 <proxy xmlns="http://indexdata.dk/yazproxy/schema/0.9/"
  xmlns:xi="http://www.w3.org/2001/XInclude"
  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -8,16 +8,16 @@
 <!-- Config can be checked with xerces-c++: PParse -n -s config.xml -->
   <target name="localhost" default="1">
     <url>localhost:9999</url>
-    <target-timeout>30</target-timeout>
-    <client-timeout>60</client-timeout>
-    <target-authentication type="open">a/b</target-authentication>
+    <target-timeout>60</target-timeout>
+    <client-timeout>20</client-timeout>
+    <!-- <target-authentication type="open">a/b</target-authentication> -->
     <keepalive>
-      <bandwidth>1000000</bandwidth>
-      <pdu>1000</pdu>
+      <bandwidth>100000</bandwidth>
+      <pdu>100</pdu>
     </keepalive>
     <limit><!-- per minute limits .. -->
       <bandwidth>2000000</bandwidth>
-      <pdu>60</pdu>
+      <pdu>10</pdu>
       <retrieve>100</retrieve>
       <search>3</search>
     </limit>
@@ -37,20 +37,21 @@
       <name>dc</name>
     </syntax>
     <syntax type="*" error="238"/>
-    <preinit>0</preinit>
+    <preinit>2</preinit>
     <xi:include href="explain.xml"/>
     <target-charset>iso-8859-1</target-charset>
     <cql2rpn>pqf.properties</cql2rpn>
   </target>
+<!--
   <target name="*">
     <target-timeout>60</target-timeout>
     <client-timeout>30</client-timeout>
-    <!-- everything else -->
   </target>
-  <max-clients>30</max-clients>
-  <max-connect>10</max-connect>
-  <period-connect>10</period-connect>
-  <limit-connect>5</limit-connect>
-  <log>client-requests server-requests client-ip</log>
+-->
+  <max-clients>20</max-clients>
+  <!-- <max-connect>10</max-connect> -->
+  <!-- <period-connect>10</period-connect> -->
+  <!-- <limit-connect>5</limit-connect> -->
+  <log>client-ip</log>
   <docpath>doc</docpath>
 </proxy>
