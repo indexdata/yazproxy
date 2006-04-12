@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.52 2006-04-06 17:23:14 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.53 2006-04-12 11:30:52 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -748,8 +748,7 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
                 yaz_log (YLOG_LOG, "%sMAXCLIENTS %d Destroy %d",
                          m_session_str, parent->m_max_clients, c->m_seqno);
                 if (c->m_server && c->m_server != this)
-                    delete c->m_server;   // PROBLEM: m_ref_count!
-                c->m_server = 0;
+                    c->m_server->dec_ref(true);
             }
             else
             {
@@ -764,7 +763,7 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
                 if (c->m_server && c->m_server != this)
                 {
                     c->m_server->m_client = 0;
-                    delete c->m_server;   // PROBLEM: m_ref_count!
+                    c->m_server->dec_ref(true);
                 }
                 (parent->m_seqno)++;
                 c->m_target_idletime = m_target_idletime;
@@ -3075,7 +3074,7 @@ void Yaz_Proxy::handle_incoming_Z_PDU(Z_APDU *apdu)
         else
         {
             // Z39.50 just shutdown
-            delete this;
+            timeout(0);
             return;
         }
     }
@@ -3476,9 +3475,12 @@ void Yaz_ProxyClient::timeoutNotify()
 
     if (m_server)
         m_server->send_response_fail_client(get_hostname());
+
+    Yaz_Proxy *proxy_root = m_root;
+
     shutdown();
 
-    m_root->pre_init();
+    proxy_root->pre_init();
 }
 
 Yaz_ProxyClient::Yaz_ProxyClient(IPDU_Observable *the_PDU_Observable,
