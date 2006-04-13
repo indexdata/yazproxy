@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.55 2006-04-13 00:02:24 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.56 2006-04-13 00:41:11 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -433,12 +433,11 @@ IPDU_Observer *Yaz_Proxy::sessionNotify(IPDU_Observable
     char session_str[200];
     const char *peername = the_PDU_Observable->getpeername();
     if (m_log_mask & PROXY_LOG_IP_CLIENT)
-        sprintf(session_str, "%ld:%d %.80s 0 ",
-                (long) time(0), m_session_no, peername);
+        sprintf(session_str, "%ld:%d %.80s %d ",
+                (long) time(0), m_session_no, peername, 0);
     else
-        sprintf(session_str, "%ld:%d 0 ",
-                (long) time(0), m_session_no);        
-    m_session_no++;
+        sprintf(session_str, "%ld:%d %d ",
+                (long) time(0), m_session_no, 0);
 
     yaz_log (YLOG_LOG, "%sNew session %s", session_str, peername);
 
@@ -1876,11 +1875,11 @@ void Yaz_Proxy::HTTP_Forwarded(Z_GDU *z_gdu)
             yaz_log(YLOG_LOG, "%sHTTP Forwarded from %s", m_session_str,
                     m_peername);
             if (m_log_mask & PROXY_LOG_IP_CLIENT)
-                sprintf(m_session_str, "%ld:%d %.80s 0 ",
-                        (long) time(0), m_session_no, m_peername);
+                sprintf(m_session_str, "%ld:%d %.80s %d ",
+                        (long) time(0), m_session_no, m_peername, m_request_no);
             else
-                sprintf(m_session_str, "%ld:%d 0 ",
-                        (long) time(0), m_session_no);        
+                sprintf(m_session_str, "%ld:%d %d ",
+                        (long) time(0), m_session_no, m_request_no);
         }
     }
 }
@@ -3245,6 +3244,7 @@ bool Yaz_Proxy::dec_ref(bool main_ptr)
     assert(m_ref_count > 0);
     if (main_ptr)
     {
+        yaz_log(YLOG_LOG, "%sdec_ref", m_session_str);
         if (m_main_ptr_dec)
             return false;
         m_main_ptr_dec = true;
