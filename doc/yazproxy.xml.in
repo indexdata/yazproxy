@@ -8,7 +8,7 @@
      <!ENTITY yaz-proxy-ref SYSTEM "yaz-proxy-ref.xml">
      <!ENTITY app-license SYSTEM "license.xml">
 ]>
-<!-- $Id: yazproxy.xml.in,v 1.4 2005-03-14 13:15:54 adam Exp $ -->
+<!-- $Id: yazproxy.xml.in,v 1.5 2006-04-13 00:10:27 adam Exp $ -->
 <book id="yazproxy">
  <bookinfo>
   <title>YAZ proxy User's Guide and Reference</title>
@@ -17,7 +17,7 @@
    <author><firstname>Adam</firstname><surname>Dickmeiss</surname></author>
    </authorgroup>
   <copyright>
-   <year>1999-2005</year>
+   <year>1999-2006</year>
    <holder>Index Data Aps</holder>
   </copyright>
   <abstract>
@@ -29,7 +29,7 @@
     This manual covers version @VERSION@.
     </simpara>
    <simpara>
-    CVS ID: $Id: yazproxy.xml.in,v 1.4 2005-03-14 13:15:54 adam Exp $
+    CVS ID: $Id: yazproxy.xml.in,v 1.5 2006-04-13 00:10:27 adam Exp $
    </simpara>
    <simpara>
     <inlinemediaobject>
