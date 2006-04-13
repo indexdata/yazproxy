@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.56 2006-04-13 00:41:11 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.57 2006-04-13 00:43:56 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -3244,7 +3244,6 @@ bool Yaz_Proxy::dec_ref(bool main_ptr)
     assert(m_ref_count > 0);
     if (main_ptr)
     {
-        yaz_log(YLOG_LOG, "%sdec_ref", m_session_str);
         if (m_main_ptr_dec)
             return false;
         m_main_ptr_dec = true;
