@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.54 2006-04-12 11:55:42 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.55 2006-04-13 00:02:24 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -295,7 +295,6 @@ Yaz_Proxy::Yaz_Proxy(IPDU_Observable *the_PDU_Observable,
     m_ref_count = 1;
     m_main_ptr_dec = false;
     m_peername = 0;
-    m_initial_reduce = 0;
 }
 
 void Yaz_Proxy::inc_ref()
@@ -376,7 +375,7 @@ void Yaz_Proxy::set_default_target(const char *target)
 void Yaz_Proxy::set_proxy_negotiation (const char *charset, const char *lang,
                                        const char *default_charset)
 {
-    yaz_log(YLOG_LOG, "%sSet the proxy negotiation: charset to '%s', "
+    yaz_log(YLOG_DEBUG, "%sSet the proxy negotiation: charset to '%s', "
         "default charset to '%s', language to '%s'", m_session_str, 
         charset?charset:"none",
         default_charset?default_charset:"none",
@@ -434,7 +433,7 @@ IPDU_Observer *Yaz_Proxy::sessionNotify(IPDU_Observable
     char session_str[200];
     const char *peername = the_PDU_Observable->getpeername();
     if (m_log_mask & PROXY_LOG_IP_CLIENT)
-        sprintf(session_str, "%ld:%d %s 0 ",
+        sprintf(session_str, "%ld:%d %.80s 0 ",
                 (long) time(0), m_session_no, peername);
     else
         sprintf(session_str, "%ld:%d 0 ",
@@ -443,25 +442,8 @@ IPDU_Observer *Yaz_Proxy::sessionNotify(IPDU_Observable
 
     yaz_log (YLOG_LOG, "%sNew session %s", session_str, peername);
 
-    m_connect.cleanup(false);
-    m_connect.add_connect(peername);
-
-    int connect_total = m_connect.get_total(peername);
-    int connect_max = m_max_connect;
-    if (connect_max && connect_total > connect_max)
-    {
-        yaz_log(YLOG_LOG, "%sconnect not accepted total=%d max=%d",
-                session_str, connect_total, connect_max);
-        return 0;
-    }
-    yaz_log(YLOG_LOG, "%sconnect accepted total=%d", session_str,
-            connect_total);
-    
     Yaz_Proxy *new_proxy = new Yaz_Proxy(the_PDU_Observable,
                                          m_socket_observable, this);
-
-    if (m_limit_connect)
-        new_proxy->m_initial_reduce = connect_total / m_limit_connect;
 
     new_proxy->m_config = 0;
     new_proxy->m_config_fname = 0;
@@ -1846,6 +1828,7 @@ Z_APDU *Yaz_Proxy::result_set_optimize(Z_APDU *apdu)
 
 void Yaz_Proxy::inc_request_no()
 {
+    m_request_no++;
     char *cp = m_session_str + strlen(m_session_str)-1;
     if (*cp == ' ')
         cp--;
@@ -1877,10 +1860,77 @@ void Yaz_Proxy::recv_GDU(Z_GDU *apdu, int len)
     recv_GDU_more(false);
 }
 
+void Yaz_Proxy::HTTP_Forwarded(Z_GDU *z_gdu)
+{
+    if (z_gdu->which == Z_GDU_HTTP_Request)
+    {
+        Z_HTTP_Request *hreq = z_gdu->u.HTTP_Request;
+        const char *x_forwarded_for =
+            z_HTTP_header_lookup(hreq->headers, "X-Forwarded-For");
+        if (x_forwarded_for)
+        {
+            xfree(m_peername);
+            m_peername = (char*) xmalloc(strlen(x_forwarded_for)+5);
+            sprintf(m_peername, "tcp:%s", x_forwarded_for);
+            
+            yaz_log(YLOG_LOG, "%sHTTP Forwarded from %s", m_session_str,
+                    m_peername);
+            if (m_log_mask & PROXY_LOG_IP_CLIENT)
+                sprintf(m_session_str, "%ld:%d %.80s 0 ",
+                        (long) time(0), m_session_no, m_peername);
+            else
+                sprintf(m_session_str, "%ld:%d 0 ",
+                        (long) time(0), m_session_no);        
+        }
+    }
+}
+
+void Yaz_Proxy::connect_stat(bool &block, int &reduce)
+{
+
+    m_parent->m_connect.cleanup(false);
+    m_parent->m_connect.add_connect(m_peername);
+
+    int connect_total = m_parent->m_connect.get_total(m_peername);
+    int max_connect = m_parent->m_max_connect;
+
+    if (max_connect && connect_total > max_connect)
+    {
+        yaz_log(YLOG_LOG, "%sconnect not accepted total=%d max=%d",
+                m_session_str, connect_total, max_connect);
+        block = true;
+    }
+    else 
+        block = false;
+    yaz_log(YLOG_LOG, "%sconnect accepted total=%d", m_session_str,
+            connect_total);
+    
+    int limit_connect = m_parent->m_limit_connect;
+    if (limit_connect)
+        reduce = connect_total / limit_connect;
+    else
+        reduce = 0;
+}
+
 void Yaz_Proxy::recv_GDU_reduce(GDU *gdu)
 {
-    int reduce = m_initial_reduce; // initial reduce from connect phase..
-    m_initial_reduce = 0;  // reset it..
+    HTTP_Forwarded(gdu->get());
+
+    int reduce = 0;
+    
+    if (m_request_no == 1)
+    {
+        bool block = false;
+        
+        connect_stat(block, reduce);
+
+        if (block)
+        {
+            m_timeout_mode = timeout_busy;
+            timeout(0);
+            return;
+        }
+    }
 
     int bw_total = m_bw_stat.get_total();
     int pdu_total = m_pdu_stat.get_total();
@@ -2499,11 +2549,7 @@ int Yaz_Proxy::file_access(Z_HTTP_Request *hreq)
     while (*cp)
     {
         if (*cp == '/' && strchr("/.", cp[1]))
-        {
-            yaz_log(YLOG_LOG, "%sRejecting path %s", m_session_str,
-                    hreq->path);
             return 0;
-        }
         cp++;
     }
 
@@ -2612,6 +2658,8 @@ void Yaz_Proxy::handle_incoming_HTTP(Z_HTTP_Request *hreq)
     char *charset = 0;
     Z_SRW_diagnostic *diagnostic = 0;
     int num_diagnostic = 0;
+
+    yaz_log(YLOG_LOG, "%s%s %s", m_session_str, hreq->method, hreq->path);
 
     if (file_access(hreq))
     {

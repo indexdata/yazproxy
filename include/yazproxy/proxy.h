@@ -1,4 +1,4 @@
-/* $Id: proxy.h,v 1.33 2006-04-06 17:09:16 adam Exp $
+/* $Id: proxy.h,v 1.34 2006-04-13 00:02:23 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -50,7 +50,7 @@ class Yaz_CharsetConverter;
 
 enum YAZ_Proxy_MARCXML_mode {
     none,
-    marcxml,
+    marcxml
 };
 
 class Msg_Thread;
@@ -66,6 +66,8 @@ class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Z_Assoc {
     char *get_proxy(Z_OtherInformation **otherInfo);
     void get_charset_and_lang_negotiation(Z_OtherInformation **otherInfo,
         char **charstes, char **langs, int *selected);
+    void HTTP_Forwarded(Z_GDU *z_gdu);
+    void connect_stat(bool &block, int &reduce);
     Yaz_ProxyClient *get_client(Z_APDU *apdu, const char *cookie,
                                 const char *proxy_host);
     void srw_get_client(const char *db, const char **backend_db);
@@ -107,7 +109,6 @@ class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Z_Assoc {
         timeout_xsl
     } m_timeout_mode;
 
-    int m_initial_reduce;
     int m_max_connect;
     int m_max_connect_period;
     int m_limit_connect;
