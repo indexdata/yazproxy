@@ -1,4 +1,4 @@
-<!-- $Id: introduction.xml,v 1.6 2006-04-06 10:30:16 adam Exp $ -->
+<!-- $Id: introduction.xml,v 1.7 2006-04-13 00:10:19 adam Exp $ -->
  <chapter id="introduction"><title>Introduction</title>
   <para>
    The <ulink url="http://www.indexdata.dk/yazproxy/">YAZ Proxy</ulink> is
@@ -9,10 +9,10 @@
    <itemizedlist>
     <listitem>
      <para>
-      <ulink url="http://www.loc.gov/z3950/agency/zing/srw/">SRW/SRU</ulink>
-      server function, to allow any Z39.50 server to also support
-      the <ulink url="http://www.loc.gov/z3950/agency/zing/">ZiNG</ulink>
-      protocols
+      <ulink url="http://www.loc.gov/standards/sru/">SRW/SRU</ulink>
+      server function, to allow any
+      <ulink url="http://www.loc.gov/z3950/agency/">Z39.50</ulink>
+      server to also support the SRW/SRU protocols.
      </para>
     </listitem>
 

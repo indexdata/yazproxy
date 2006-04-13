@@ -1,5 +1,5 @@
 <chapter id="installation">
-  <!-- $Id: installation.xml,v 1.9 2006-04-06 01:16:54 adam Exp $ -->
+  <!-- $Id: installation.xml,v 1.10 2006-04-13 00:10:19 adam Exp $ -->
   <title>Installation</title>
   <para>
    You need a C++ compiler to compile and use YAZ proxy.
@@ -24,7 +24,7 @@
    <ulink url="http://xmlsoft.org/XSLT/">libXSLT</ulink> are installed.
    YAZ must be configured with libxml2 support.
    If not, 
-   <ulink url="http://www.loc.gov/z3950/agency/zing/srw/">SRW/SRU</ulink>
+   <ulink url="http://www.loc.gov/standards/sru/">SRW/SRU</ulink>
    is not supported.
    The YAZ Proxy uses libXSLT for record conversions via XSLT.
   </para>
