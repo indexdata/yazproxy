@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.57 2006-04-13 00:43:56 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.58 2006-04-15 15:54:38 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -438,6 +438,7 @@ IPDU_Observer *Yaz_Proxy::sessionNotify(IPDU_Observable
     else
         sprintf(session_str, "%ld:%d %d ",
                 (long) time(0), m_session_no, 0);
+    m_session_no++;
 
     yaz_log (YLOG_LOG, "%sNew session %s", session_str, peername);
 
