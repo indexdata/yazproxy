@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy-config.cpp,v 1.30 2006-04-06 16:25:21 adam Exp $
+/* $Id: yaz-proxy-config.cpp,v 1.31 2006-04-16 07:33:13 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -1103,6 +1103,9 @@ void Yaz_ProxyConfig::get_generic_info(int *log_mask,
             ;
         else if (ptr->type == XML_ELEMENT_NODE &&
             !strcmp((const char *) ptr->name, "docpath"))
+            ;
+        else if (ptr->type == XML_ELEMENT_NODE &&
+            !strcmp((const char *) ptr->name, "module"))
             ;
         else if (ptr->type == XML_ELEMENT_NODE)
         {
