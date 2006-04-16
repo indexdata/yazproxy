@@ -731,7 +731,8 @@
     <para>
      The element <literal>max-connect</literal> is a child of element
      <literal>proxy</literal> and specifies the maximum number
-     of connections to be initiated within the last minute.
+     of connections to be initiated within the last minute (or
+     value of <link linkend="proxy-period-connect">period-connect</link>.
     </para>
     <para>
      If the maximum number is reached the proxy will terminate the
@@ -744,11 +745,26 @@
     <para>
      The element <literal>max-connect</literal> is a child of element
      <literal>proxy</literal> and specifies the limit of number
-     of connections to be initiated within the last minute.
+     of connections to be initiated within the last minute (or
+     value of <link linkend="proxy-period-connect">period-connect</link>.
     </para>
     <para>
-     If the maximum number is reached the proxy delay the first operatation
-     in the session (Thus delaying the connection).
+     If the maximum number is reached the proxy delays the first operation
+     in the session by one second.
+    </para>
+   </section>
+
+   <section id="proxy-period-connect">
+    <title>period-connect</title>
+    <para>
+     The element <literal>period-connect</literal> is a child of element
+     <literal>proxy</literal> and specifies period - in the number of seconds
+     that <link linkend="proxy-limit-connect">limit-connect</link> and 
+     <link linkend="proxy-max-connect">max-connect</link>
+     should measure connections.
+    </para>
+    <para>
+     If <literal>period-connect</literal> is omitted, 60 seconds is used.
     </para>
    </section>
 
@@ -824,7 +840,7 @@
    <screen><![CDATA[
 <?xml version="1.0"?>
 <!-- XML Schema for YAZ proxy config file.
-    $Id: reference.xml,v 1.17 2006-04-06 12:04:19 adam Exp $
+    $Id: reference.xml,v 1.18 2006-04-16 07:45:03 adam Exp $
 -->
 <xs:schema
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
