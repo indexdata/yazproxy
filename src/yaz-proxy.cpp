@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.58 2006-04-15 15:54:38 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.59 2006-04-16 07:35:06 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -1982,7 +1982,10 @@ void Yaz_Proxy::recv_GDU_more(bool normal)
     while (m_timeout_mode == timeout_normal && (g = m_in_queue.dequeue()))
     {
         m_timeout_mode = timeout_busy;
+        inc_ref();
         recv_GDU_reduce(g);
+        if (dec_ref(false))
+            break;
     }
 }
 
@@ -3087,6 +3090,23 @@ void Yaz_Proxy::handle_init(Z_APDU *apdu)
 
 void Yaz_Proxy::handle_incoming_Z_PDU(Z_APDU *apdu)
 {
+#if 0
+    // try to make a _bad_ attribute set ID .. Don't enable this in prod.
+    if (apdu->which == Z_APDU_searchRequest)
+    {
+        Z_SearchRequest *req = apdu->u.searchRequest;
+        if (req->query && req->query->which == Z_Query_type_1)
+        {
+            Z_RPNQuery *rpnquery = req->query->u.type_1;
+            if (rpnquery->attributeSetId)
+            {
+                rpnquery->attributeSetId[0] = -2;
+                rpnquery->attributeSetId[1] = -1;
+                yaz_log(YLOG_WARN, "%sBAD FIXUP TEST", m_session_str);
+            }
+        }
+    }
+#endif
     Z_ReferenceId **refid = get_referenceIdP(apdu);
     nmem_reset(m_referenceId_mem);
     if (refid && *refid)
@@ -3242,6 +3262,7 @@ void Yaz_Proxy::releaseClient()
 
 bool Yaz_Proxy::dec_ref(bool main_ptr)
 {
+    main_ptr = false;
     assert(m_ref_count > 0);
     if (main_ptr)
     {
@@ -3276,7 +3297,7 @@ void Yaz_ProxyClient::shutdown()
 
     if (m_server)
     {
-        m_waiting = 1;      // ensure it's released from Proxy in releaseClient
+        m_waiting = 1;   // ensure it's released from Yaz_Proxy::releaseClient
         m_server->dec_ref(true);
     }
     else
@@ -3286,8 +3307,7 @@ void Yaz_ProxyClient::shutdown()
 void Yaz_Proxy::failNotify()
 {
     inc_request_no();
-    yaz_log (YLOG_LOG, "%sConnection closed by client",
-             get_session_str());
+    yaz_log (YLOG_LOG, "%sConnection closed by client", get_session_str());
     dec_ref(true);
 }
 
