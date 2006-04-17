@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.59 2006-04-16 07:35:06 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.60 2006-04-17 07:38:21 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -1848,6 +1848,25 @@ void Yaz_Proxy::recv_GDU(Z_GDU *apdu, int len)
         yaz_log (YLOG_LOG, "%sReceiving %s from client %d bytes",
                  m_session_str, gdu_name(apdu), len);
 
+#if 0
+    // try to make a _bad_ attribute set ID .. Don't enable this in prod.
+    if (apdu->which == Z_GDU_Z3950 
+        && apdu->u.z3950->which == Z_APDU_searchRequest)
+    {
+        Z_SearchRequest *req = apdu->u.z3950->u.searchRequest;
+        if (req->query && req->query->which == Z_Query_type_1)
+        {
+            Z_RPNQuery *rpnquery = req->query->u.type_1;
+            if (rpnquery->attributeSetId)
+            {
+                rpnquery->attributeSetId[0] = -2;
+                rpnquery->attributeSetId[1] = -1;
+                yaz_log(YLOG_WARN, "%sBAD FIXUP TEST", m_session_str);
+            }
+        }
+    }
+#endif
+
 #if HAVE_GETTIMEOFDAY
     gettimeofday((struct timeval *) m_time_tv, 0);
 #endif
@@ -1855,8 +1874,16 @@ void Yaz_Proxy::recv_GDU(Z_GDU *apdu, int len)
     m_pdu_stat.add_bytes(1);
 
     GDU *gdu = new GDU(apdu);
-    m_in_queue.enqueue(gdu);
 
+    if (gdu->get() == 0)
+    {
+        delete gdu;
+        yaz_log(YLOG_LOG, "%sUnable to encode package", m_session_str);
+        m_in_queue.clear();
+        dec_ref(true);
+        return;
+    }
+    m_in_queue.enqueue(gdu);
     recv_GDU_more(false);
 }
 
@@ -3090,23 +3117,6 @@ void Yaz_Proxy::handle_init(Z_APDU *apdu)
 
 void Yaz_Proxy::handle_incoming_Z_PDU(Z_APDU *apdu)
 {
-#if 0
-    // try to make a _bad_ attribute set ID .. Don't enable this in prod.
-    if (apdu->which == Z_APDU_searchRequest)
-    {
-        Z_SearchRequest *req = apdu->u.searchRequest;
-        if (req->query && req->query->which == Z_Query_type_1)
-        {
-            Z_RPNQuery *rpnquery = req->query->u.type_1;
-            if (rpnquery->attributeSetId)
-            {
-                rpnquery->attributeSetId[0] = -2;
-                rpnquery->attributeSetId[1] = -1;
-                yaz_log(YLOG_WARN, "%sBAD FIXUP TEST", m_session_str);
-            }
-        }
-    }
-#endif
     Z_ReferenceId **refid = get_referenceIdP(apdu);
     nmem_reset(m_referenceId_mem);
     if (refid && *refid)
