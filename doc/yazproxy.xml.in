@@ -8,7 +8,7 @@
      <!ENTITY yaz-proxy-ref SYSTEM "yaz-proxy-ref.xml">
      <!ENTITY app-license SYSTEM "license.xml">
 ]>
-<!-- $Id: yazproxy.xml.in,v 1.5 2006-04-13 00:10:27 adam Exp $ -->
+<!-- $Id: yazproxy.xml.in,v 1.6 2006-04-20 12:05:54 adam Exp $ -->
 <book id="yazproxy">
  <bookinfo>
   <title>YAZ proxy User's Guide and Reference</title>
@@ -29,12 +29,12 @@
     This manual covers version @VERSION@.
     </simpara>
    <simpara>
-    CVS ID: $Id: yazproxy.xml.in,v 1.5 2006-04-13 00:10:27 adam Exp $
+    CVS ID: $Id: yazproxy.xml.in,v 1.6 2006-04-20 12:05:54 adam Exp $
    </simpara>
    <simpara>
     <inlinemediaobject>
      <imageobject>
-      <imagedata fileref="id.png" format="PNG"/>
+      <imagedata fileref="common/id.png" format="PNG"/>
      </imageobject>
     </inlinemediaobject>
    </simpara>
