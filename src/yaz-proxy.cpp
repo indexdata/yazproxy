@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.60 2006-04-17 07:38:21 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.61 2006-04-22 07:03:34 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -1611,8 +1611,21 @@ Z_APDU *Yaz_Proxy::result_set_optimize(Z_APDU *apdu)
         {
             Z_APDU *new_apdu = create_Z_PDU(Z_APDU_presentResponse);
             new_apdu->u.presentResponse->records =
-                create_nonSurrogateDiagnostics(odr_encode(), 30,
-                                               pr->resultSetId);
+                create_nonSurrogateDiagnostics(
+                    odr_encode(), 
+                    YAZ_BIB1_SPECIFIED_RESULT_SET_DOES_NOT_EXIST,
+                    pr->resultSetId);
+            send_to_client(new_apdu);
+            return 0;
+        }
+        if (start < 1 || toget < 0)
+        {
+            Z_APDU *new_apdu = create_Z_PDU(Z_APDU_presentResponse);
+            new_apdu->u.presentResponse->records =
+                create_nonSurrogateDiagnostics(
+                    odr_encode(), 
+                    YAZ_BIB1_PRESENT_REQUEST_OUT_OF_RANGE, 
+                    0);
             send_to_client(new_apdu);
             return 0;
         }
@@ -1622,7 +1635,10 @@ Z_APDU *Yaz_Proxy::result_set_optimize(Z_APDU *apdu)
             {
                 Z_APDU *new_apdu = create_Z_PDU(Z_APDU_presentResponse);
                 new_apdu->u.presentResponse->records =
-                    create_nonSurrogateDiagnostics(odr_encode(), 13, 0);
+                    create_nonSurrogateDiagnostics(
+                        odr_encode(), 
+                        YAZ_BIB1_PRESENT_REQUEST_OUT_OF_RANGE,
+                        0);
                 send_to_client(new_apdu);
                 return 0;
             }
@@ -1668,6 +1684,21 @@ Z_APDU *Yaz_Proxy::result_set_optimize(Z_APDU *apdu)
 
     this_query->set_Z_Query(sr->query);
 
+    // Check for non-negative piggyback params.
+    if (*sr->smallSetUpperBound < 0
+        || *sr->largeSetLowerBound < 0
+        || *sr->mediumSetPresentNumber < 0)
+    {
+        Z_APDU *new_apdu = create_Z_PDU(Z_APDU_searchResponse);
+        // Not a present request.. But can't find better diagnostic
+        new_apdu->u.searchResponse->records =
+            create_nonSurrogateDiagnostics(
+                odr_encode(), 
+                YAZ_BIB1_PRESENT_REQUEST_OUT_OF_RANGE, 0);
+        send_to_client(new_apdu);
+        return 0;
+    }
+
     char query_str[120];
     this_query->print(query_str, sizeof(query_str)-1);
     yaz_log(YLOG_LOG, "%sSearch %s", m_session_str, query_str);
@@ -1688,7 +1719,7 @@ Z_APDU *Yaz_Proxy::result_set_optimize(Z_APDU *apdu)
 
             if (toget > m_client->m_last_resultCount)
                 toget = m_client->m_last_resultCount;
-
+            
             if (sr->mediumSetElementSetNames)
             {
                 comp = (Z_RecordComposition *)
