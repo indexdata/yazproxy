@@ -13,5 +13,6 @@ dist-hook:
 	cp $(srcdir)/debian/control $(distdir)/debian
 	cp $(srcdir)/debian/changelog $(distdir)/debian
 	cp $(srcdir)/debian/rules $(distdir)/debian
-	cp $(srcdir)/debian/postinst $(distdir)/debian
+	cp $(srcdir)/debian/*.postinst $(distdir)/debian
 	cp $(srcdir)/debian/*.install $(distdir)/debian
+	cp $(srcdir)/debian/*.manpages $(distdir)/debian
