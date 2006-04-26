@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.61 2006-04-22 07:03:34 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.62 2006-04-26 11:59:11 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -106,7 +106,7 @@ IMsg_Thread *Auth_Msg::handle()
 
 void Auth_Msg::result()
 {
-    if (m_proxy->dec_ref(false))
+    if (m_proxy->dec_ref())
     {
         yaz_log(YLOG_LOG, "Auth_Msg::proxy deleted meanwhile");
     }
@@ -131,7 +131,7 @@ void Yaz_Proxy::result_authentication(Z_APDU *apdu, int ret)
         Z_APDU *apdu_reject = zget_APDU(odr_encode(), Z_APDU_initResponse);
         *apdu_reject->u.initResponse->result = 0;
         send_to_client(apdu_reject);
-        dec_ref(false);
+        dec_ref();
     }
     else
     {
@@ -734,7 +734,7 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
                 yaz_log (YLOG_LOG, "%sMAXCLIENTS %d Destroy %d",
                          m_session_str, parent->m_max_clients, c->m_seqno);
                 if (c->m_server && c->m_server != this)
-                    c->m_server->dec_ref(true);
+                    c->m_server->dec_ref();
             }
             else
             {
@@ -749,7 +749,7 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
                 if (c->m_server && c->m_server != this)
                 {
                     c->m_server->m_client = 0;
-                    c->m_server->dec_ref(true);
+                    c->m_server->dec_ref();
                 }
                 (parent->m_seqno)++;
                 c->m_target_idletime = m_target_idletime;
@@ -1911,7 +1911,7 @@ void Yaz_Proxy::recv_GDU(Z_GDU *apdu, int len)
         delete gdu;
         yaz_log(YLOG_LOG, "%sUnable to encode package", m_session_str);
         m_in_queue.clear();
-        dec_ref(true);
+        dec_ref();
         return;
     }
     m_in_queue.enqueue(gdu);
@@ -2042,7 +2042,7 @@ void Yaz_Proxy::recv_GDU_more(bool normal)
         m_timeout_mode = timeout_busy;
         inc_ref();
         recv_GDU_reduce(g);
-        if (dec_ref(false))
+        if (dec_ref())
             break;
     }
 }
@@ -3301,17 +3301,8 @@ void Yaz_Proxy::releaseClient()
         m_parent->pre_init();
 }
 
-bool Yaz_Proxy::dec_ref(bool main_ptr)
+bool Yaz_Proxy::dec_ref()
 {
-    main_ptr = false;
-    assert(m_ref_count > 0);
-    if (main_ptr)
-    {
-        if (m_main_ptr_dec)
-            return false;
-        m_main_ptr_dec = true;
-    }
-
     m_http_keepalive = 0;
 
     --m_ref_count;
@@ -3339,7 +3330,7 @@ void Yaz_ProxyClient::shutdown()
     if (m_server)
     {
         m_waiting = 1;   // ensure it's released from Yaz_Proxy::releaseClient
-        m_server->dec_ref(true);
+        m_server->dec_ref();
     }
     else
         delete this;
@@ -3349,7 +3340,7 @@ void Yaz_Proxy::failNotify()
 {
     inc_request_no();
     yaz_log (YLOG_LOG, "%sConnection closed by client", get_session_str());
-    dec_ref(true);
+    dec_ref();
 }
 
 void Yaz_Proxy::send_response_fail_client(const char *addr)
@@ -3550,7 +3541,7 @@ void Yaz_Proxy::timeoutNotify()
             inc_request_no();
             m_in_queue.clear();
             yaz_log (YLOG_LOG, "%sTimeout (client to proxy)", m_session_str);
-            dec_ref(true);
+            dec_ref();
             break;
         case timeout_reduce:
             timeout(m_client_idletime);
