@@ -1,3 +1,6 @@
+--- 1.2.0 2005/04/26
+
+Fixed a problem with negative numbers in present requests.
 
 Allow client-ip to be logged for each log entry. Speciy
 <log>client-ip</log> in the configuration.
