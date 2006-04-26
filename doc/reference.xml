@@ -32,7 +32,7 @@
        usual YAZ address format (typically
        <literal>tcp:<parameter>hostname</parameter>:<parameter>port</parameter></literal>)
        as described in
-       <ulink url="http://www.indexdata.dk/yaz/doc/comstack.addresses.tkl"
+       <ulink url="&url.yaz.comstack.addresses;"
 	>the Addresses section of the YAZ manual</ulink>.
       </para>
      </listitem>
@@ -199,8 +199,8 @@
    </para>
    <para>
     The config file is XML based. The YAZ proxy must be compiled 
-    with <ulink url="http://www.xmlsoft.org/">libxml2</ulink> and
-    <ulink url="http://xmlsoft.org/XSLT/">libXSLT</ulink> support in
+    with <ulink url="&url.libxml2;">libxml2</ulink> and
+    <ulink url="&url.libxslt;">libXSLT</ulink> support in
     order for the config file facility to be enabled.
    </para>
    <para>
@@ -221,13 +221,13 @@
     <para>
      The proxy config file must have a root element called
      <literal>proxy</literal> and scoped within namespace
-     <literal> xmlns="http://indexdata.dk/yazproxy/schema/0.8/</literal>.
+     <literal> xmlns="http://indexdata.dk/yazproxy/schema/0.9/</literal>.
      All information except an optional XML header must be stored
      within the <literal>proxy</literal> element.
     </para>
     <screen>
      &lt;?xml version="1.0"?>
-     &lt;proxy xmlns="http://indexdata.dk/yazproxy/schema/0.8/">
+     &lt;proxy xmlns="http://indexdata.dk/yazproxy/schema/0.9/">
       &lt;!-- content here .. -->
      &lt;/proxy>
     </screen>
@@ -537,8 +537,8 @@
     </para>
     <para>
      See YAZ documentation for more information about the
-     <ulink url="http://indexdata.dk/yaz/doc/tools.tkl#tools.cql.pqf">CQL
-      to PQF</ulink> conversion. See also the
+     <ulink url="&url.yaz.cql2pqf;">CQL to PQF</ulink> conversion.
+     See also the
      <filename>pqf.properties</filename> in the <filename>etc</filename> 
      (or <replaceable>prefix/share/yazproxy</replaceable>)
      directory of the YAZ proxy distribution.
@@ -638,8 +638,8 @@
     </para>
     <tip>
      <para>
-      Using the <ulink url="http://www.gnu.org/software/bash/bash.html">
-       bash</ulink> shell, you can set the limit with
+      Using the <ulink url="&url.bash;">bash</ulink> shell, you can set
+      the limit with
       <literal>ulimit -n</literal><replaceable>no</replaceable>. 
        Use <literal>ulimit -a</literal> to display limits.
      </para>
@@ -840,7 +840,7 @@
    <screen><![CDATA[
 <?xml version="1.0"?>
 <!-- XML Schema for YAZ proxy config file.
-    $Id: reference.xml,v 1.18 2006-04-16 07:45:03 adam Exp $
+    $Id: reference.xml,v 1.19 2006-04-26 12:17:23 adam Exp $
 -->
 <xs:schema
   xmlns:xs="http://www.w3.org/2001/XMLSchema"

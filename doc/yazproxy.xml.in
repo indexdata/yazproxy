@@ -7,8 +7,10 @@
      <!ENTITY chap-reference SYSTEM "reference.xml">
      <!ENTITY yaz-proxy-ref SYSTEM "yaz-proxy-ref.xml">
      <!ENTITY app-license SYSTEM "license.xml">
+     <!ENTITY % common  SYSTEM "common/common.ent">
+     %common;
 ]>
-<!-- $Id: yazproxy.xml.in,v 1.6 2006-04-20 12:05:54 adam Exp $ -->
+<!-- $Id: yazproxy.xml.in,v 1.7 2006-04-26 12:17:23 adam Exp $ -->
 <book id="yazproxy">
  <bookinfo>
   <title>YAZ proxy User's Guide and Reference</title>
@@ -22,14 +24,14 @@
   </copyright>
   <abstract>
    <simpara>
-    <ulink url="http://www.indexdata.dk/yazproxy/">YAZ proxy</ulink>
+    <ulink url="&url.yazproxy;">YAZ proxy</ulink>
     is a powerful general purpose Z39.50/SRW/SRU proxy.
    </simpara>
    <simpara>
     This manual covers version @VERSION@.
     </simpara>
    <simpara>
-    CVS ID: $Id: yazproxy.xml.in,v 1.6 2006-04-20 12:05:54 adam Exp $
+    CVS ID: $Id: yazproxy.xml.in,v 1.7 2006-04-26 12:17:23 adam Exp $
    </simpara>
    <simpara>
     <inlinemediaobject>

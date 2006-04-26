@@ -1,10 +1,10 @@
 <chapter id="installation">
-  <!-- $Id: installation.xml,v 1.10 2006-04-13 00:10:19 adam Exp $ -->
+  <!-- $Id: installation.xml,v 1.11 2006-04-26 12:17:23 adam Exp $ -->
   <title>Installation</title>
   <para>
    You need a C++ compiler to compile and use YAZ proxy.
    The software was implemented using
-   <ulink url="http://gcc.gnu.org/">GCC</ulink> so we know that works
+   <ulink url="&url.gcc;">GCC</ulink> so we know that works
    well with YAZ proxy. From time to time the software has been
    compiled on Windows using Visual C++. Other compilers should
    work too. Let us know of portability problems, etc. with
@@ -12,19 +12,19 @@
   </para>
   <para>
    YAZ proxy is built on top of the 
-   <ulink url="http://indexdata.dk/yaz/">YAZ</ulink> and
-   <ulink url="http://indexdata.dk/yazplusplus/">YAZ++</ulink>
+   <ulink url="&url.yaz;">YAZ</ulink> and
+   <ulink url="&url.yazplusplus;">YAZ++</ulink>
    toolkits.
    You need to install these first.
    For some platforms there are binary packages available for YAZ/YAZ++.
   </para>
   <para>
    We also highly recommend that
-   <ulink url="http://xmlsoft.org/">libxml2</ulink> and
-   <ulink url="http://xmlsoft.org/XSLT/">libXSLT</ulink> are installed.
+   <ulink url="&url.libxml2;">libxml2</ulink> and
+   <ulink url="&url.libxslt;">libXSLT</ulink> are installed.
    YAZ must be configured with libxml2 support.
    If not, 
-   <ulink url="http://www.loc.gov/standards/sru/">SRW/SRU</ulink>
+   <ulink url="&url.sru;">SRW/SRU</ulink>
    is not supported.
    The YAZ Proxy uses libXSLT for record conversions via XSLT.
   </para>
@@ -33,8 +33,7 @@
    formats. This is useful if you want the proxy to offer more
    MARC record types than the backend target supports. Get USEMARCON
    from:
-   <ulink url="http://www.bl.uk/services/bibliographic/usemarcon.html">
-    British Library USEMARCON page
+   <ulink url="&url.usemarcon;">British Library USEMARCON page
    </ulink>.
   </para>
   <section id="unix">
@@ -155,7 +154,7 @@
    <title>Building on Windows</title>
    <para>
     YAZ++ is shipped with "makefiles" for the NMAKE tool that comes
-    with <ulink url="http://msdn.microsoft.com/vstudio/">
+    with <ulink url="&url.vstudio;">
      Microsoft Visual Studio</ulink>.
     Version 6 and .NET has been tested. We expect that YAZ++ compiles
     with version 5 as well.
@@ -208,7 +207,7 @@
 	If <literal>HAVE_LIBXSLT</literal> is set to 1, the proxy is compiled
 	with XSLT and XML support. In this configuration, set 
 	<literal>LIBXSLT_DIR</literal> to the 
-	<ulink url="http://www.xmlsoft.org/">libXSLT</ulink> source
+	<ulink url="&url.libxslt;">libXSLT</ulink> source
 	directory.
        </para>
        
@@ -221,7 +220,7 @@
        
        <para>
 	Windows versions of libXSLT, libxml2, zlib and iconv can be found
-	<ulink url="http://www.zlatkovic.com/libxml.en.html">
+	<ulink url="&url.libxml2.download.win32;">
 	 here</ulink>.
        </para>
       </listitem>
@@ -245,7 +244,7 @@
 	If <literal>HAVE_LIBXML2</literal> is set to 1, the proxy is compiled
 	with XML support. In this configuration, set 
 	<literal>LIBXML2_DIR</literal> to the 
-	<ulink url="http://www.xmlsoft.org/">libxml2</ulink> source directory
+	<ulink url="&url.libxml2;">libxml2</ulink> source directory
 	and
 	<literal>ZLIB_DIR</literal> to the zlib directory.
        </para>

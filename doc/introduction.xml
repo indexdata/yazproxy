@@ -1,7 +1,7 @@
-<!-- $Id: introduction.xml,v 1.7 2006-04-13 00:10:19 adam Exp $ -->
+<!-- $Id: introduction.xml,v 1.8 2006-04-26 12:17:23 adam Exp $ -->
  <chapter id="introduction"><title>Introduction</title>
   <para>
-   The <ulink url="http://www.indexdata.dk/yazproxy/">YAZ Proxy</ulink> is
+   The <ulink url="&url.yazproxy;">YAZ Proxy</ulink> is
    highly configurable and can be used in a number of different
    applications, ranging from debugging Z39.50-based applications
    and protecting overworked servers, to improving the performance of
@@ -9,9 +9,9 @@
    <itemizedlist>
     <listitem>
      <para>
-      <ulink url="http://www.loc.gov/standards/sru/">SRW/SRU</ulink>
+      <ulink url="&url.sru;">SRW/SRU</ulink>
       server function, to allow any
-      <ulink url="http://www.loc.gov/z3950/agency/">Z39.50</ulink>
+      <ulink url="&url.z39.50;">Z39.50</ulink>
       server to also support the SRW/SRU protocols.
      </para>
     </listitem>
@@ -38,10 +38,10 @@
 
     <listitem>
      <para>
-      <ulink url="http://www.w3.org/XML/">XML</ulink> support -- 
+      <ulink url="&url.xml;">XML</ulink> support -- 
       MARC records can be converted to 
-      <ulink url="http://www.loc.gov/standards/marcxml/">MARCXML</ulink>, and
-      <ulink url="http://www.w3.org/TR/xslt">XSLT</ulink>-transformations
+      <ulink url="&url.marcxml;">MARCXML</ulink>, and
+      <ulink url="&url.xslt;">XSLT</ulink>-transformations
       allow the proxy to support arbitrary retrieval schemas in XML
      </para>
     </listitem>
