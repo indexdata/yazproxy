@@ -1,4 +1,4 @@
-yazproxy (1.0.1.4-1) unstable; urgency=low
+yazproxy (1.2.0-1 unstable; urgency=low
 
   * Depends on libyazpp1, Build-Depends: libyazpp-dev.
   * Generate package libyazproxy1, libyazproxy-dev, yazproxy.
