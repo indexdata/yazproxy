@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.62 2006-04-26 11:59:11 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.63 2006-04-27 00:04:42 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -601,8 +601,14 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
             m_client_idletime = client_idletime;
             timeout(m_client_idletime);
         }
+
+        // get those FILE descriptors available 
+        m_parent->low_socket_close();
         if (cql2rpn_fname)
             m_cql2rpn.set_pqf_file(cql2rpn_fname);
+        // reserve them again
+        m_parent->low_socket_open();
+        
         if (negotiation_charset || negotiation_lang || default_client_query_charset)
         {
             set_proxy_negotiation(negotiation_charset,
@@ -3122,8 +3128,9 @@ void Yaz_Proxy::handle_init(Z_APDU *apdu)
 
             handle_charset_lang_negotiation(apdu2);
 
+	    if (m_timeout_mode == timeout_busy)
+	        m_timeout_mode = timeout_normal;
             send_to_client(apdu2);
-            m_timeout_mode = timeout_normal;
             return;
         }
     }
