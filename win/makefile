@@ -1,6 +1,6 @@
 # Copyright (C) 1993-2006, Index Data ApS
 # All rights reserved.
-# $Id: makefile,v 1.6 2006-04-30 13:15:07 adam Exp $
+# $Id: makefile,v 1.7 2006-04-30 13:20:47 adam Exp $
 
 ###########################################################
 ############### Parameters 
@@ -160,7 +160,8 @@ libxslt:
 # (if you set things up right!)
 
 COMMON_C_OPTIONS=          \
-  /nologo /W3 /GX /FD /c   \
+  /nologo /W3 /EHsc /FD /c \
+  /D "_CRT_SECURE_NO_DEPRECATE" \
   $(ICONV_DEF)             \
   $(YAZ_DEF)               \
   $(YAZPP_DEF)             \
@@ -178,14 +179,14 @@ COMMON_C_INCLUDES= \
 
 DEBUG_C_OPTIONS=  \
   /D "_DEBUG"      \
-  /MDd  /Od /YX /Zi /Gm
+  /MDd  /Od /Zi /Gm
 
 RELEASE_C_OPTIONS=  \
   /D "NDEBUG"        \
   /MD /O2
 
 # /W3  = warning level
-# /GX  = Enable exception handling
+# /EHsc= Enable exception handling
 # /FD  = Generate file dependencies (what ever they are)
 # /c   = compile without linking
 # /FR  = Generate browse info (.sbr file that gets combined into .bsc)
@@ -195,7 +196,6 @@ RELEASE_C_OPTIONS=  \
 # /MDd = Runtime library: Multithread DLL (debug)
 # /Od  = Disable optimising (debug)
 # /O2  = Optimize for speed
-# /YX  = Automatic use of precomipled headers
 # /Gm  = Minimal rebuild (some cpp class stuff)
 # /Zi  = Program database for debuggers
 # /ZI  = Pgm database with special "edit&continue" stuff - not available in C5
@@ -291,30 +291,24 @@ $(YAZ_RES): $(YAZ_RC)
 ###########################################################
 
 $(YAZPROXY_DLL) $(YAZPROXY_IMPLIB): "$(BINDIR)" $(YAZPROXY_DLL_OBJS)
-	@echo Linking $(YAZPROXY_DLL)
-	$(LINK) @<<
-		$(LNKOPT) 
-		$(LINK_LIBS) 
-		$(DLL_LINK_OPTIONS)
-		$(YAZPP_IMPLIB)
-		$(YAZPROXY_DLL_OBJS)
-		/out:$(YAZPROXY_DLL) 
-		/implib:"$(YAZPROXY_IMPLIB)"
-		/map:"$(LIBDIR)\yazproxy.map"  
-<<
+	$(LINK) \
+		$(LNKOPT)  \
+		$(LINK_LIBS)  \
+		$(DLL_LINK_OPTIONS) \
+		$(YAZPP_IMPLIB) \
+		$(YAZPROXY_DLL_OBJS) \
+		/out:$(YAZPROXY_DLL)  \
+		/implib:"$(YAZPROXY_IMPLIB)" \
 
 $(YAZPROXY) : "$(BINDIR)" $(YAZPROXY_OBJS) $(YAZPROXY_IMPLIB)
-	@echo Linking $(YAZPROXY)
-	$(LINK) @<<
-        $(LNKOPT) 
-		$(CLIENT_LINK_OPTIONS)
-		$(LINK_LIBS) 
-            $(YAZPP_IMPLIB)
-	      $(YAZPROXY_IMPLIB)
-		$(YAZPROXY_OBJS)
-		/map:"$(LIBDIR)\yazproxy.map"
+	$(LINK) \
+        	$(LNKOPT)  \
+		$(CLIENT_LINK_OPTIONS) \
+		$(LINK_LIBS)  \
+		$(YAZPP_IMPLIB) \
+		$(YAZPROXY_IMPLIB) \
+		$(YAZPROXY_OBJS) \
 		/out:$(YAZPROXY)
-<<
 
 ###########################################################
 ############### Generated Source files
