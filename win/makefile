@@ -1,12 +1,12 @@
-# Copyright (C) 1993-2006, Index Data ApS
+# Copyright (C) 1999-2006, Index Data ApS
 # All rights reserved.
-# $Id: makefile,v 1.7 2006-04-30 13:20:47 adam Exp $
+# $Id: makefile,v 1.8 2006-04-30 14:09:31 adam Exp $
 
 ###########################################################
 ############### Parameters 
 ###########################################################
 
-DEBUG=0   # 0 for release, 1 for debug
+DEBUG=1   # 0 for release, 1 for debug
 
 # YAZ and YAZ++
 YAZ_DIR=..\..\yaz
@@ -42,9 +42,6 @@ nsis: all
 nsishelp:
 	$(NSIS)
 
-###########################################################
-############### Directories
-###########################################################
 # The current directory is supposed to be something like
 # ..../yaz/win, everything is relative to that
 ROOTDIR=..   # The home of yaz++
@@ -53,17 +50,18 @@ INCLDIR=$(ROOTDIR)\include  # our includes
 LIBDIR=$(ROOTDIR)\lib       # We produce .lib, .exp etc there
 BINDIR=$(ROOTDIR)\bin       # We produce exes and dlls there
 WINDIR=$(ROOTDIR)\win       # all these Win make things
-OBJDIR=$(WINDIR)\obj        # where we store intermediate files
 SRCDIR=$(ROOTDIR)\src       # for the case we move them under src
 PROXYDIR=$(ROOTDIR)\proxy
 ZOOMDIR=$(ROOTDIR)\zoom
 
+!if $(DEBUG)
+OBJDIR=$(WINDIR)\dobj       # where we store intermediate files
+!else
+OBJDIR=$(WINDIR)\obj        # where we store intermediate files
+!endif
+
 TMPDIR=$(ROOTDIR)\win\tmp
 TMP=$(TMPDIR)
-
-###########################################################
-############### Targets - what to make
-###########################################################
 
 YAZPROXY_DLL=$(BINDIR)\yazproxy.dll
 YAZPROXY_IMPLIB=$(LIBDIR)\yazproxy.lib
@@ -73,9 +71,6 @@ YAZPROXY=$(BINDIR)\yazproxy.exe
 # shortcut names defined here
 dll: $(YAZPROXY_DLL)
 proxy: $(YAZPROXY)
-###########################################################
-############### Compiler and linker options 
-###########################################################
 
 !if $(DEBUG)
 YAZD=yazd
@@ -204,15 +199,15 @@ RELEASE_C_OPTIONS=  \
 ### Linker options
 LINK=link.exe
 
-LINK_LIBS= kernel32.lib user32.lib   gdi32.lib   \
-           advapi32.lib uuid.lib \
-           wsock32.lib  advapi32.lib \
+LINK_LIBS=kernel32.lib user32.lib gdi32.lib advapi32.lib uuid.lib \
+          wsock32.lib  advapi32.lib \
            $(YAZ_LIB) $(YAZPP_LIB) $(ICONV_LIB) $(LIBXML2_LIB) $(LIBXSLT_LIB)
 
-COMMON_LNK_OPTIONS= /nologo \
-                    /subsystem:windows \
-                    /machine:i386 \
-			  /incremental:no
+COMMON_LNK_OPTIONS=\
+		/nologo \
+		/subsystem:windows \
+		/machine:i386 \
+		/incremental:no
 
 DEBUG_LNK_OPTIONS= /debug 
 
@@ -237,9 +232,7 @@ LNKOPT= $(COMMON_LNK_OPTIONS) $(RELEASE_LNK_OPTIONS) $(LNK_LIBS)
 TCLOPT= $(COMMON_TCL_OPTIONS)
 !endif
 
-###########################################################
-###############  Source and object modules
-###########################################################
+# Source and object modules
 
 YAZPROXY_OBJS= \
    "$(OBJDIR)\yaz-proxy-main.obj"
@@ -274,17 +267,11 @@ COMMON_RC_OPTIONS= /l 0x406 /i"$(ROOTDIR)"
 DEBUG_RC_OPTIONS=/d "_DEBUG"
 RELEASE_RC_OPTIONS=/d "NDEBUG"
 
-YAZ_RES=$(OBJDIR)\yaz.res
-YAZ_RC=$(WINDIR)\yaz.rc
-
 !if $(DEBUG)
 RSOPT=/d_DEBUG
 !else
 RSOPT=/d_NDEBUG
 !endif
-
-$(YAZ_RES): $(YAZ_RC)
-	$(RSC) $(RSOPT) /fo"$(YAZ_RES)" $(YAZ_RC) 
 
 ###########################################################
 ############### Linking
@@ -310,24 +297,14 @@ $(YAZPROXY) : "$(BINDIR)" $(YAZPROXY_OBJS) $(YAZPROXY_IMPLIB)
 		$(YAZPROXY_OBJS) \
 		/out:$(YAZPROXY)
 
-###########################################################
-############### Generated Source files
-###########################################################
-
-############## clean
 clean:
 	-del $(BINDIR)\*.exe
 	-del $(BINDIR)\*.dll
 	-del $(TMPDIR)\*.
-	-del $(LIBDIR)\*.MAP
 	-del $(LIBDIR)\*.LIB
 	-del $(OBJDIR)\*.OBJ
 
 realclean: clean
-
-# Because DOS del will only accept one file name to delete,
-# the _H_ files work only on sets that have just one file.
-# Z3950_H_FILES had to be spelled out. One more point for MS!
 
 ########### check directories and create if needed
 dirs: $(OBJDIR) $(WINDIR) $(LIBDIR) $(BINDIR) $(TMPDIR)
