@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.63 2006-04-27 00:04:42 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.64 2006-04-30 13:23:45 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -3698,7 +3698,9 @@ void Yaz_ProxyClient::recv_Z_PDU(Z_APDU *apdu, int len)
         *imv1 = '\0';
         if (imv0)
             strcat(imv1, imv0);
+#ifdef VERSION
         strcat(imv1, "/" VERSION);
+#endif
         ir->implementationVersion = imv1;
         
         // apply YAZ Proxy implementation name
