@@ -1,6 +1,6 @@
 # Copyright (C) 1993-2006, Index Data ApS
 # All rights reserved.
-# $Id: makefile,v 1.5 2006-03-30 14:16:34 adam Exp $
+# $Id: makefile,v 1.6 2006-04-30 13:15:07 adam Exp $
 
 ###########################################################
 ############### Parameters 
@@ -77,21 +77,31 @@ proxy: $(YAZPROXY)
 ############### Compiler and linker options 
 ###########################################################
 
-# YAZ include&libs
-YAZ_LIB="$(YAZ_DIR)\lib\yaz.lib"
-YAZ_DEF=/I"$(YAZ_DIR)\include"
-yaz: $(BINDIR)\yaz.dll $(BINDIR)\yaz.dll
+!if $(DEBUG)
+YAZD=yazd
+YAZPPD=yazpp_1_d
+!else
+YAZD=yaz
+YAZPPD=yazpp_1
+!endif
 
-$(BINDIR)\yaz.dll: $(YAZ_DIR)\bin\yaz.dll
-  copy "$(YAZ_DIR)\bin\yaz.dll" $(BINDIR)
+# YAZ includes & libs
+YAZ_LIB="$(YAZ_DIR)\lib\$(YAZD).lib"
+YAZ_DEF=/DYAZ_USE_NEW_LOG=1 /I"$(YAZ_DIR)\include"
 
-# YAZ++ include&libs
-YAZPP_LIB="$(YAZPP_DIR)\lib\yazpp.lib"
+# Copy yaz.dll to our bin
+yaz: $(BINDIR)\$(YAZD).dll
+$(BINDIR)\$(YAZD).dll: $(YAZ_DIR)\bin\$(YAZD).dll
+  copy "$(YAZ_DIR)\bin\$(YAZD).dll" $(BINDIR)
+
+# YAZ++ includes & libs
+YAZPP_LIB="$(YAZPP_DIR)\lib\$(YAZPPD).lib"
 YAZPP_DEF=/I"$(YAZPP_DIR)\include"
-yazpp: $(BINDIR)\yazpp.dll $(BINDIR)\yazpp.dll
 
-$(BINDIR)\yazpp.dll: $(YAZPP_DIR)\bin\yazpp.dll
-  copy "$(YAZPP_DIR)\bin\yazpp.dll" $(BINDIR)
+# Copy yazpp.dll to our bin
+yazpp: $(BINDIR)\$(YAZPPD).dll
+$(BINDIR)\$(YAZPPD).dll: $(YAZPP_DIR)\bin\$(YAZPPD).dll
+  copy "$(YAZPP_DIR)\bin\$(YAZPPD).dll" $(BINDIR)
 
 !if $(HAVE_ICONV)
 ICONV_DEF= \
