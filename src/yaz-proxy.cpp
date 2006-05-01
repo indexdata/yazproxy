@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.64 2006-04-30 13:23:45 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.65 2006-05-01 09:14:08 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -452,6 +452,7 @@ IPDU_Observer *Yaz_Proxy::sessionNotify(IPDU_Observable
     new_proxy->set_default_target(m_default_target);
     new_proxy->m_max_clients = m_max_clients;
     new_proxy->m_log_mask = m_log_mask;
+    new_proxy->m_session_no = m_session_no;
 
     if (!strcmp(peername, "tcp:163.121.19.82")) // NIS GROUP
         new_proxy->m_log_mask = 255;
