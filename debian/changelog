@@ -1,4 +1,4 @@
-yazproxy (1.2.0-1) unstable; urgency=low
+yazproxy (1.2.1-1) unstable; urgency=low
 
   * Do not depend on docbook utils. Doc is part of make dist.
   * Depends on libyazpp1, Build-Depends: libyazpp-dev.
