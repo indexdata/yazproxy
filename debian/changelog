@@ -1,5 +1,6 @@
-yazproxy (1.2.0-1 unstable; urgency=low
+yazproxy (1.2.0-1) unstable; urgency=low
 
+  * Do not depend on docbook utils. Doc is part of make dist.
   * Depends on libyazpp1, Build-Depends: libyazpp-dev.
   * Generate package libyazproxy1, libyazproxy-dev, yazproxy.
   * Move usr/share files from libyazproxy1 to yazproxy.
@@ -7,7 +8,7 @@ yazproxy (1.2.0-1 unstable; urgency=low
   * postinst for libyazproxy1 only.
   * Move man pages to .manpages-files.
 
- -- Adam Dickmeiss <adam@indexdata.dk>  Tue, 25 Apr 2006 22:10:49 +0200
+ -- Adam Dickmeiss <adam@indexdata.dk>  Mon,  1 May 2006 10:56:49 +0200
 
 yazproxy (1.0.1-1) unstable; urgency=low
 
