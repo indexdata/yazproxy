@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.9 2006-04-20 12:05:54 adam Exp $
+## $Id: Makefile.am,v 1.10 2006-05-26 19:57:35 adam Exp $
 docdir=$(datadir)/doc/@PACKAGE@
 
 SUBDIRS = common
@@ -14,7 +14,9 @@ XMLFILES = \
  yazproxy.xml.in
  
 TOP=yazproxy.xml
+
 MANFILES=yazproxy.8
+
 HTMLFILES =  \
  installation.html \
  introduction.html \
@@ -35,19 +37,19 @@ HTMLFILES =  \
  windows.html \
  yazproxy-man.html \
  yazproxy-schema.html \
- yazproxy.html
+ index.html
 
-doc_DATA = $(HTMLFILES) yazproxy.pdf
+doc_DATA = $(HTMLFILES)
 
 man_MANS = $(MANFILES)
 
 EXTRA_DIST = $(XMLFILES) $(doc_DATA) $(man_MANS)
 
 $(HTMLFILES): $(XMLFILES)
-	jade -E14 -D $(srcdir) -d common/html.dsl -t sgml $(srcdir)/common/xml.dcl $(TOP)
+	xsltproc common/html.xsl $(TOP)
 
 yazproxy.8: yaz-proxy-man.xml yaz-proxy-ref.xml
-	docbook2man $(srcdir)/yaz-proxy-man.xml
+	xsltproc common/man.xsl $(srcdir)/yaz-proxy-man.xml
 
 yazproxy.pdf: $(XMLFILES)
 	if test ! -f common/id.png ; then cp $(srcdir)/common/id.png common; fi
@@ -63,7 +65,7 @@ clean-data-hook:
 	rm -f [0-9]* *.bak
 
 dist-hook:
-	for f in $(srcdir)/*.html; do \
+	for f in *.html; do \
 		found=0; \
 		b=`basename $$f`; \
 		for h in $(HTMLFILES); do \

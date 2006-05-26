@@ -1,7 +1,9 @@
-<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.1//EN" [
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.1//EN" 
+ "http://www.oasis-open.org/docbook/xml/4.1/docbookx.dtd" 
+[
      <!ENTITY yaz-proxy-ref SYSTEM "yaz-proxy-ref.xml">
 ]>
-<!-- $Id: yaz-proxy-man.xml,v 1.1 2005-09-07 09:28:46 adam Exp $ -->
+<!-- $Id: yaz-proxy-man.xml,v 1.2 2006-05-26 19:57:35 adam Exp $ -->
 <refentry id="yazproxy">
   &yaz-proxy-ref;
  <refsect1><title>SEE ALSO</title>
