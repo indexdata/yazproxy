@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.10 2006-05-26 19:57:35 adam Exp $
+## $Id: Makefile.am,v 1.11 2006-05-26 19:59:58 adam Exp $
 docdir=$(datadir)/doc/@PACKAGE@
 
 SUBDIRS = common
@@ -43,7 +43,7 @@ doc_DATA = $(HTMLFILES)
 
 man_MANS = $(MANFILES)
 
-EXTRA_DIST = $(XMLFILES) $(doc_DATA) $(man_MANS)
+EXTRA_DIST = $(XMLFILES) $(doc_DATA) $(man_MANS) entities.ent
 
 $(HTMLFILES): $(XMLFILES)
 	xsltproc common/html.xsl $(TOP)
