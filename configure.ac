@@ -1,6 +1,6 @@
 dnl yazproxy, Index Data 1994-2006
 dnl See the file LICENSE for details.
-dnl $Id: configure.ac,v 1.10 2006-06-02 08:53:23 adam Exp $
+dnl $Id: configure.ac,v 1.11 2006-06-02 10:58:12 adam Exp $
 AC_PREREQ(2.59)
 AC_INIT([yazproxy],[1.2.1],[adam@indexdata.dk])
 AC_CONFIG_SRCDIR(configure.ac)
@@ -66,7 +66,6 @@ AC_OUTPUT([
 	doc/Makefile
 	doc/local.ent
 	doc/common/Makefile
-	doc/common/tkl.xsl doc/common/html.xsl doc/common/man.xsl 
-	doc/common/print.dsl doc/common/html.dsl
+	doc/common/print.dsl
 	etc/Makefile
 ])
