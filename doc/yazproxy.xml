@@ -2,12 +2,14 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.1//EN"
     "http://www.oasis-open.org/docbook/xml/4.1/docbookx.dtd" 
 [
-     <!ENTITY % entities  SYSTEM "@srcdir@/entities.ent">
+     <!ENTITY % local SYSTEM "local.ent">
+     %local;
+     <!ENTITY % entities SYSTEM "entities.ent">
      %entities;
-     <!ENTITY % common  SYSTEM "@srcdir@/common/common.ent">
+     <!ENTITY % common SYSTEM "common/common.ent">
      %common;
 ]>
-<!-- $Id: yazproxy.xml.in,v 1.8 2006-05-26 19:57:35 adam Exp $ -->
+<!-- $Id: yazproxy.xml,v 1.1 2006-06-02 08:53:23 adam Exp $ -->
 <book id="yazproxy">
  <bookinfo>
   <title>YAZ proxy User's Guide and Reference</title>
@@ -25,10 +27,10 @@
     is a powerful general purpose Z39.50/SRW/SRU proxy.
    </simpara>
    <simpara>
-    This manual covers version @VERSION@.
+    This manual covers version &version;.
     </simpara>
    <simpara>
-    CVS ID: $Id: yazproxy.xml.in,v 1.8 2006-05-26 19:57:35 adam Exp $
+    CVS ID: $Id: yazproxy.xml,v 1.1 2006-06-02 08:53:23 adam Exp $
    </simpara>
    <simpara>
     <inlinemediaobject>

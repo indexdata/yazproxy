@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.11 2006-05-26 19:59:58 adam Exp $
+## $Id: Makefile.am,v 1.12 2006-06-02 08:53:23 adam Exp $
 docdir=$(datadir)/doc/@PACKAGE@
 
 SUBDIRS = common
@@ -11,11 +11,11 @@ XMLFILES = \
  yaz-proxy-ref.xml \
  yaz-proxy-man.xml \
  license.xml \
- yazproxy.xml.in
+ yazproxy.xml
  
-TOP=yazproxy.xml
+TOP = $(srcdir)/yazproxy.xml
 
-MANFILES=yazproxy.8
+MANFILES = yazproxy.8
 
 HTMLFILES =  \
  installation.html \
@@ -43,13 +43,17 @@ doc_DATA = $(HTMLFILES)
 
 man_MANS = $(MANFILES)
 
-EXTRA_DIST = $(XMLFILES) $(doc_DATA) $(man_MANS) entities.ent
+EXTRA_DIST = $(XMLFILES) $(doc_DATA) $(man_MANS) entities.ent local.ent
 
 $(HTMLFILES): $(XMLFILES)
-	xsltproc common/html.xsl $(TOP)
+	$(HTML_COMPILE) $(TOP)
 
 yazproxy.8: yaz-proxy-man.xml yaz-proxy-ref.xml
-	xsltproc common/man.xsl $(srcdir)/yaz-proxy-man.xml
+	$(MAN_COMPILE) $(srcdir)/yaz-proxy-man.xml
+
+index.tkl: $(XMLFILES) common/tkl.xsl
+	$(TKL_COMPILE) $(TOP)
+
 
 yazproxy.pdf: $(XMLFILES)
 	if test ! -f common/id.png ; then cp $(srcdir)/common/id.png common; fi
@@ -57,9 +61,6 @@ yazproxy.pdf: $(XMLFILES)
 	pdfjadetex yazproxy.tex >pdfjadetex.log 2>&1
 	pdfjadetex yazproxy.tex >pdfjadetex.log 2>&1
 	pdfjadetex yazproxy.tex >pdfjadetex.log 2>&1
-
-index.tkl: $(XMLFILES) common/tkl.xsl
-	xsltproc common/tkl.xsl $(TOP)
 
 clean-data-hook:
 	rm -f [0-9]* *.bak

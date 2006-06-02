@@ -1,13 +1,9 @@
 *.log
 Makefile
 Makefile.in
-yazproxy.xml
-yazhtml.dsl
-yazphp.dsl
-yazprint.dsl
 *.html
-*.php
 *.tkl
+local.ent
 yazproxy.8
 yazproxy.tex
 yazproxy.log
@@ -16,5 +12,7 @@ yazproxy.out
 yazproxy.pdf
 manpage.links
 manpage.refs
-tkl.xsl
 html
+htmlhelp.hhp
+toc.hhc
+
