@@ -1,4 +1,4 @@
-/* $Id: proxy.h,v 1.35 2006-04-26 11:59:10 adam Exp $
+/* $Id: proxy.h,v 1.36 2006-06-09 09:35:13 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -213,7 +213,6 @@ class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Z_Assoc {
               Yaz_Proxy *parent = 0);
     ~Yaz_Proxy();
 
-
     void inc_ref();
     bool dec_ref();
 
@@ -254,6 +253,7 @@ class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Z_Assoc {
     int handle_init_response_for_invalid_session(Z_APDU *apdu);
     void set_debug_mode(int mode);
     void send_response_fail_client(const char *addr);
+    int m_num_msg_threads;
     Msg_Thread *m_my_thread;
     void base64_decode(const char *base64, char *buf, int buf_len);
 };

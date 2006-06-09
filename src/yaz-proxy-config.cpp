@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy-config.cpp,v 1.31 2006-04-16 07:33:13 adam Exp $
+/* $Id: yaz-proxy-config.cpp,v 1.32 2006-06-09 09:35:14 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -1022,10 +1022,12 @@ void Yaz_ProxyConfig::get_generic_info(int *log_mask,
                                        int *max_clients,
                                        int *max_connect,
                                        int *limit_connect,
-                                       int *period_connect)
+                                       int *period_connect,
+                                       int *num_msg_threads)
 {
     *max_connect = 0;
     *limit_connect = 0;
+    *num_msg_threads = 0;
 #if HAVE_XSLT
     xmlNodePtr ptr;
     if (!m_cp->m_proxyPtr)
@@ -1107,6 +1109,15 @@ void Yaz_ProxyConfig::get_generic_info(int *log_mask,
         else if (ptr->type == XML_ELEMENT_NODE &&
             !strcmp((const char *) ptr->name, "module"))
             ;
+        else if (ptr->type == XML_ELEMENT_NODE &&
+            !strcmp((const char *) ptr->name, "threads"))
+        {
+            const char *t = m_cp->get_text(ptr);
+            if (t)
+            {
+                *num_msg_threads = atoi(t);
+            }
+        }
         else if (ptr->type == XML_ELEMENT_NODE)
         {
             yaz_log(YLOG_WARN, "0 Unknown element %s in yazproxy config",

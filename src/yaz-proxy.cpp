@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.67 2006-06-09 09:01:31 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.68 2006-06-09 09:35:14 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -59,9 +59,6 @@ using namespace yazpp_1;
 #define strncasecmp _strnicmp
 #endif
 
-#define USE_AUTH_MSG 1
-
-#if USE_AUTH_MSG
 class YAZ_EXPORT Auth_Msg : public IMsg_Thread {
 public:
     int m_ret;
@@ -121,8 +118,6 @@ void Auth_Msg::result()
     }
     delete this;
 }
-
-#endif
 
 void Yaz_Proxy::result_authentication(Z_APDU *apdu, int ret)
 {
@@ -295,6 +290,7 @@ Yaz_Proxy::Yaz_Proxy(IPDU_Observable *the_PDU_Observable,
     m_ref_count = 1;
     m_main_ptr_dec = false;
     m_peername = 0;
+    m_num_msg_threads = 0;
 }
 
 void Yaz_Proxy::inc_ref()
@@ -358,7 +354,8 @@ int Yaz_Proxy::set_config(const char *config)
     {
         int period = 60;
         m_config->get_generic_info(&m_log_mask, &m_max_clients,
-                                   &m_max_connect, &m_limit_connect, &period);
+                                   &m_max_connect, &m_limit_connect, &period,
+                                   &m_num_msg_threads);
         m_connect.set_period(period);
     }
     return r;
@@ -414,7 +411,7 @@ Yaz_ProxyConfig *Yaz_Proxy::check_reconfigure()
                 int period = 60;
                 cfg->get_generic_info(&m_log_mask, &m_max_clients,
                                       &m_max_connect, &m_limit_connect,
-                                      &period);
+                                      &period, &m_num_msg_threads);
                 m_connect.set_period(period);
             }
         }
@@ -456,6 +453,7 @@ IPDU_Observer *Yaz_Proxy::sessionNotify(IPDU_Observable
     new_proxy->m_max_clients = m_max_clients;
     new_proxy->m_log_mask = m_log_mask;
     new_proxy->m_session_no = m_session_no;
+    new_proxy->m_num_msg_threads = m_num_msg_threads;
 
 #if 0
     // in case we want to watch a particular client..
@@ -473,8 +471,12 @@ IPDU_Observer *Yaz_Proxy::sessionNotify(IPDU_Observable
     new_proxy->set_proxy_negotiation(m_proxy_negotiation_charset,
         m_proxy_negotiation_lang, m_proxy_negotiation_default_charset);
     // create thread object the first time we get an incoming connection
-    if (!m_my_thread)
-        m_my_thread = new Msg_Thread(m_socket_observable, 1);
+    if (!m_my_thread && m_num_msg_threads > 0)
+    {
+        yaz_log (YLOG_LOG, "%sStarting message thread management. number=%d",
+                 session_str, m_num_msg_threads);
+        m_my_thread = new Msg_Thread(m_socket_observable, m_num_msg_threads);
+    }
     new_proxy->m_my_thread = m_my_thread;
     return new_proxy;
 }
@@ -3143,21 +3145,24 @@ void Yaz_Proxy::handle_init(Z_APDU *apdu)
     }
     m_client->m_init_flag = 1;
 
-#if USE_AUTH_MSG
-    Auth_Msg *m = new Auth_Msg;
-    m->m_proxy = this;
-    z_APDU(odr_encode(), &apdu, 0, "encode");
-    char *apdu_buf = odr_getbuf(odr_encode(), &m->m_apdu_len, 0);
-    m->m_apdu_buf = (char*) nmem_malloc(m->m_nmem, m->m_apdu_len);
-    memcpy(m->m_apdu_buf, apdu_buf, m->m_apdu_len);
-    odr_reset(odr_encode());
-
-    inc_ref();
-    m_my_thread->put(m);
-#else
-    int ret = handle_authentication(apdu);
-    result_authentication(apdu, ret);
-#endif
+    if (m_num_msg_threads && m_my_thread)
+    {
+        Auth_Msg *m = new Auth_Msg;
+        m->m_proxy = this;
+        z_APDU(odr_encode(), &apdu, 0, "encode");
+        char *apdu_buf = odr_getbuf(odr_encode(), &m->m_apdu_len, 0);
+        m->m_apdu_buf = (char*) nmem_malloc(m->m_nmem, m->m_apdu_len);
+        memcpy(m->m_apdu_buf, apdu_buf, m->m_apdu_len);
+        odr_reset(odr_encode());
+        
+        inc_ref();
+        m_my_thread->put(m);
+    }
+    else
+    {
+        int ret = handle_authentication(apdu);
+        result_authentication(apdu, ret);
+    }
 }
 
 void Yaz_Proxy::handle_incoming_Z_PDU(Z_APDU *apdu)
