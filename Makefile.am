@@ -7,6 +7,7 @@ ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST= README LICENSE m4/yazpp.m4 m4/yaz.m4 m4/usemarcon.m4 buildconf.sh
 
 dist-hook:
+	if test -x /usr/bin/cvs2cl -a -d CVS; then cvs2cl ; fi
 	mkdir $(distdir)/win
 	cp $(srcdir)/win/makefile $(distdir)/win/
 	mkdir $(distdir)/debian
