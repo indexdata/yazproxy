@@ -1,3 +1,10 @@
+--- 1.2.1.1 2006/06/09
+
+Added support for thread config element which specifies number of
+threads to be used for auhentication modules. By default, no threading
+is used which happen to be value 0. Modules will still work but they will
+be blocking.
+
 --- 1.2.1 2006/05/01
 
 Fixed problem with log of session ID when HTTP fowarded was in effect.
