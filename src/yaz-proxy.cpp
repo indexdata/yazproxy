@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.66 2006-05-01 09:15:52 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.67 2006-06-09 09:01:31 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -432,6 +432,9 @@ IPDU_Observer *Yaz_Proxy::sessionNotify(IPDU_Observable
 
     char session_str[200];
     const char *peername = the_PDU_Observable->getpeername();
+    if (!peername)
+        peername = "nullpeer";
+
     if (m_log_mask & PROXY_LOG_IP_CLIENT)
         sprintf(session_str, "%ld:%d %.80s %d ",
                 (long) time(0), m_session_no, peername, 0);
