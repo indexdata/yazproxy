@@ -5,7 +5,7 @@
    This chapter includes a few examples.
   </para>
   <para>
-   The YAZ Proxy is useful for debugging SRW/SRU/Z39.50 software, logging
+   The YAZ Proxy is useful for debugging SRU/Z39.50 software, logging
    APDUs, redirecting Z39.50 packages through firewalls, etc.
    Furthermore, it offers facilities that often
    boost performance for connection-less Z39.50 clients such
@@ -155,10 +155,10 @@
   </example>
   
   <example id="example-srw-service">
-   <title>Offering SRW/SRU/Z39.50 service</title>
+   <title>Offering SRU/Z39.50 service</title>
    <para>
-    In order to offer SRW/SRU service we must be specify sufficient
-    information to allow the proxy to convert from SRW/SRU to Z39.50.
+    In order to offer SRU service we must be specify sufficient
+    information to allow the proxy to convert from SRU to Z39.50.
     This involves translating CQL queries
     to Type-1 (also called RPN/PQF), since most
     Z39.50 servers do not support CQL. The conversion
@@ -170,7 +170,7 @@
     recommended). 
    </para>
    <para>
-    An explain record for the SRW/SRU service must also be created.
+    An explain record for the SRU service must also be created.
    </para>
    <para>
     The following is a relatively simple configuration file for 
@@ -180,13 +180,13 @@
     given by <literal>url</literal>.
    </para>
    <para>
-    The server may return USMARC/MARC21 (Z39.50/SRW/SRU) and
-    MARCXML (SRW/SRU only) as specified by the
+    The server may return USMARC/MARC21 (Z39.50/SRU) and
+    MARCXML (SRU only) as specified by the
     <link linkend="proxy-config-syntax">syntax</link> elements.
    </para>
     <screen><![CDATA[
 <?xml version="1.0"?>
-<!-- $Id: using.xml,v 1.6 2005-03-14 13:16:03 adam Exp $ -->
+<!-- $Id: using.xml,v 1.7 2006-06-14 10:12:26 adam Exp $ -->
 <proxy xmlns="http://indexdata.dk/yazproxy/schema/0.9/">
   <target name="bagel">
     <url>indexdata.dk</url>

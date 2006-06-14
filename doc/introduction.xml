@@ -1,4 +1,4 @@
-<!-- $Id: introduction.xml,v 1.8 2006-04-26 12:17:23 adam Exp $ -->
+<!-- $Id: introduction.xml,v 1.9 2006-06-14 10:12:26 adam Exp $ -->
  <chapter id="introduction"><title>Introduction</title>
   <para>
    The <ulink url="&url.yazproxy;">YAZ Proxy</ulink> is
@@ -9,10 +9,10 @@
    <itemizedlist>
     <listitem>
      <para>
-      <ulink url="&url.sru;">SRW/SRU</ulink>
+      <ulink url="&url.sru;">SRU GET/POST/SOAP</ulink>
       server function, to allow any
       <ulink url="&url.z39.50;">Z39.50</ulink>
-      server to also support the SRW/SRU protocols.
+      server to also support the SRU protocols.
      </para>
     </listitem>
 

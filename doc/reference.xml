@@ -58,14 +58,13 @@
     </orderedlist>
    </para>
    <para>
-    If the proxy receives an SRW/SRU request, the following rules are used.
+    If the proxy receives an SRU request, the following rules are used.
     <orderedlist>
      <listitem>
       <para>If default target has Explain information with a
        <literal>database</literal> that matches the path of the
-	HTTP request of SRW/SRU that backend server is used for
-       SRW/SRU operation.
-       </para>
+       HTTP request of SRU that backend server is used for SRU operation.
+      </para>
      </listitem>
      <listitem>
       <para>
@@ -74,13 +73,6 @@
      </listitem>
     </orderedlist>
    </para>
-   <note>
-    <para>
-     We know it is stupid to only check for explain in default target.
-     It means that it is only possible to offer one SRW/SRU server.
-     We expect to improve that in the next version of the YAZ proxy.
-    </para>
-   </note>
   </section>
   <section id="proxy-keepalive">
    <title>Keep-alive Facility</title>
@@ -458,12 +450,12 @@
     </para>
     <para>
      If attribute <literal>identifier</literal> is given that is the
-     SRW/SRU record schema identifier for the resulting output record (after
+     SRU record schema identifier for the resulting output record (after
      MARCXML and/or XSLT conversion). 
     </para>
     <para>
      If sub element <literal>title</literal> is given (as child element
-     of <literal>syntax</literal>, then that is the official SRW/SRU
+     of <literal>syntax</literal>, then that is the official SRU
      name of the resulting record schema.
     </para>
     <para>
@@ -504,7 +496,7 @@
     <title>explain</title>
     <para>
      The <literal>explain</literal> element includes Explain information
-     for SRW/SRU about the server in the target section. This
+     for SRU about the server in the target section. This
      information must have a <literal>serverInfo</literal> element
      with a database that this target must be available as (URL path).
      For example,
@@ -519,7 +511,7 @@
       </explain>
       ]]>
      </screen>
-     In the above case, the SRW/SRU service is available as
+     In the above case, the SRU service is available as
      <literal>http://myhost.org:8000/mydatabase</literal>.
     </para>
     
@@ -531,7 +523,7 @@
      The content of the <literal>cql2rpn</literal> element specifies
      the path from the working directory to a CQL-to-RPN conversion
      file for the server in the target section. This element
-     is required for SRW/SRU searches to operate against Z39.50
+     is required for SRU searches to operate against Z39.50
      servers that don't support CQL. Most Z39.50 servers only support
      Type-1/RPN so this is usually required.
     </para>
@@ -614,7 +606,7 @@
     </para>
     <para>
      If this is specified the proxy will act as a Z39.50 server
-     supporting character set negotiation. And in SRW/SRU mode
+     supporting character set negotiation. And in SRU mode
      it will convert from UTF-8 (UNICODE) to this native character
      set (if possible).
     </para>
@@ -824,7 +816,7 @@
     The <literal>categoryTypeId</literal> is either
     OID 1.2.840.10003.10.1000.81.1, 1.2.840.10003.10.1000.81.2
     for proxy target and proxy cookie respectively. The
-    integer element <literal>category</literal> is set to 0.
+    <literal>categoryValue</literal> is set to 1.
     The value proxy and cookie is stored in element
     <literal>characterInfo</literal> of the <literal>information</literal>
      choice.
@@ -840,7 +832,7 @@
    <screen><![CDATA[
 <?xml version="1.0"?>
 <!-- XML Schema for YAZ proxy config file.
-    $Id: reference.xml,v 1.19 2006-04-26 12:17:23 adam Exp $
+    $Id: reference.xml,v 1.20 2006-06-14 10:12:26 adam Exp $
 -->
 <xs:schema
   xmlns:xs="http://www.w3.org/2001/XMLSchema"

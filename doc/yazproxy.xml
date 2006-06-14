@@ -9,7 +9,7 @@
      <!ENTITY % common SYSTEM "common/common.ent">
      %common;
 ]>
-<!-- $Id: yazproxy.xml,v 1.1 2006-06-02 08:53:23 adam Exp $ -->
+<!-- $Id: yazproxy.xml,v 1.2 2006-06-14 10:12:26 adam Exp $ -->
 <book id="yazproxy">
  <bookinfo>
   <title>YAZ proxy User's Guide and Reference</title>
@@ -24,13 +24,13 @@
   <abstract>
    <simpara>
     <ulink url="&url.yazproxy;">YAZ proxy</ulink>
-    is a powerful general purpose Z39.50/SRW/SRU proxy.
+    is a powerful general purpose Z39.50/SRU proxy.
    </simpara>
    <simpara>
     This manual covers version &version;.
     </simpara>
    <simpara>
-    CVS ID: $Id: yazproxy.xml,v 1.1 2006-06-02 08:53:23 adam Exp $
+    CVS ID: $Id: yazproxy.xml,v 1.2 2006-06-14 10:12:26 adam Exp $
    </simpara>
    <simpara>
     <inlinemediaobject>

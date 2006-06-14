@@ -4,7 +4,7 @@
 </refmeta>
 <refnamediv>
  <refname>yazproxy</refname>
- <refpurpose>The YAZ toolkit's transparent Z39.50/SRW/SRU proxy</refpurpose>
+ <refpurpose>The YAZ toolkit's transparent Z39.50/SRU proxy</refpurpose>
 </refnamediv>
 <refsynopsisdiv>
  <cmdsynopsis>
@@ -29,7 +29,7 @@
 <refsect1><title>DESCRIPTION</title>
  <para>
   <command>yazproxy</command> is a proxy that accepts connections
-  from Z39.50/SRW/SRU clients and contacts a Z39.50 backend.
+  from Z39.50/SRU clients and contacts a Z39.50 backend.
   The listening port must be specified on the command-line. 
   <command>inetd</command> operation is not supported.
   The <replaceable>host</replaceable>:<replaceable>port</replaceable>

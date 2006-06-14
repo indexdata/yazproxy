@@ -1,11 +1,11 @@
-YAZ proxy - A Z39.50/SRW/SRU proxy.
+YAZ proxy - A Z39.50/SRU proxy.
 
-$Id: README,v 1.5 2004-04-11 17:31:51 adam Exp $
+$Id: README,v 1.6 2006-06-14 10:12:23 adam Exp $
 
 Introduction
 ------------
 
-YAZ proxy is a powerful general purpose Z39.50/SRW/SRU proxy.
+YAZ proxy is a powerful general purpose Z39.50/SRU proxy.
 The proxy application and development library is covered by the
 GPL - see LICENSE for details.
 
@@ -49,7 +49,7 @@ PROXY. The OID is 1.2.840.10003.10.1000.81.1.
       categoryValue    [2]   IMPLICIT INTEGER}
 
 The InfoCategory is present with categoryTypeId set to the PROXY OID
-and categoryValue set to 0. The information in OtherInformation uses
+and categoryValue set to 1. The information in OtherInformation uses
 characterInfo to represent the target using the form target[:port][/db].
 
 For clients that don't set the PROXY OtherInformation, a default
