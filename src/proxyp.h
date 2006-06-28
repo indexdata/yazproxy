@@ -1,4 +1,4 @@
-/* $Id: proxyp.h,v 1.17 2006-06-09 09:35:13 adam Exp $
+/* $Id: proxyp.h,v 1.18 2006-06-28 23:38:23 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -140,6 +140,9 @@ public:
                               const char *user, const char *group,
                               const char *password,
                               const char *peer_IP);
+    int global_client_authentication(const char *user, const char *group,
+                                     const char *password,
+                                     const char *peer_IP);
     char *get_explain_doc(ODR odr, const char *name, const char *db,
                           int *len);
     const char *get_explain_name(const char *db, const char **backend_db);

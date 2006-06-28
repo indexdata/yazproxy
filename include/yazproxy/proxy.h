@@ -1,4 +1,4 @@
-/* $Id: proxy.h,v 1.36 2006-06-09 09:35:13 adam Exp $
+/* $Id: proxy.h,v 1.37 2006-06-28 23:38:23 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -217,6 +217,7 @@ class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Z_Assoc {
     bool dec_ref();
 
     int handle_authentication(Z_APDU *apdu);
+    int handle_global_authentication(Z_APDU *apdu);
     void result_authentication(Z_APDU *apdu, int ret);
     void handle_init(Z_APDU *apdu);
     void inc_request_no();

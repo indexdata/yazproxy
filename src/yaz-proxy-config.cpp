@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy-config.cpp,v 1.32 2006-06-09 09:35:14 adam Exp $
+/* $Id: yaz-proxy-config.cpp,v 1.33 2006-06-28 23:38:23 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -676,6 +676,44 @@ int Yaz_ProxyConfig::client_authentication(const char *name,
     return 1;
 }
 
+int Yaz_ProxyConfig::global_client_authentication(const char *user,
+                                                  const char *group,
+                                                  const char *password,
+                                                  const char *peer_IP)
+{
+    int ret = YAZPROXY_RET_NOT_ME;
+#if HAVE_XSLT
+    if (!m_cp->m_proxyPtr)
+        return 1;
+    xmlNodePtr ptr;
+    for (ptr = m_cp->m_proxyPtr->children; ptr; ptr = ptr->next)
+    {
+        if (ptr->type == XML_ELEMENT_NODE &&
+            !strcmp((const char *) ptr->name, "client-authentication"))
+        {
+            struct _xmlAttr *attr;
+            const char *module_name = 0;
+            for (attr = ptr->properties; attr; attr = attr->next)
+            {
+                if (!strcmp((const char *) attr->name, "module") &&
+                    attr->children && attr->children->type == XML_TEXT_NODE)
+                    module_name = (const char *) attr->children->content;
+            }
+            ret = m_cp->m_modules.authenticate(module_name,
+                                               NULL, ptr,
+                                               user, group, password,
+                                               peer_IP
+                );
+            if (ret != YAZPROXY_RET_NOT_ME)
+                break;
+        }
+    }
+#endif
+    if (ret == YAZPROXY_RET_PERM)
+        return 0;
+    return 1;
+}
+
 int Yaz_ProxyConfig::check_syntax(ODR odr, const char *name,
                                   Odr_oid *syntax, Z_RecordComposition *comp,
                                   char **addinfo,
@@ -1108,6 +1146,9 @@ void Yaz_ProxyConfig::get_generic_info(int *log_mask,
             ;
         else if (ptr->type == XML_ELEMENT_NODE &&
             !strcmp((const char *) ptr->name, "module"))
+            ;
+        else if (ptr->type == XML_ELEMENT_NODE &&
+            !strcmp((const char *) ptr->name, "client-authentication"))
             ;
         else if (ptr->type == XML_ELEMENT_NODE &&
             !strcmp((const char *) ptr->name, "threads"))

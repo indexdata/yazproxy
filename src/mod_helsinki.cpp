@@ -1,4 +1,4 @@
-/* $Id: mod_helsinki.cpp,v 1.1 2006-03-25 10:56:28 adam Exp $
+/* $Id: mod_helsinki.cpp,v 1.2 2006-06-28 23:38:23 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -138,7 +138,7 @@ int my_authenticate(void *user_handle,
 #endif
     // args holds args (or NULL if none are provided)
 
-    yaz_log(YLOG_LOG, "Authentication: authenticating user %s, address %s", user ? user : "-", peer_IP ? peer_IP : "-");
+    yaz_log(YLOG_LOG, "Authentication: authenticating user %s, address %s", user ? user : "(none)", peer_IP ? peer_IP : "-");
 
     // authentication handler
     char user_file[255], ip_file[255];
@@ -146,7 +146,7 @@ int my_authenticate(void *user_handle,
     *ip_file = '\0';
     sscanf(args, "%254[^:]:%254s", user_file, ip_file);
 
-    yaz_log(YLOG_LOG, "Authentication: user file: %s, ip file: %s", user_file, ip_file);
+    yaz_log(YLOG_DEBUG, "Authentication: user file: %s, ip file: %s", user_file, ip_file);
 
     // Check if the IP address is listed in the file of allowed address ranges.
     // The format of the file:
@@ -156,7 +156,7 @@ int my_authenticate(void *user_handle,
     int status = YAZPROXY_RET_PERM;
     if (ip_file && peer_IP)
     {
-        yaz_log(YLOG_LOG, "Authentication: checking ip address");
+        yaz_log(YLOG_DEBUG, "Authentication: checking ip address");
 
         const char *pIP = peer_IP;
         if (strncmp(pIP, "tcp:", 4) == 0)
@@ -202,7 +202,7 @@ int my_authenticate(void *user_handle,
 
     if (!user || !password || !*user_file)
     {
-        yaz_log(YLOG_WARN, "Authentication: no user name, password or user file specified");
+        yaz_log(YLOG_LOG, "Authentication: anonymous authentication failed");
             return YAZPROXY_RET_PERM;
     }
 

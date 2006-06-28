@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.68 2006-06-09 09:35:14 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.69 2006-06-28 23:38:23 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -1144,6 +1144,10 @@ int Yaz_Proxy::send_http_response(int code)
         z_HTTP_header_add(o, &hres->headers, "Connection", "Keep-Alive");
     else
         timeout(0);
+    if (code == 401)
+        z_HTTP_header_add(o, &hres->headers, "WWW-Authenticate", 
+                          "Basic realm=\"YAZ Proxy\"");
+
 
     if (m_log_mask & PROXY_LOG_REQ_CLIENT)
     {
@@ -2417,6 +2421,44 @@ int Yaz_Proxy::handle_authentication(Z_APDU *apdu)
     return ret;
 }
 
+int Yaz_Proxy::handle_global_authentication(Z_APDU *apdu)
+{
+    if (apdu->which != Z_APDU_initRequest)
+        return 1;  // pass if no init request
+    Z_InitRequest *req = apdu->u.initRequest;
+
+    Yaz_ProxyConfig *cfg = check_reconfigure();
+    if (!cfg)
+        return 1;  // pass if no config
+
+    int ret;
+    if (req->idAuthentication == 0)
+    {
+        ret = cfg->global_client_authentication(0, 0, 0,
+                                                m_peername);
+    }
+    else if (req->idAuthentication->which == Z_IdAuthentication_idPass)
+    {
+        ret = cfg->global_client_authentication(
+            req->idAuthentication->u.idPass->userId,
+            req->idAuthentication->u.idPass->groupId,
+            req->idAuthentication->u.idPass->password,
+            m_peername);
+    }
+    else if (req->idAuthentication->which == Z_IdAuthentication_open)
+    {
+        char user[64], pass[64];
+        *user = '\0';
+        *pass = '\0';
+        sscanf(req->idAuthentication->u.open, "%63[^/]/%63s", user, pass);
+        ret = cfg->global_client_authentication(user, 0, pass,
+                                                m_peername);
+    }
+    else
+        ret = cfg->global_client_authentication(0, 0, 0, m_peername);
+    return ret;
+}
+
 Z_APDU *Yaz_Proxy::handle_syntax_validation(Z_APDU *apdu)
 {
     m_marcxml_mode = none;
@@ -3191,6 +3233,23 @@ void Yaz_Proxy::handle_incoming_Z_PDU(Z_APDU *apdu)
 
     if (apdu->which == Z_APDU_searchRequest)
         m_search_stat.add_bytes(1);
+
+    // Handle global authentication
+    if (!handle_global_authentication(apdu))
+    {
+        if (m_http_version)
+        {   // HTTP. Send unauthorized
+            send_http_response(401);
+            return;
+        }
+        else
+        {
+            // Z39.50 just shutdown
+            timeout(0);
+            return;
+        }
+        return;
+    }
 
     // Determine our client.
     Z_OtherInformation **oi;
