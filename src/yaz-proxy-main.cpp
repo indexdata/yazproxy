@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy-main.cpp,v 1.19 2006-03-30 10:32:16 adam Exp $
+/* $Id: yaz-proxy-main.cpp,v 1.20 2006-07-06 11:50:26 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -49,7 +49,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include <yazpp/pdu-assoc.h>
 #include <yazproxy/proxy.h>
 
-#if HAVE_XSLT
+#if YAZ_HAVE_XSLT
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 #include <libxslt/xsltutils.h>
@@ -179,7 +179,7 @@ static void sighup_handler(int num)
         static_yaz_proxy->reconfig();
 }
 
-#if HAVE_XSLT
+#if YAZ_HAVE_XSLT
 static void proxy_xml_error_handler(void *ctx, const char *fmt, ...)
 {
     char buf[1024];
@@ -205,7 +205,7 @@ static void child_run(SocketManager *m, int run)
     signal(SIGHUP, sighup_handler);
 #endif
 
-#if HAVE_XSLT
+#if YAZ_HAVE_XSLT
     xmlSetGenericErrorFunc((void *) "XML", proxy_xml_error_handler);
     xsltSetGenericErrorFunc((void *) "XSLT", proxy_xml_error_handler);
 #endif
@@ -279,7 +279,7 @@ static void child_run(SocketManager *m, int run)
 
 int main(int argc, char **argv)
 {
-#if HAVE_XSLT
+#if YAZ_HAVE_XSLT
     xmlInitMemory();
     
     LIBXML_TEST_VERSION

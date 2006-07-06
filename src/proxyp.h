@@ -1,4 +1,4 @@
-/* $Id: proxyp.h,v 1.18 2006-06-28 23:38:23 adam Exp $
+/* $Id: proxyp.h,v 1.19 2006-07-06 11:50:26 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -19,7 +19,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 02111-1307, USA.
  */
 
-#if HAVE_XSLT
+#if YAZ_HAVE_XSLT
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 #include <libxml/xinclude.h>

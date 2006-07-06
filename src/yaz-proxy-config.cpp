@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy-config.cpp,v 1.33 2006-06-28 23:38:23 adam Exp $
+/* $Id: yaz-proxy-config.cpp,v 1.34 2006-07-06 11:50:26 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -31,7 +31,7 @@ class Yaz_ProxyConfigP {
     int mycmp(const char *hay, const char *item, size_t len);
     int match_list(int v, const char *m);
     int atoi_l(const char **cp);
-#if HAVE_XSLT
+#if YAZ_HAVE_XSLT
     void load_modules(void);
     int check_schema(xmlNodePtr ptr, Z_RecordComposition *comp,
                      const char *schema_identifier);
@@ -70,7 +70,7 @@ class Yaz_ProxyConfigP {
 
 Yaz_ProxyConfigP::Yaz_ProxyConfigP()  : m_modules()
 {
-#if HAVE_XSLT
+#if YAZ_HAVE_XSLT
     m_docPtr = 0;
     m_proxyPtr = 0;
 #endif
@@ -78,7 +78,7 @@ Yaz_ProxyConfigP::Yaz_ProxyConfigP()  : m_modules()
 
 Yaz_ProxyConfigP::~Yaz_ProxyConfigP()
 {
-#if HAVE_XSLT
+#if YAZ_HAVE_XSLT
     if (m_docPtr)
         xmlFreeDoc(m_docPtr);
 #endif
@@ -94,7 +94,7 @@ Yaz_ProxyConfig::~Yaz_ProxyConfig()
     delete m_cp;
 }
 
-#if HAVE_XSLT
+#if YAZ_HAVE_XSLT
 void Yaz_ProxyConfigP::load_modules()
 {
     if (!m_proxyPtr)
@@ -115,7 +115,7 @@ void Yaz_ProxyConfigP::load_modules()
 
 int Yaz_ProxyConfig::read_xml(const char *fname)
 {
-#if HAVE_XSLT
+#if YAZ_HAVE_XSLT
     xmlDocPtr ndoc = xmlParseFile(fname);
 
     if (!ndoc)
@@ -150,7 +150,7 @@ int Yaz_ProxyConfig::read_xml(const char *fname)
 #endif
 }
 
-#if HAVE_XSLT
+#if YAZ_HAVE_XSLT
 const char *Yaz_ProxyConfigP::get_text(xmlNodePtr ptr)
 {
     for(ptr = ptr->children; ptr; ptr = ptr->next)
@@ -180,7 +180,7 @@ void Yaz_ProxyConfigP::get_period(xmlNodePtr ptr, int *period)
 }
 #endif
 
-#if HAVE_XSLT
+#if YAZ_HAVE_XSLT
 void Yaz_ProxyConfigP::return_limit(xmlNodePtr ptr,
                                     int *limit_bw,
                                     int *limit_pdu,
@@ -221,7 +221,7 @@ void Yaz_ProxyConfigP::return_limit(xmlNodePtr ptr,
 }
 #endif
 
-#if HAVE_XSLT
+#if YAZ_HAVE_XSLT
 void Yaz_ProxyConfigP::return_target_info(xmlNodePtr ptr,
                                           const char **url,
                                           int *limit_bw,
@@ -368,7 +368,7 @@ int Yaz_ProxyConfigP::match_list(int v, const char *m)
     return 0;
 }
 
-#if HAVE_XSLT
+#if YAZ_HAVE_XSLT
 int Yaz_ProxyConfigP::check_type_1_attributes(ODR odr, xmlNodePtr ptrl,
                                               Z_AttributeList *attrs,
                                               char **addinfo)
@@ -441,7 +441,7 @@ int Yaz_ProxyConfigP::check_type_1_attributes(ODR odr, xmlNodePtr ptrl,
 }
 #endif
 
-#if HAVE_XSLT
+#if YAZ_HAVE_XSLT
 int Yaz_ProxyConfigP::check_type_1_structure(ODR odr, xmlNodePtr ptr,
                                              Z_RPNStructure *q,
                                              char **addinfo)
@@ -467,7 +467,7 @@ int Yaz_ProxyConfigP::check_type_1_structure(ODR odr, xmlNodePtr ptr,
 }
 #endif
 
-#if HAVE_XSLT
+#if YAZ_HAVE_XSLT
 int Yaz_ProxyConfigP::check_type_1(ODR odr, xmlNodePtr ptr, Z_RPNQuery *query,
                                    char **addinfo)
 {
@@ -479,7 +479,7 @@ int Yaz_ProxyConfigP::check_type_1(ODR odr, xmlNodePtr ptr, Z_RPNQuery *query,
 int Yaz_ProxyConfig::check_query(ODR odr, const char *name, Z_Query *query,
                                  char **addinfo)
 {
-#if HAVE_XSLT
+#if YAZ_HAVE_XSLT
     xmlNodePtr ptr;
 
     ptr = m_cp->find_target_node(name, 0);
@@ -492,7 +492,7 @@ int Yaz_ProxyConfig::check_query(ODR odr, const char *name, Z_Query *query,
     return 0;
 }
 
-#if HAVE_XSLT
+#if YAZ_HAVE_XSLT
 int Yaz_ProxyConfigP::check_schema(xmlNodePtr ptr, Z_RecordComposition *comp,
                                    const char *schema_identifier)
 {
@@ -572,7 +572,7 @@ const char *Yaz_ProxyConfig::check_mime_type(const char *path)
 void Yaz_ProxyConfig::target_authentication(const char *name,
                                             ODR odr, Z_InitRequest *req)
 {
-#if HAVE_XSLT
+#if YAZ_HAVE_XSLT
     xmlNodePtr ptr = m_cp->find_target_node(name, 0);
     if (!ptr)
         return ;
@@ -645,7 +645,7 @@ int Yaz_ProxyConfig::client_authentication(const char *name,
                                            const char *peer_IP)
 {
     int ret = YAZPROXY_RET_NOT_ME;
-#if HAVE_XSLT
+#if YAZ_HAVE_XSLT
     xmlNodePtr ptr;
     ptr = m_cp->find_target_node(name, 0);
     if (!ptr)
@@ -682,7 +682,7 @@ int Yaz_ProxyConfig::global_client_authentication(const char *user,
                                                   const char *peer_IP)
 {
     int ret = YAZPROXY_RET_NOT_ME;
-#if HAVE_XSLT
+#if YAZ_HAVE_XSLT
     if (!m_cp->m_proxyPtr)
         return 1;
     xmlNodePtr ptr;
@@ -754,7 +754,7 @@ int Yaz_ProxyConfig::check_syntax(ODR odr, const char *name,
         xfree (*usemarcon_ini_stage2);
         *usemarcon_ini_stage2 = 0;
     }
-#if HAVE_XSLT
+#if YAZ_HAVE_XSLT
     int syntax_has_matched = 0;
     xmlNodePtr ptr;
 
@@ -891,7 +891,7 @@ int Yaz_ProxyConfig::check_syntax(ODR odr, const char *name,
     return 0;
 }
 
-#if HAVE_XSLT
+#if YAZ_HAVE_XSLT
 xmlNodePtr Yaz_ProxyConfigP::find_target_db(xmlNodePtr ptr, const char *db)
 {
     xmlNodePtr dptr;
@@ -990,7 +990,7 @@ int Yaz_ProxyConfig::get_target_no(int no,
                                    const char **target_charset,
                                    const char **default_client_query_charset)
 {
-#if HAVE_XSLT
+#if YAZ_HAVE_XSLT
     xmlNodePtr ptr;
     if (!m_cp->m_proxyPtr)
         return 0;
@@ -1036,7 +1036,7 @@ int Yaz_ProxyConfigP::mycmp(const char *hay, const char *item, size_t len)
 
 int Yaz_ProxyConfig::get_file_access_info(const char *path)
 {
-#if HAVE_XSLT
+#if YAZ_HAVE_XSLT
     xmlNodePtr ptr;
     if (!m_cp->m_proxyPtr)
         return 0;
@@ -1066,7 +1066,7 @@ void Yaz_ProxyConfig::get_generic_info(int *log_mask,
     *max_connect = 0;
     *limit_connect = 0;
     *num_msg_threads = 0;
-#if HAVE_XSLT
+#if YAZ_HAVE_XSLT
     xmlNodePtr ptr;
     if (!m_cp->m_proxyPtr)
         return;
@@ -1168,7 +1168,7 @@ void Yaz_ProxyConfig::get_generic_info(int *log_mask,
 #endif
 }
 
-#if HAVE_XSLT
+#if YAZ_HAVE_XSLT
 int Yaz_ProxyConfigP::get_explain_ptr(const char *host, const char *db,
                                       xmlNodePtr *ptr_target,
                                       xmlNodePtr *ptr_explain)
@@ -1225,7 +1225,7 @@ int Yaz_ProxyConfigP::get_explain_ptr(const char *host, const char *db,
 const char *Yaz_ProxyConfig::get_explain_name(const char *db,
                                               const char **backend_db)
 {
-#if HAVE_XSLT
+#if YAZ_HAVE_XSLT
     xmlNodePtr ptr_target, ptr_explain;
     if (m_cp->get_explain_ptr(0, db, &ptr_target, &ptr_explain)
         && ptr_target)
@@ -1263,7 +1263,7 @@ const char *Yaz_ProxyConfig::get_explain_name(const char *db,
 char *Yaz_ProxyConfig::get_explain_doc(ODR odr, const char *name,
                                        const char *db, int *len)
 {
-#if HAVE_XSLT
+#if YAZ_HAVE_XSLT
     xmlNodePtr ptr_target, ptr_explain;
     if (m_cp->get_explain_ptr(0 /* host */, db, &ptr_target, &ptr_explain))
     {
@@ -1304,7 +1304,7 @@ void Yaz_ProxyConfig::get_target_info(const char *name,
                                       const char **target_charset,
                                       const char **default_client_query_charset)
 {
-#if HAVE_XSLT
+#if YAZ_HAVE_XSLT
     xmlNodePtr ptr;
     if (!m_cp->m_proxyPtr)
     {

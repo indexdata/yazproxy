@@ -1,4 +1,4 @@
-/* $Id: mod_sample.cpp,v 1.6 2006-03-30 10:31:53 adam Exp $
+/* $Id: mod_sample.cpp,v 1.7 2006-07-06 11:50:26 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -25,7 +25,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 
 #include <yazproxy/module.h>
 
-#if HAVE_XSLT
+#if YAZ_HAVE_XSLT
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 #include <libxml/xinclude.h>
@@ -51,7 +51,7 @@ int my_authenticate(void *user_handle,
 {
     // see if we have an "args" attribute
     const char *args = 0;
-#if HAVE_XSLT
+#if YAZ_HAVE_XSLT
     xmlNodePtr ptr = (xmlNodePtr) element_ptr;
     struct _xmlAttr *attr;
     

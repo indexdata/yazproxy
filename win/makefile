@@ -1,6 +1,6 @@
 # Copyright (C) 1999-2006, Index Data ApS
 # All rights reserved.
-# $Id: makefile,v 1.9 2006-04-30 14:11:32 adam Exp $
+# $Id: makefile,v 1.10 2006-07-06 11:50:27 adam Exp $
 
 ###########################################################
 ############### Parameters 
@@ -136,7 +136,7 @@ libxml2:
 
 !if $(HAVE_LIBXSLT)
 LIBXSLT_LIB="$(LIBXSLT_DIR)\lib\libxslt.lib"
-LIBXSLT_DEF=/D HAVE_XSLT=1 /I"$(LIBXSLT_DIR)\include"
+LIBXSLT_DEF=/D YAZ_HAVE_XSLT=1 /I"$(LIBXSLT_DIR)\include"
 libxslt: $(BINDIR)\libxslt.dll $(BINDIR)\zlib1.dll
 
 $(BINDIR)\libxslt.dll:
@@ -144,7 +144,7 @@ $(BINDIR)\libxslt.dll:
 
 !else
 LIBXSLT_LIB=
-LIBXSLT_DEF=/D HAVE_XSLT=0
+LIBXSLT_DEF=/D YAZ_HAVE_XSLT=0
 libxslt: 
 
 !endif

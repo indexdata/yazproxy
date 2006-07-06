@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.69 2006-06-28 23:38:23 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.70 2006-07-06 11:50:26 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -314,7 +314,7 @@ Yaz_Proxy::~Yaz_Proxy()
     delete m_charset_converter;
     xfree(m_optimize);
 
-#if HAVE_XSLT
+#if YAZ_HAVE_XSLT
     if (m_stylesheet_xsp)
         xsltFreeStylesheet((xsltStylesheetPtr) m_stylesheet_xsp);
 #endif
@@ -877,7 +877,7 @@ int Yaz_Proxy::convert_xsl(Z_NamePlusRecordList *p, Z_APDU *apdu)
 
 void Yaz_Proxy::convert_xsl_delay()
 {
-#if HAVE_XSLT
+#if YAZ_HAVE_XSLT
     Z_NamePlusRecord *npr = m_stylesheet_nprl->records[m_stylesheet_offset];
     if (npr->which == Z_NamePlusRecord_databaseRecord)
     {
@@ -920,7 +920,7 @@ void Yaz_Proxy::convert_xsl_delay()
     {
         m_timeout_mode = timeout_normal;
         m_stylesheet_nprl = 0;
-#if HAVE_XSLT
+#if YAZ_HAVE_XSLT
         if (m_stylesheet_xsp)
             xsltFreeStylesheet((xsltStylesheetPtr) m_stylesheet_xsp);
 #endif
@@ -1182,7 +1182,7 @@ int Yaz_Proxy::send_srw_response(Z_SRW_PDU *srw_pdu, int http_code /* = 200 */)
         z_HTTP_header_add(o, &hres->headers, "WWW-Authenticate", "Basic realm=\"YAZ Proxy\"");
 
     static Z_SOAP_Handler soap_handlers[2] = {
-#if HAVE_XSLT
+#if YAZ_HAVE_XSLT
         {"http://www.loc.gov/zing/srw/", 0,
          (Z_SOAP_fun) yaz_srw_codec},
 #endif
@@ -2499,7 +2499,7 @@ Z_APDU *Yaz_Proxy::handle_syntax_validation(Z_APDU *apdu)
         {
             m_parent->low_socket_close();
 
-#if HAVE_XSLT
+#if YAZ_HAVE_XSLT
             if (m_stylesheet_xsp)
                 xsltFreeStylesheet((xsltStylesheetPtr) m_stylesheet_xsp);
             m_stylesheet_xsp = xsltParseStylesheetFile((const xmlChar*)
@@ -2576,7 +2576,7 @@ Z_APDU *Yaz_Proxy::handle_syntax_validation(Z_APDU *apdu)
         {
             m_parent->low_socket_close();
 
-#if HAVE_XSLT
+#if YAZ_HAVE_XSLT
             if (m_stylesheet_xsp)
                 xsltFreeStylesheet((xsltStylesheetPtr) m_stylesheet_xsp);
             m_stylesheet_xsp = xsltParseStylesheetFile((const xmlChar*)
