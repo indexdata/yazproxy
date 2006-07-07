@@ -1,6 +1,6 @@
 dnl yazproxy, Index Data 1994-2006
 dnl See the file LICENSE for details.
-dnl $Id: configure.ac,v 1.13 2006-07-06 11:50:26 adam Exp $
+dnl $Id: configure.ac,v 1.14 2006-07-07 12:17:00 adam Exp $
 AC_PREREQ(2.59)
 AC_INIT([yazproxy],[1.2.1.1],[adam@indexdata.dk])
 AC_CONFIG_SRCDIR(configure.ac)
@@ -11,7 +11,6 @@ AC_PROG_CC
 AC_PROG_CPP
 AC_PROG_CXX
 AC_HEADER_STDC
-AM_DISABLE_SHARED
 AM_PROG_LIBTOOL
 
 YAZPP_INIT(threads,1.0.1)
