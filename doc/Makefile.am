@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.13 2006-06-28 21:45:49 adam Exp $
+## $Id: Makefile.am,v 1.14 2006-09-07 10:06:56 adam Exp $
 docdir=$(datadir)/doc/@PACKAGE@
 
 SUBDIRS = common
@@ -17,27 +17,7 @@ TOP = $(srcdir)/yazproxy.xml
 
 MANFILES = yazproxy.8
 
-HTMLFILES =  \
- installation.html \
- introduction.html \
- license.html \
- other-optimizations.html \
- otherinfo-encoding.html \
- proxy-config-file.html \
- proxy-keepalive.html \
- proxy-reference.html \
- proxy-target.html \
- proxy-usage.html \
- query-cache.html \
- query-validation.html \
- record-cache.html \
- record-validation.html \
- support.html \
- using.html \
- windows.html \
- yazproxy-man.html \
- yazproxy-schema.html \
- index.html
+HTMLFILES = index.html
 
 doc_DATA = $(HTMLFILES)
 
@@ -46,6 +26,7 @@ man_MANS = $(MANFILES)
 EXTRA_DIST = $(XMLFILES) $(doc_DATA) $(man_MANS) entities.ent local.ent
 
 $(HTMLFILES): $(XMLFILES)
+	rm -f *.html
 	$(HTML_COMPILE) $(TOP)
 
 yazproxy.8: yaz-proxy-man.xml yaz-proxy-ref.xml
@@ -66,17 +47,13 @@ clean-data-hook:
 	rm -f [0-9]* *.bak
 
 dist-hook:
-	if test -f index.html; then for f in *.html; do \
-		found=0; \
-		b=`basename $$f`; \
-		for h in $(HTMLFILES); do \
-			if test "$$h" = "$$b"; then \
-				found=1; \
-			fi \
-		done; \
-		if test "$$found" = "0"; then \
-			echo "$$h not found in HTMLFILES"; \
-			exit 1; \
-		fi \
-	done; fi
+	if test -f index.html; then d=.; else d="$(srcdir)"; fi; \
+	for p in $$d/*.html; do \
+		cp $$p $(distdir); \
+	done
 
+install-data-hook:
+	if test -f index.html; then d=.; else d="$(srcdir)"; fi; \
+	for p in $$d/*.html; do \
+		$(docDATA_INSTALL) $$p $(DESTDIR)/$(docdir); \
+	done
