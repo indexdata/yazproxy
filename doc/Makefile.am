@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.14 2006-09-07 10:06:56 adam Exp $
+## $Id: Makefile.am,v 1.15 2006-10-11 09:39:43 adam Exp $
 docdir=$(datadir)/doc/@PACKAGE@
 
 SUBDIRS = common
@@ -57,3 +57,6 @@ install-data-hook:
 	for p in $$d/*.html; do \
 		$(docDATA_INSTALL) $$p $(DESTDIR)/$(docdir); \
 	done
+
+uninstall-hook:
+	rm -r $(DESTDIR)/$(docdir)
