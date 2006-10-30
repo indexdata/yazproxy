@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.70 2006-07-06 11:50:26 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.71 2006-10-30 14:24:18 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -1718,7 +1718,7 @@ Z_APDU *Yaz_Proxy::result_set_optimize(Z_APDU *apdu)
         return 0;
     }
 
-    char query_str[120];
+    char query_str[4096];
     this_query->print(query_str, sizeof(query_str)-1);
     yaz_log(YLOG_LOG, "%sSearch %s", m_session_str, query_str);
 
