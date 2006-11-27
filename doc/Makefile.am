@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.15 2006-10-11 09:39:43 adam Exp $
+## $Id: Makefile.am,v 1.16 2006-11-27 11:35:22 adam Exp $
 docdir=$(datadir)/doc/@PACKAGE@
 
 SUBDIRS = common
@@ -32,9 +32,8 @@ $(HTMLFILES): $(XMLFILES)
 yazproxy.8: yaz-proxy-man.xml yaz-proxy-ref.xml
 	$(MAN_COMPILE) $(srcdir)/yaz-proxy-man.xml
 
-index.tkl: $(XMLFILES) common/tkl.xsl
+index.tkl: $(XMLFILES)
 	$(TKL_COMPILE) $(TOP)
-
 
 yazproxy.pdf: $(XMLFILES)
 	if test ! -f common/id.png ; then cp $(srcdir)/common/id.png common; fi
