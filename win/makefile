@@ -1,6 +1,6 @@
 # Copyright (C) 1999-2006, Index Data ApS
 # All rights reserved.
-# $Id: makefile,v 1.10 2006-07-06 11:50:27 adam Exp $
+# $Id: makefile,v 1.11 2007-01-11 12:21:25 adam Exp $
 
 ###########################################################
 ############### Parameters 
@@ -14,18 +14,18 @@ YAZPP_DIR=..\..\yazpp
 
 # iconv charcter conversion utility
 HAVE_ICONV=1
-ICONV_DIR = c:\iconv-1.9.1.win32
+ICONV_DIR=\iconv-1.9.2.win32
 
 # libxslt
 HAVE_LIBXSLT=1
-LIBXSLT_DIR=c:\libxslt-1.1.14.win32
+LIBXSLT_DIR=\libxslt-1.1.17.win32
 
 # libxml2 (used by libxslt)
 HAVE_LIBXML2=1
-LIBXML2_DIR=c:\libxml2-2.6.20.win32
+LIBXML2_DIR=\libxml2-2.6.26.win32
 
 # zlib compression (used by libxml2)
-ZLIB_DIR = c:\zlib-1.2.3.win32
+ZLIB_DIR=\zlib-1.2.3.win32
 
 # get WIN32 binaries for libxslt, libxml, iconv, zlib from here:
 # http://www.zlatkovic.com/libxml.en.html
@@ -82,11 +82,11 @@ YAZPPD=yazpp_1
 
 # YAZ includes & libs
 YAZ_LIB="$(YAZ_DIR)\lib\$(YAZD).lib"
-YAZ_DEF=/DYAZ_USE_NEW_LOG=1 /I"$(YAZ_DIR)\include"
+YAZ_DEF=/DYAZ_HAVE_XML2=1 /DYAZ_USE_NEW_LOG=1 /I"$(YAZ_DIR)\include"
 
 # Copy yaz.dll to our bin
 yaz: $(BINDIR)\$(YAZD).dll
-$(BINDIR)\$(YAZD).dll: $(YAZ_DIR)\bin\$(YAZD).dll
+$(BINDIR)\$(YAZD).dll: "$(YAZ_DIR)\bin\$(YAZD).dll"
   copy "$(YAZ_DIR)\bin\$(YAZD).dll" $(BINDIR)
 
 # YAZ++ includes & libs
@@ -95,7 +95,7 @@ YAZPP_DEF=/I"$(YAZPP_DIR)\include"
 
 # Copy yazpp.dll to our bin
 yazpp: $(BINDIR)\$(YAZPPD).dll
-$(BINDIR)\$(YAZPPD).dll: $(YAZPP_DIR)\bin\$(YAZPPD).dll
+$(BINDIR)\$(YAZPPD).dll: "$(YAZPP_DIR)\bin\$(YAZPPD).dll"
   copy "$(YAZPP_DIR)\bin\$(YAZPPD).dll" $(BINDIR)
 
 !if $(HAVE_ICONV)
