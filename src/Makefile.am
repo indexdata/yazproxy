@@ -1,6 +1,6 @@
-## $Id: Makefile.am,v 1.14 2006-07-07 11:25:41 adam Exp $
+## $Id: Makefile.am,v 1.15 2007-02-25 17:51:22 adam Exp $
 
-AM_CXXFLAGS = $(YAZPPINC) -I$(srcdir)/../include $(XSLT_CFLAGS) $(USEMARCONINC)
+AM_CXXFLAGS = $(YAZPPINC) -I$(srcdir)/../include $(USEMARCONINC)
 
 lib_LTLIBRARIES = libyazproxy.la
 libyazproxy_la_LDFLAGS=-version-info 1:0:0
