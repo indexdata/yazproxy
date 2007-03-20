@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.71 2006-10-30 14:24:18 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.72 2007-03-20 07:54:27 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -1039,7 +1039,7 @@ void Yaz_Proxy::convert_records_charset(Z_NamePlusRecordList *p,
                     npr->u.databaseRecord =
                         z_ext_record(odr_encode(), ent->value, wrbuf_buf(w),
                                      wrbuf_len(w));
-                    wrbuf_free(w, 1);
+                    wrbuf_destroy(w);
                 }
                 else if (ent->value == VAL_TEXT_XML)
                 {
@@ -1047,8 +1047,8 @@ void Yaz_Proxy::convert_records_charset(Z_NamePlusRecordList *p,
                 }
                 else if (r->which == Z_External_octet)
                 {
-                    int rlen;
-                    char *result;
+                    size_t rlen;
+                    const char *result;
                     if (yaz_marc_decode_buf(mt,
                                             (char*) r->u.octet_aligned->buf,
                                             r->u.octet_aligned->len,
@@ -1093,12 +1093,12 @@ void Yaz_Proxy::convert_to_marcxml(Z_NamePlusRecordList *p,
                     odr_encode(), VAL_TEXT_XML,
                     wrbuf_buf(w), wrbuf_len(w)
                     );
-                wrbuf_free(w, 1);
+                wrbuf_destroy(w);
             }
             else if (r->which == Z_External_octet)
             {
-                int rlen;
-                char *result;
+                size_t rlen;
+                const char *result;
                 if (yaz_marc_decode_buf(mt, (char*) r->u.octet_aligned->buf,
                                         r->u.octet_aligned->len,
                                         &result, &rlen))

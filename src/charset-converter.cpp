@@ -1,4 +1,4 @@
-/* $Id: charset-converter.cpp,v 1.5 2006-03-30 10:31:48 adam Exp $
+/* $Id: charset-converter.cpp,v 1.6 2007-03-20 07:54:27 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -33,7 +33,7 @@ Yaz_CharsetConverter::Yaz_CharsetConverter()
 
 Yaz_CharsetConverter::~Yaz_CharsetConverter()
 {
-    wrbuf_free(m_wrbuf, 1);
+    wrbuf_destroy(m_wrbuf);
     xfree(m_target_query_charset);
     xfree(m_client_query_charset);
 }
