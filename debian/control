@@ -2,32 +2,33 @@ Source: yazproxy
 Priority: optional
 Maintainer: Adam Dickmeiss <adam@indexdata.dk>
 Standards-Version: 3.6.0
-Build-Depends: debhelper (>= 4.0.0), libxml2-dev, libxslt1-dev, libyaz-dev (>= 2.1.23), libyazpp-dev(>= 1.0.1)
+Build-Depends: debhelper (>= 4.0.0), libxml2-dev, libxslt1-dev, libyazpp2-dev(>= 1.0.3)
 
 Package: yazproxy
 Section: utils
 Architecture: any
-Depends: libyazproxy1 (= ${Source-Version})
+Depends: ${shlibs:Depends}, libyazproxy2 (= ${Source-Version})
 Description: YAZ Proxy.
  YAZ proxy is a daemon that accepts Z39.50/SRW/SRU incoming requests and
  converts them to Z39.50 client requests. The proxy has several facilities
  to optimize performance and tries to reduce the commnication with the
  backend server.
 
-Package: libyazproxy1
+Package: libyazproxy2
 Section: libs
 Architecture: any
-Depends: ${shlibs:Depends}, libyazpp1 (>= 1.0.1)
+Depends: ${shlibs:Depends}
 Description: YAZ Proxy libraries.
  YAZ proxy is a daemon that accepts Z39.50/SRW/SRU incoming requests and
  converts them to Z39.50 client requests. The proxy has several facilities
  to optimize performance and tries to reduce the commnication with the
  backend server.
 
-Package: libyazproxy-dev
+Package: libyazproxy2-dev
 Section: devel
 Architecture: any
-Depends: libyazproxy1 (= ${Source-Version}), libxml2-dev, libxslt1-dev, libyazpp-dev, libyaz-dev
+Depends: libyazproxy2 (= ${Source-Version}), libxml2-dev, libxslt1-dev, libyazpp2-dev
+Conflicts: libyazproxy-dev
 Description: YAZ Proxy development libraries.
  YAZ proxy is a daemon that accepts Z39.50/SRW/SRU incoming requests and
  converts them to Z39.50 client requests. The proxy has several facilities

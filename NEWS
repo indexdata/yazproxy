@@ -1,3 +1,8 @@
+Debian packages libyazproxy2, libyazproxy2-dev. These depend on
+libyazpp2, libyazpp2-dev.
+
+Branch out: YAZPROXY_1_2_1_1_branch .
+
 --- 1.2.1.1 2006/06/09
 
 Added support for thread config element which specifies number of

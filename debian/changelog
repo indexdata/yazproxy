@@ -1,3 +1,9 @@
+yazproxy (1.3.0-1) unstable; urgency=low
+
+  * Upstream. libyazproxy2.
+
+ -- Adam Dickmeiss <adam@indexdata.dk>  Tue, 20 Mar 2007 09:22:01 +0100
+
 yazproxy (1.2.1-1) unstable; urgency=low
 
   * Do not depend on docbook utils. Doc is part of make dist.
