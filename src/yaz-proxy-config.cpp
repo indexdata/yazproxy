@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy-config.cpp,v 1.35 2007-04-12 18:18:42 adam Exp $
+/* $Id: yaz-proxy-config.cpp,v 1.36 2007-04-12 20:50:10 adam Exp $
    Copyright (c) 1998-2007, Index Data.
 
 This file is part of the yazproxy.
@@ -880,8 +880,8 @@ int Yaz_ProxyConfig::check_syntax(ODR odr, const char *name,
                         return 25;
                     if (syntax)
                     {
-                        char dotoid_str[100];
-                        oid_to_dotstring(syntax, dotoid_str);
+                        char dotoid_str[OID_STR_MAX];
+                        oid_oid_to_dotstring(syntax, dotoid_str);
                         *addinfo = odr_strdup(odr, dotoid_str);
                     }
                     return atoi(match_error);
