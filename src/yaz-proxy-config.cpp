@@ -1,5 +1,5 @@
-/* $Id: yaz-proxy-config.cpp,v 1.34 2006-07-06 11:50:26 adam Exp $
-   Copyright (c) 1998-2006, Index Data.
+/* $Id: yaz-proxy-config.cpp,v 1.35 2007-04-12 18:18:42 adam Exp $
+   Copyright (c) 1998-2007, Index Data.
 
 This file is part of the yazproxy.
 
@@ -23,6 +23,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 
 #include <yaz/log.h>
 #include "proxyp.h"
+#include <yaz/oid_db.h>
 
 class Yaz_ProxyConfigP {
     friend class Yaz_ProxyConfig;
@@ -822,8 +823,10 @@ int Yaz_ProxyConfig::check_syntax(ODR odr, const char *name,
                 }
                 else if (syntax)
                 {
-                    int match_oid[OID_SIZE];
-                    oid_name_to_oid(CLASS_RECSYN, match_type, match_oid);
+                    int *match_oid 
+                        = yaz_string_to_oid_odr(yaz_oid_std(),
+                                                CLASS_RECSYN, match_type,
+                                                odr);
                     if (oid_oidcmp(match_oid, syntax) == 0)
                         match = 1;
                 }

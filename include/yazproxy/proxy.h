@@ -1,5 +1,5 @@
-/* $Id: proxy.h,v 1.37 2006-06-28 23:38:23 adam Exp $
-   Copyright (c) 1998-2006, Index Data.
+/* $Id: proxy.h,v 1.38 2007-04-12 18:18:42 adam Exp $
+   Copyright (c) 1998-2007, Index Data.
 
 This file is part of the yazproxy.
 
@@ -146,7 +146,7 @@ class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Z_Assoc {
     char *m_schema;
     char *m_backend_type;
     char *m_backend_charset;
-    int m_frontend_type;
+    int m_frontend_type[OID_SIZE];
     void convert_to_frontend_type(Z_NamePlusRecordList *p);
     void convert_to_marcxml(Z_NamePlusRecordList *p, const char *charset);
     void convert_records_charset(Z_NamePlusRecordList *p, const char *charset);

@@ -1,5 +1,5 @@
-/* $Id: yaz-proxy.cpp,v 1.72 2007-03-20 07:54:27 adam Exp $
-   Copyright (c) 1998-2006, Index Data.
+/* $Id: yaz-proxy.cpp,v 1.73 2007-04-12 18:18:42 adam Exp $
+   Copyright (c) 1998-2007, Index Data.
 
 This file is part of the yazproxy.
 
@@ -51,6 +51,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include <yaz/pquery.h>
 #include <yaz/otherinfo.h>
 #include <yaz/charneg.h>
+#include <yaz/oid_db.h>
 #include "msg-thread.h"
 
 using namespace yazpp_1;
@@ -250,7 +251,7 @@ Yaz_Proxy::Yaz_Proxy(IPDU_Observable *the_PDU_Observable,
     m_schema = 0;
     m_backend_type = 0;
     m_backend_charset = 0;
-    m_frontend_type = 0;
+    m_frontend_type[0] = -1;
     m_initRequest_apdu = 0;
     m_initRequest_mem = 0;
     m_initRequest_preferredMessageSize = 0;
@@ -483,29 +484,23 @@ IPDU_Observer *Yaz_Proxy::sessionNotify(IPDU_Observable
 
 char *Yaz_Proxy::get_cookie(Z_OtherInformation **otherInfo)
 {
-    int oid[OID_SIZE];
     Z_OtherInformationUnit *oi;
-    struct oident ent;
-    ent.proto = PROTO_Z3950;
-    ent.oclass = CLASS_USERINFO;
-    ent.value = (oid_value) VAL_COOKIE;
-    assert (oid_ent_to_oid (&ent, oid));
-
-    if (oid_ent_to_oid (&ent, oid) &&
+    const int *oid = yaz_string_to_oid(yaz_oid_std(),
+                                       CLASS_USERINFO, OID_STR_COOKIE);
+    
+    if (oid &&
         (oi = update_otherInformation(otherInfo, 0, oid, 1, 1)) &&
         oi->which == Z_OtherInfo_characterInfo)
         return oi->information.characterInfo;
     return 0;
 }
+
 char *Yaz_Proxy::get_proxy(Z_OtherInformation **otherInfo)
 {
-    int oid[OID_SIZE];
     Z_OtherInformationUnit *oi;
-    struct oident ent;
-    ent.proto = PROTO_Z3950;
-    ent.oclass = CLASS_USERINFO;
-    ent.value = (oid_value) VAL_PROXY;
-    if (oid_ent_to_oid (&ent, oid) &&
+    const int *oid = yaz_string_to_oid(yaz_oid_std(),
+                                       CLASS_USERINFO, OID_STR_COOKIE);
+    if (oid &&
         (oi = update_otherInformation(otherInfo, 0, oid, 1, 1)) &&
         oi->which == Z_OtherInfo_characterInfo)
         return oi->information.characterInfo;
@@ -828,7 +823,6 @@ void Yaz_Proxy::display_diagrecs(Z_DiagRec **pp, int num)
     int i;
     for (i = 0; i<num; i++)
     {
-        oident *ent;
         Z_DefaultDiagFormat *r;
         Z_DiagRec *p = pp[i];
         if (p->which != Z_DiagRec_defaultFormat)
@@ -838,9 +832,6 @@ void Yaz_Proxy::display_diagrecs(Z_DiagRec **pp, int num)
         }
         else
             r = p->u.defaultFormat;
-        if (!(ent = oid_getentbyoid(r->diagnosticSetId)) ||
-            ent->oclass != CLASS_DIAGSET || ent->value != VAL_BIB1)
-            yaz_log(YLOG_LOG, "%sError unknown diagnostic set", m_session_str);
         switch (r->which)
         {
         case Z_DefaultDiagFormat_v2Addinfo:
@@ -902,11 +893,12 @@ void Yaz_Proxy::convert_xsl_delay()
                 xmlChar *out_buf;
                 int out_len;
                 xmlDocDumpFormatMemory (res, &out_buf, &out_len, 1);
-
+                const int *oid = yaz_string_to_oid(yaz_oid_std(),
+                                                   CLASS_RECSYN, OID_STR_XML);
                 m_stylesheet_nprl->records[m_stylesheet_offset]->
                     u.databaseRecord =
-                    z_ext_record(odr_encode(), VAL_TEXT_XML,
-                                 (char*) out_buf, out_len);
+                    z_ext_record_oid(odr_encode(), oid,
+                                     (char*) out_buf, out_len);
                 xmlFree(out_buf);
                 xmlFreeDoc(res);
             }
@@ -934,7 +926,7 @@ void Yaz_Proxy::convert_xsl_delay()
 
 void Yaz_Proxy::convert_to_frontend_type(Z_NamePlusRecordList *p)
 {
-    if (m_frontend_type != VAL_NONE)
+    if (m_frontend_type[0] != -1)
     {
         int i;
         for (i = 0; i < p->num_records; i++)
@@ -980,10 +972,10 @@ void Yaz_Proxy::convert_to_frontend_type(Z_NamePlusRecordList *p)
                                 }
                             }
                             npr->u.databaseRecord =
-                                z_ext_record(odr_encode(),
-                                             m_frontend_type,
-                                             converted,
-                                             strlen(converted));
+                                z_ext_record_oid(odr_encode(),
+                                                 m_frontend_type,
+                                                 converted,
+                                                 strlen(converted));
                             free(converted);
                         }
                         else
@@ -995,10 +987,10 @@ void Yaz_Proxy::convert_to_frontend_type(Z_NamePlusRecordList *p)
 #endif
 /* HAVE_USEMARCON */
                     npr->u.databaseRecord =
-                        z_ext_record(odr_encode(),
-                                     m_frontend_type,
-                                     (char*) r->u.octet_aligned->buf,
-                                     r->u.octet_aligned->len);
+                        z_ext_record_oid(odr_encode(),
+                                         m_frontend_type,
+                                         (char*) r->u.octet_aligned->buf,
+                                         r->u.octet_aligned->len);
                 }
             }
         }
@@ -1026,22 +1018,27 @@ void Yaz_Proxy::convert_records_charset(Z_NamePlusRecordList *p,
             if (npr->which == Z_NamePlusRecord_databaseRecord)
             {
                 Z_External *r = npr->u.databaseRecord;
-                oident *ent = oid_getentbyoid(r->direct_reference);
-                if (!ent || ent->value == VAL_NONE)
+                const int *oid = r->direct_reference;
+                if (!oid)
                     continue;
 
-                if (ent->value == VAL_SUTRS)
+                char oid_name_str[OID_STR_MAX];
+                int oclass;
+                const char *oid_name = yaz_oid_to_string_buf(
+                    oid, &oclass, oid_name_str);
+
+                if (oid_name && !strcmp(oid_name, OID_STR_SUTRS))
                 {
                     WRBUF w = wrbuf_alloc();
 
                     wrbuf_iconv_write(w, cd,  (char*) r->u.octet_aligned->buf,
                                       r->u.octet_aligned->len);
                     npr->u.databaseRecord =
-                        z_ext_record(odr_encode(), ent->value, wrbuf_buf(w),
-                                     wrbuf_len(w));
+                        z_ext_record_oid(odr_encode(), oid, wrbuf_buf(w),
+                                         wrbuf_len(w));
                     wrbuf_destroy(w);
                 }
-                else if (ent->value == VAL_TEXT_XML)
+                else if (oid_name && !strcmp(oid_name, OID_STR_XML))
                 {
                     ;
                 }
@@ -1055,7 +1052,7 @@ void Yaz_Proxy::convert_records_charset(Z_NamePlusRecordList *p,
                                             &result, &rlen))
                     {
                         npr->u.databaseRecord =
-                            z_ext_record(odr_encode(), ent->value, result, rlen);
+                            z_ext_record_oid(odr_encode(), oid, result, rlen);
                         yaz_log(YLOG_LOG, "%sRecoding MARC record",
                                 m_session_str);
                     }
@@ -1083,16 +1080,18 @@ void Yaz_Proxy::convert_to_marcxml(Z_NamePlusRecordList *p,
         Z_NamePlusRecord *npr = p->records[i];
         if (npr->which == Z_NamePlusRecord_databaseRecord)
         {
+            const int *xml_oid = yaz_string_to_oid(yaz_oid_std(),
+                                                   CLASS_RECSYN,
+                                                   OID_STR_XML);
             Z_External *r = npr->u.databaseRecord;
             if (r->which == Z_External_OPAC)
             {
                 WRBUF w = wrbuf_alloc();
 
                 yaz_opac_decode_wrbuf(mt, r->u.opac, w);
-                npr->u.databaseRecord = z_ext_record(
-                    odr_encode(), VAL_TEXT_XML,
-                    wrbuf_buf(w), wrbuf_len(w)
-                    );
+                npr->u.databaseRecord = z_ext_record_oid(
+                    odr_encode(), xml_oid,
+                    wrbuf_buf(w), wrbuf_len(w));
                 wrbuf_destroy(w);
             }
             else if (r->which == Z_External_octet)
@@ -1104,7 +1103,7 @@ void Yaz_Proxy::convert_to_marcxml(Z_NamePlusRecordList *p,
                                         &result, &rlen))
                 {
                     npr->u.databaseRecord =
-                        z_ext_record(odr_encode(), VAL_TEXT_XML, result, rlen);
+                        z_ext_record_oid(odr_encode(), xml_oid, result, rlen);
                 }
             }
         }
@@ -1268,8 +1267,11 @@ int Yaz_Proxy::send_to_srw_client_ok(int hits, Z_Records *records, int start)
                 continue;
             }
             Z_External *r = npr->u.databaseRecord;
-            oident *ent = oid_getentbyoid(r->direct_reference);
-            if (r->which == Z_External_octet && ent->value == VAL_TEXT_XML)
+
+            const int *xml_oid = yaz_string_to_oid(
+                yaz_oid_std(), CLASS_RECSYN, OID_STR_XML);
+            if (r->which == Z_External_octet 
+                && !oid_oidcmp(r->direct_reference, xml_oid))
             {
                 srw_res->records[i].recordSchema = m_schema;
                 srw_res->records[i].recordPacking = m_s2z_packing;
@@ -2282,7 +2284,7 @@ Z_Records *Yaz_Proxy::create_nonSurrogateDiagnostics(ODR odr,
     rec->which = Z_Records_NSD;
     rec->u.nonSurrogateDiagnostic = dr;
     dr->diagnosticSetId =
-        yaz_oidval_to_z3950oid (odr, CLASS_DIAGSET, VAL_BIB1);
+        yaz_string_to_oid_odr(yaz_oid_std(), CLASS_DIAGSET, OID_STR_BIB1, odr);
     dr->condition = err;
     dr->which = Z_DefaultDiagFormat_v2Addinfo;
     dr->u.v2Addinfo = odr_strdup (odr, addinfo ? addinfo : "");
@@ -2478,13 +2480,9 @@ Z_APDU *Yaz_Proxy::handle_syntax_validation(Z_APDU *apdu)
         }
 
         if (sr->preferredRecordSyntax)
-        {
-            struct oident *ent;
-            ent = oid_getentbyoid(sr->preferredRecordSyntax);
-            m_frontend_type = ent->value;
-        }
+            oid_oidcpy(m_frontend_type, sr->preferredRecordSyntax);
         else
-            m_frontend_type = VAL_NONE;
+            m_frontend_type[0] = -1;
 
         char *stylesheet_name = 0;
         if (cfg)
@@ -2515,17 +2513,11 @@ Z_APDU *Yaz_Proxy::handle_syntax_validation(Z_APDU *apdu)
             sr->smallSetElementSetNames = 0;
             sr->mediumSetElementSetNames = 0;
             m_marcxml_mode = marcxml;
-            if (m_backend_type)
-            {
-
-                sr->preferredRecordSyntax =
-                    yaz_str_to_z3950oid(odr_encode(), CLASS_RECSYN,
-                                        m_backend_type);
-            }
-            else
-                sr->preferredRecordSyntax =
-                    yaz_oidval_to_z3950oid(odr_encode(), CLASS_RECSYN,
-                                           VAL_USMARC);
+            sr->preferredRecordSyntax =
+                yaz_string_to_oid_odr(
+                    yaz_oid_std(), CLASS_RECSYN,
+                    m_backend_type ? m_backend_type : OID_STR_USMARC, 
+                    odr_encode());
         }
         else if (err)
         {
@@ -2543,7 +2535,8 @@ Z_APDU *Yaz_Proxy::handle_syntax_validation(Z_APDU *apdu)
         else if (m_backend_type)
         {
             sr->preferredRecordSyntax =
-                yaz_str_to_z3950oid(odr_encode(), CLASS_RECSYN, m_backend_type);
+                yaz_string_to_oid_odr(yaz_oid_std(), CLASS_RECSYN, 
+                                      m_backend_type, odr_encode());
         }
     }
     else if (apdu->which == Z_APDU_presentRequest)
@@ -2554,13 +2547,9 @@ Z_APDU *Yaz_Proxy::handle_syntax_validation(Z_APDU *apdu)
         Yaz_ProxyConfig *cfg = check_reconfigure();
 
         if (pr->preferredRecordSyntax)
-        {
-            struct oident *ent;
-            ent = oid_getentbyoid(pr->preferredRecordSyntax);
-            m_frontend_type = ent->value;
-        }
+            oid_oidcpy(m_frontend_type, pr->preferredRecordSyntax);
         else
-            m_frontend_type = VAL_NONE;
+            m_frontend_type[0] = -1;
 
         char *stylesheet_name = 0;
         if (cfg)
@@ -2591,17 +2580,12 @@ Z_APDU *Yaz_Proxy::handle_syntax_validation(Z_APDU *apdu)
         {
             pr->recordComposition = 0;
             m_marcxml_mode = marcxml;
-            if (m_backend_type)
-            {
 
-                pr->preferredRecordSyntax =
-                    yaz_str_to_z3950oid(odr_encode(), CLASS_RECSYN,
-                                        m_backend_type);
-            }
-            else
-                pr->preferredRecordSyntax =
-                    yaz_oidval_to_z3950oid(odr_encode(), CLASS_RECSYN,
-                                           VAL_USMARC);
+            pr->preferredRecordSyntax =
+                yaz_string_to_oid_odr(
+                    yaz_oid_std(), CLASS_RECSYN,
+                    m_backend_type ? m_backend_type : OID_STR_USMARC, 
+                    odr_encode());
         }
         else if (err)
         {
@@ -2620,7 +2604,9 @@ Z_APDU *Yaz_Proxy::handle_syntax_validation(Z_APDU *apdu)
         else if (m_backend_type)
         {
             pr->preferredRecordSyntax =
-                yaz_str_to_z3950oid(odr_encode(), CLASS_RECSYN, m_backend_type);
+                yaz_string_to_oid_odr(yaz_oid_std(),
+                                      CLASS_RECSYN, m_backend_type, 
+                                      odr_encode());
         }
     }
     return apdu;
@@ -2944,8 +2930,10 @@ void Yaz_Proxy::handle_incoming_HTTP(Z_HTTP_Request *hreq)
                     *z_searchRequest->largeSetLowerBound = 2000000000; // 2e9
 
                     z_searchRequest->preferredRecordSyntax =
-                        yaz_oidval_to_z3950oid(m_s2z_odr_search, CLASS_RECSYN,
-                                               VAL_TEXT_XML);
+                        yaz_string_to_oid_odr(yaz_oid_std(),
+                                              CLASS_RECSYN, OID_STR_XML,
+                                              m_s2z_odr_search);
+
                     if (srw_req->recordSchema)
                     {
                         z_searchRequest->smallSetElementSetNames =
@@ -2962,9 +2950,12 @@ void Yaz_Proxy::handle_incoming_HTTP(Z_HTTP_Request *hreq)
                         m_s2z_present_apdu->u.presentRequest;
                     *z_presentRequest->resultSetStartPoint = start;
                     *z_presentRequest->numberOfRecordsRequested = max;
+
                     z_presentRequest->preferredRecordSyntax =
-                        yaz_oidval_to_z3950oid(m_s2z_odr_search, CLASS_RECSYN,
-                                               VAL_TEXT_XML);
+                        yaz_string_to_oid_odr(yaz_oid_std(),
+                                              CLASS_RECSYN, OID_STR_XML,
+                                              m_s2z_odr_search);
+
                     if (srw_req->recordSchema)
                     {
                         z_presentRequest->recordComposition =
@@ -3169,7 +3160,7 @@ void Yaz_Proxy::handle_init(Z_APDU *apdu)
             Z_APDU *apdu2 = m_client->m_initResponse;
             apdu2->u.initResponse->otherInfo = 0;
             if (m_client->m_cookie && *m_client->m_cookie)
-                set_otherInformationString(apdu2, VAL_COOKIE, 1,
+                set_otherInformationString(apdu2, OID_STR_COOKIE, 1,
                                            m_client->m_cookie);
             apdu2->u.initResponse->referenceId =
                 apdu->u.initRequest->referenceId;
@@ -3834,7 +3825,7 @@ void Yaz_ProxyClient::recv_Z_PDU(Z_APDU *apdu, int len)
         }
     }
     if (m_cookie)
-        set_otherInformationString (apdu, VAL_COOKIE, 1, m_cookie);
+        set_otherInformationString (apdu, OID_STR_COOKIE, 1, m_cookie);
 
     Yaz_Proxy *server = m_server; // save it. send_to_client may destroy us
 
