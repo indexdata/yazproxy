@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.73 2007-04-12 18:18:42 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.74 2007-04-16 21:54:27 adam Exp $
    Copyright (c) 1998-2007, Index Data.
 
 This file is part of the yazproxy.
@@ -484,25 +484,20 @@ IPDU_Observer *Yaz_Proxy::sessionNotify(IPDU_Observable
 
 char *Yaz_Proxy::get_cookie(Z_OtherInformation **otherInfo)
 {
-    Z_OtherInformationUnit *oi;
-    const int *oid = yaz_string_to_oid(yaz_oid_std(),
-                                       CLASS_USERINFO, OID_STR_COOKIE);
+    Z_OtherInformationUnit *oi =
+        update_otherInformation(otherInfo, 0, yaz_oid_userinfo_cookie, 1, 1);
     
-    if (oid &&
-        (oi = update_otherInformation(otherInfo, 0, oid, 1, 1)) &&
-        oi->which == Z_OtherInfo_characterInfo)
+    if (oi->which == Z_OtherInfo_characterInfo)
         return oi->information.characterInfo;
     return 0;
 }
 
 char *Yaz_Proxy::get_proxy(Z_OtherInformation **otherInfo)
 {
-    Z_OtherInformationUnit *oi;
-    const int *oid = yaz_string_to_oid(yaz_oid_std(),
-                                       CLASS_USERINFO, OID_STR_COOKIE);
-    if (oid &&
-        (oi = update_otherInformation(otherInfo, 0, oid, 1, 1)) &&
-        oi->which == Z_OtherInfo_characterInfo)
+    Z_OtherInformationUnit *oi =
+        update_otherInformation(otherInfo, 0, yaz_oid_userinfo_proxy, 1, 1);
+    
+    if (oi->which == Z_OtherInfo_characterInfo)
         return oi->information.characterInfo;
     return 0;
 }
@@ -893,11 +888,9 @@ void Yaz_Proxy::convert_xsl_delay()
                 xmlChar *out_buf;
                 int out_len;
                 xmlDocDumpFormatMemory (res, &out_buf, &out_len, 1);
-                const int *oid = yaz_string_to_oid(yaz_oid_std(),
-                                                   CLASS_RECSYN, OID_STR_XML);
                 m_stylesheet_nprl->records[m_stylesheet_offset]->
                     u.databaseRecord =
-                    z_ext_record_oid(odr_encode(), oid,
+                    z_ext_record_oid(odr_encode(), yaz_oid_recsyn_xml,
                                      (char*) out_buf, out_len);
                 xmlFree(out_buf);
                 xmlFreeDoc(res);
@@ -1022,12 +1015,7 @@ void Yaz_Proxy::convert_records_charset(Z_NamePlusRecordList *p,
                 if (!oid)
                     continue;
 
-                char oid_name_str[OID_STR_MAX];
-                int oclass;
-                const char *oid_name = yaz_oid_to_string_buf(
-                    oid, &oclass, oid_name_str);
-
-                if (oid_name && !strcmp(oid_name, OID_STR_SUTRS))
+                if (!oid_oidcmp(oid, yaz_oid_recsyn_sutrs))
                 {
                     WRBUF w = wrbuf_alloc();
 
@@ -1038,7 +1026,7 @@ void Yaz_Proxy::convert_records_charset(Z_NamePlusRecordList *p,
                                          wrbuf_len(w));
                     wrbuf_destroy(w);
                 }
-                else if (oid_name && !strcmp(oid_name, OID_STR_XML))
+                else if (!oid_oidcmp(oid, yaz_oid_recsyn_xml))
                 {
                     ;
                 }
@@ -1080,9 +1068,6 @@ void Yaz_Proxy::convert_to_marcxml(Z_NamePlusRecordList *p,
         Z_NamePlusRecord *npr = p->records[i];
         if (npr->which == Z_NamePlusRecord_databaseRecord)
         {
-            const int *xml_oid = yaz_string_to_oid(yaz_oid_std(),
-                                                   CLASS_RECSYN,
-                                                   OID_STR_XML);
             Z_External *r = npr->u.databaseRecord;
             if (r->which == Z_External_OPAC)
             {
@@ -1090,7 +1075,7 @@ void Yaz_Proxy::convert_to_marcxml(Z_NamePlusRecordList *p,
 
                 yaz_opac_decode_wrbuf(mt, r->u.opac, w);
                 npr->u.databaseRecord = z_ext_record_oid(
-                    odr_encode(), xml_oid,
+                    odr_encode(), yaz_oid_recsyn_xml,
                     wrbuf_buf(w), wrbuf_len(w));
                 wrbuf_destroy(w);
             }
@@ -1103,7 +1088,8 @@ void Yaz_Proxy::convert_to_marcxml(Z_NamePlusRecordList *p,
                                         &result, &rlen))
                 {
                     npr->u.databaseRecord =
-                        z_ext_record_oid(odr_encode(), xml_oid, result, rlen);
+                        z_ext_record_oid(odr_encode(), yaz_oid_recsyn_xml,
+                                         result, rlen);
                 }
             }
         }
@@ -1268,10 +1254,8 @@ int Yaz_Proxy::send_to_srw_client_ok(int hits, Z_Records *records, int start)
             }
             Z_External *r = npr->u.databaseRecord;
 
-            const int *xml_oid = yaz_string_to_oid(
-                yaz_oid_std(), CLASS_RECSYN, OID_STR_XML);
             if (r->which == Z_External_octet 
-                && !oid_oidcmp(r->direct_reference, xml_oid))
+                && !oid_oidcmp(r->direct_reference, yaz_oid_recsyn_xml))
             {
                 srw_res->records[i].recordSchema = m_schema;
                 srw_res->records[i].recordPacking = m_s2z_packing;
@@ -2283,8 +2267,7 @@ Z_Records *Yaz_Proxy::create_nonSurrogateDiagnostics(ODR odr,
     *err = error;
     rec->which = Z_Records_NSD;
     rec->u.nonSurrogateDiagnostic = dr;
-    dr->diagnosticSetId =
-        yaz_string_to_oid_odr(yaz_oid_std(), CLASS_DIAGSET, OID_STR_BIB1, odr);
+    dr->diagnosticSetId = odr_oiddup(odr, yaz_oid_diagset_bib_1);
     dr->condition = err;
     dr->which = Z_DefaultDiagFormat_v2Addinfo;
     dr->u.v2Addinfo = odr_strdup (odr, addinfo ? addinfo : "");
@@ -2516,7 +2499,7 @@ Z_APDU *Yaz_Proxy::handle_syntax_validation(Z_APDU *apdu)
             sr->preferredRecordSyntax =
                 yaz_string_to_oid_odr(
                     yaz_oid_std(), CLASS_RECSYN,
-                    m_backend_type ? m_backend_type : OID_STR_USMARC, 
+                    m_backend_type ? m_backend_type : "usmarc", 
                     odr_encode());
         }
         else if (err)
@@ -2584,7 +2567,7 @@ Z_APDU *Yaz_Proxy::handle_syntax_validation(Z_APDU *apdu)
             pr->preferredRecordSyntax =
                 yaz_string_to_oid_odr(
                     yaz_oid_std(), CLASS_RECSYN,
-                    m_backend_type ? m_backend_type : OID_STR_USMARC, 
+                    m_backend_type ? m_backend_type : "usmarc", 
                     odr_encode());
         }
         else if (err)
@@ -2930,9 +2913,7 @@ void Yaz_Proxy::handle_incoming_HTTP(Z_HTTP_Request *hreq)
                     *z_searchRequest->largeSetLowerBound = 2000000000; // 2e9
 
                     z_searchRequest->preferredRecordSyntax =
-                        yaz_string_to_oid_odr(yaz_oid_std(),
-                                              CLASS_RECSYN, OID_STR_XML,
-                                              m_s2z_odr_search);
+                        odr_oiddup(m_s2z_odr_search, yaz_oid_recsyn_xml);
 
                     if (srw_req->recordSchema)
                     {
@@ -2952,10 +2933,7 @@ void Yaz_Proxy::handle_incoming_HTTP(Z_HTTP_Request *hreq)
                     *z_presentRequest->numberOfRecordsRequested = max;
 
                     z_presentRequest->preferredRecordSyntax =
-                        yaz_string_to_oid_odr(yaz_oid_std(),
-                                              CLASS_RECSYN, OID_STR_XML,
-                                              m_s2z_odr_search);
-
+                        odr_oiddup(m_s2z_odr_search, yaz_oid_recsyn_xml);
                     if (srw_req->recordSchema)
                     {
                         z_presentRequest->recordComposition =
@@ -3160,8 +3138,8 @@ void Yaz_Proxy::handle_init(Z_APDU *apdu)
             Z_APDU *apdu2 = m_client->m_initResponse;
             apdu2->u.initResponse->otherInfo = 0;
             if (m_client->m_cookie && *m_client->m_cookie)
-                set_otherInformationString(apdu2, OID_STR_COOKIE, 1,
-                                           m_client->m_cookie);
+                set_otherInformationString(apdu2, yaz_oid_userinfo_cookie, 
+                                           1, m_client->m_cookie);
             apdu2->u.initResponse->referenceId =
                 apdu->u.initRequest->referenceId;
             apdu2->u.initResponse->options = m_client->m_initResponse_options;
@@ -3825,7 +3803,7 @@ void Yaz_ProxyClient::recv_Z_PDU(Z_APDU *apdu, int len)
         }
     }
     if (m_cookie)
-        set_otherInformationString (apdu, OID_STR_COOKIE, 1, m_cookie);
+        set_otherInformationString(apdu, yaz_oid_userinfo_cookie, 1, m_cookie);
 
     Yaz_Proxy *server = m_server; // save it. send_to_client may destroy us
 
