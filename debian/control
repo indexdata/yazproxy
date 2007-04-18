@@ -8,39 +8,47 @@ Package: yazproxy
 Section: utils
 Architecture: any
 Depends: ${shlibs:Depends}, libyazproxy2 (= ${Source-Version})
-Description: YAZ Proxy.
- YAZ proxy is a daemon that accepts Z39.50/SRW/SRU incoming requests and
+Description: YAZ Proxy application
+ YAZ Proxy is a daemon that accepts Z39.50/SRW/SRU incoming requests and
  converts them to Z39.50 client requests. The proxy has several facilities
  to optimize performance and tries to reduce the commnication with the
  backend server.
+ .
+ This package includes the YAZ Proxy application.
 
 Package: libyazproxy2
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}
-Description: YAZ Proxy libraries.
- YAZ proxy is a daemon that accepts Z39.50/SRW/SRU incoming requests and
+Description: YAZ Proxy libraries
+ YAZ Proxy is a daemon that accepts Z39.50/SRW/SRU incoming requests and
  converts them to Z39.50 client requests. The proxy has several facilities
  to optimize performance and tries to reduce the commnication with the
  backend server.
+ .
+ This package includes the YAZ Proxy run-time libraries.
 
 Package: libyazproxy2-dev
 Section: devel
 Architecture: any
 Depends: libyazproxy2 (= ${Source-Version}), libxml2-dev, libxslt1-dev, libyazpp2-dev
 Conflicts: libyazproxy-dev
-Description: YAZ Proxy development libraries.
- YAZ proxy is a daemon that accepts Z39.50/SRW/SRU incoming requests and
+Description: YAZ Proxy development libraries
+ YAZ Proxy is a daemon that accepts Z39.50/SRW/SRU incoming requests and
  converts them to Z39.50 client requests. The proxy has several facilities
  to optimize performance and tries to reduce the commnication with the
  backend server.
+ .
+ This package includes the YAZ Proxy development libraries.
 
 Package: yazproxy-doc
 Section: doc
 Architecture: all
-Description: Documentation for YAZ proxy.
+Description: YAZ Proxy documentation
  YAZ proxy is a daemon that accepts Z39.50/SRW/SRU incoming requests and
  converts them to Z39.50 client requests. The proxy has several facilities
  to optimize performance and tries to reduce the commnication with the
  backend server.
+ .
+ This package includes documentation.
 
