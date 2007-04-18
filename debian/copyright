@@ -1,0 +1,14 @@
+This package was debianized by Adam Dickmeiss <adam@indexdata.dk> .
+
+It was downloaded from http://ftp.indexdata.dk/pub/yazproxy/
+
+YAZ Proxy is Copyright (C) 1999-2007 Index Data ApS
+
+YAZ Proxy is primarily written by Adam Dickmeiss.
+
+You are free to distribute this software under the terms of
+the GNU General Public License.
+On Debian systems, the complete text of the GNU General Public
+License can be found in the file `/usr/share/common-licenses/GPL'.
+
+$Id: copyright,v 1.1 2007-04-18 20:46:58 adam Exp $

@@ -85,9 +85,8 @@ binary-indep: build install
 binary-arch: build install
 	dh_testdir
 	dh_testroot
-	cp LICENSE debian/copyright
 	dh_installdocs -A README
-	dh_installchangelogs NEWS
+	dh_installchangelogs 
 	dh_installdocs
 	dh_installexamples
 	mv debian/tmp/usr/share/doc/yazproxy debian/tmp/usr/share/doc/yazproxy-doc
