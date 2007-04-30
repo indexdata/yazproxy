@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.74 2007-04-16 21:54:27 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.75 2007-04-30 19:46:34 adam Exp $
    Copyright (c) 1998-2007, Index Data.
 
 This file is part of the yazproxy.
@@ -2765,24 +2765,51 @@ void Yaz_Proxy::handle_incoming_HTTP(Z_HTTP_Request *hreq)
         m_s2z_present_apdu = 0;
 
         m_s2z_stylesheet = 0;
-
+        
         Z_IdAuthentication *auth = NULL;
-        if (*authorization_str)
+        if (srw_pdu->username && srw_pdu->password)
         {
+            yaz_log(YLOG_LOG, "username/password: %s/%s\n",
+                    srw_pdu->username, srw_pdu->password);
             auth = (Z_IdAuthentication *) odr_malloc(m_s2z_odr_init, sizeof(Z_IdAuthentication));
             auth->which = Z_IdAuthentication_idPass;
             auth->u.idPass = (Z_IdPass *) odr_malloc(m_s2z_odr_init, sizeof(Z_IdPass));
             auth->u.idPass->groupId = NULL;
-            char *p = strchr(authorization_str, ':');
-            if (p)
-            {
-                *p = '\0';
-                p++;
-                auth->u.idPass->password = odr_strdup(m_s2z_odr_init, p);
-            }
-            auth->u.idPass->userId = odr_strdup(m_s2z_odr_init, authorization_str);
+            auth->u.idPass->password = odr_strdup(m_s2z_odr_init, srw_pdu->password);
+            auth->u.idPass->userId = odr_strdup(m_s2z_odr_init, srw_pdu->username);
         }
-
+        else
+        {
+            if (*authorization_str)
+            {
+                yaz_log(YLOG_LOG, "authorization_str present: %s\n", authorization_str);
+                auth = (Z_IdAuthentication *) odr_malloc(m_s2z_odr_init, sizeof(Z_IdAuthentication));
+                auth->which = Z_IdAuthentication_idPass;
+                auth->u.idPass = (Z_IdPass *) odr_malloc(m_s2z_odr_init, sizeof(Z_IdPass));
+                auth->u.idPass->groupId = NULL;
+                char *p = strchr(authorization_str, ':');
+                if (p)
+                {
+                    *p = '\0';
+                    p++;
+                    auth->u.idPass->password = odr_strdup(m_s2z_odr_init, p);
+                }
+                auth->u.idPass->userId = odr_strdup(m_s2z_odr_init, authorization_str);
+            }
+            else
+            {
+                // Use _client_ IP as shown in the log entries...!
+                yaz_log(YLOG_LOG, "No authorization_str present: use client IP: %s\n", m_peername);
+                
+                auth = (Z_IdAuthentication *) odr_malloc(m_s2z_odr_init, sizeof(Z_IdAuthentication));
+	            auth->which = Z_IdAuthentication_idPass;
+	            auth->u.idPass = (Z_IdPass *) odr_malloc(m_s2z_odr_init, sizeof(Z_IdPass));
+	            auth->u.idPass->groupId  = NULL;
+	            auth->u.idPass->password = NULL;
+	            auth->u.idPass->userId   = odr_strdup(m_s2z_odr_init, m_peername);
+            }
+        }		
+        
         if (srw_pdu->which == Z_SRW_searchRetrieve_request)
         {
 
