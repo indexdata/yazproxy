@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.75 2007-04-30 19:46:34 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.76 2007-05-02 09:18:27 adam Exp $
    Copyright (c) 1998-2007, Index Data.
 
 This file is part of the yazproxy.
@@ -487,7 +487,7 @@ char *Yaz_Proxy::get_cookie(Z_OtherInformation **otherInfo)
     Z_OtherInformationUnit *oi =
         update_otherInformation(otherInfo, 0, yaz_oid_userinfo_cookie, 1, 1);
     
-    if (oi->which == Z_OtherInfo_characterInfo)
+    if (oi && oi->which == Z_OtherInfo_characterInfo)
         return oi->information.characterInfo;
     return 0;
 }
@@ -497,7 +497,7 @@ char *Yaz_Proxy::get_proxy(Z_OtherInformation **otherInfo)
     Z_OtherInformationUnit *oi =
         update_otherInformation(otherInfo, 0, yaz_oid_userinfo_proxy, 1, 1);
     
-    if (oi->which == Z_OtherInfo_characterInfo)
+    if (oi && oi->which == Z_OtherInfo_characterInfo)
         return oi->information.characterInfo;
     return 0;
 }
