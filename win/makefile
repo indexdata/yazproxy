@@ -1,6 +1,6 @@
 # Copyright (C) 1999-2006, Index Data ApS
 # All rights reserved.
-# $Id: makefile,v 1.11 2007-01-11 12:21:25 adam Exp $
+# $Id: makefile,v 1.12 2007-05-06 20:30:24 adam Exp $
 
 ###########################################################
 ############### Parameters 
@@ -63,8 +63,8 @@ OBJDIR=$(WINDIR)\obj        # where we store intermediate files
 TMPDIR=$(ROOTDIR)\win\tmp
 TMP=$(TMPDIR)
 
-YAZPROXY_DLL=$(BINDIR)\yazproxy.dll
-YAZPROXY_IMPLIB=$(LIBDIR)\yazproxy.lib
+YAZPROXY_DLL=$(BINDIR)\yazproxy2.dll
+YAZPROXY_IMPLIB=$(LIBDIR)\yazproxy2.lib
 
 YAZPROXY=$(BINDIR)\yazproxy.exe
 
@@ -73,11 +73,11 @@ dll: $(YAZPROXY_DLL)
 proxy: $(YAZPROXY)
 
 !if $(DEBUG)
-YAZD=yazd
-YAZPPD=yazpp_1_d
+YAZD=yaz3d
+YAZPPD=yazpp2d
 !else
-YAZD=yaz
-YAZPPD=yazpp_1
+YAZD=yaz3
+YAZPPD=yazpp2
 !endif
 
 # YAZ includes & libs
