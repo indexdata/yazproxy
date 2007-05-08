@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.76 2007-05-02 09:18:27 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.77 2007-05-08 12:05:09 adam Exp $
    Copyright (c) 1998-2007, Index Data.
 
 This file is part of the yazproxy.
@@ -1011,7 +1011,7 @@ void Yaz_Proxy::convert_records_charset(Z_NamePlusRecordList *p,
             if (npr->which == Z_NamePlusRecord_databaseRecord)
             {
                 Z_External *r = npr->u.databaseRecord;
-                const int *oid = r->direct_reference;
+                const Odr_oid *oid = r->direct_reference;
                 if (!oid)
                     continue;
 

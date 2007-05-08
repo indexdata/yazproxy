@@ -1,6 +1,6 @@
 dnl yazproxy, Index Data 1994-2007
 dnl See the file LICENSE for details.
-dnl $Id: configure.ac,v 1.15 2007-03-20 16:23:42 adam Exp $
+dnl $Id: configure.ac,v 1.16 2007-05-08 12:05:08 adam Exp $
 AC_PREREQ(2.59)
 AC_INIT([yazproxy],[1.3.0],[adam@indexdata.dk])
 AC_CONFIG_SRCDIR(configure.ac)
@@ -13,7 +13,7 @@ AC_PROG_CXX
 AC_HEADER_STDC
 AM_PROG_LIBTOOL
 
-YAZPP_INIT(threads,1.0.1)
+YAZPP_INIT([threads],[1.0.3])
 if test -z "$YAZPPLIB"; then
 	AC_MSG_ERROR([YAZ++ development libraries missing])
 fi
