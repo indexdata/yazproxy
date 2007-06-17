@@ -1,6 +1,4 @@
-## $Id: Makefile.am,v 1.16 2006-11-27 11:35:22 adam Exp $
-docdir=$(datadir)/doc/@PACKAGE@
-
+## $Id: Makefile.am,v 1.17 2007-06-17 07:06:32 adam Exp $
 SUBDIRS = common
 
 XMLFILES = \
