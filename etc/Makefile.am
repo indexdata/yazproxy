@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.7 2006-08-14 09:26:02 adam Exp $
+# $Id: Makefile.am,v 1.8 2007-10-08 11:47:20 adam Exp $
 
 proxydatadir=$(datadir)/yazproxy
 proxydata_DATA = \
@@ -8,6 +8,7 @@ proxydata_DATA = \
  MARC21slim2MODS3.xsl \
  MARC21slim2RDFDC.xsl \
  MARC21slimUtils.xsl \
+ exslttest.xsl \
  config.xml \
  explain.xml \
  voyager.xml \

@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy-main.cpp,v 1.20 2006-07-06 11:50:26 adam Exp $
+/* $Id: yaz-proxy-main.cpp,v 1.21 2007-10-08 11:47:21 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -54,6 +54,10 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include <libxml/tree.h>
 #include <libxslt/xsltutils.h>
 #include <libxslt/transform.h>
+#endif
+
+#if YAZ_HAVE_EXSLT
+#include <libexslt/exslt.h>
 #endif
 
 using namespace yazpp_1;
@@ -208,6 +212,10 @@ static void child_run(SocketManager *m, int run)
 #if YAZ_HAVE_XSLT
     xmlSetGenericErrorFunc((void *) "XML", proxy_xml_error_handler);
     xsltSetGenericErrorFunc((void *) "XSLT", proxy_xml_error_handler);
+#endif
+
+#if YAZ_HAVE_EXSLT
+    exsltRegisterAll();
 #endif
 #ifdef WIN32
 #else

@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- $Id: config.xml,v 1.20 2006-04-12 11:55:38 adam Exp $ -->
+<!-- $Id: config.xml,v 1.21 2007-10-08 11:47:20 adam Exp $ -->
 <proxy xmlns="http://indexdata.dk/yazproxy/schema/0.9/"
  xmlns:xi="http://www.w3.org/2001/XInclude"
  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -36,6 +36,11 @@
       <title>Dublin Core</title>
       <name>dc</name>
     </syntax>
+    <syntax type="xml" marcxml="1" stylesheet="exslttest.xsl">
+      <title>EXSLT Test</title>
+      <name>exslt</name>
+    </syntax>
+    
     <syntax type="*" error="238"/>
     <preinit>2</preinit>
     <xi:include href="explain.xml"/>
