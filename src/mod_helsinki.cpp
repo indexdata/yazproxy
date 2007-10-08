@@ -1,4 +1,4 @@
-/* $Id: mod_helsinki.cpp,v 1.3 2006-07-06 11:50:26 adam Exp $
+/* $Id: mod_helsinki.cpp,v 1.4 2007-10-08 08:14:02 adam Exp $
    Copyright (c) 1998-2005, Index Data.
 
 This file is part of the yaz-proxy.
@@ -161,6 +161,8 @@ int my_authenticate(void *user_handle,
         const char *pIP = peer_IP;
         if (strncmp(pIP, "tcp:", 4) == 0)
             pIP += 4;
+        if (strncmp(pIP, "::ffff:", 7) == 0)
+            pIP += 7;
         IP_ADDRESS peer_address;
         if (str_to_address(pIP, &peer_address) != 4)
             yaz_log(YLOG_WARN, "Authentication: could not decode peer IP address %s properly", pIP);
