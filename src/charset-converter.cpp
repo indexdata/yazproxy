@@ -1,4 +1,4 @@
-/* $Id: charset-converter.cpp,v 1.6 2007-03-20 07:54:27 adam Exp $
+/* $Id: charset-converter.cpp,v 1.7 2007-12-27 10:44:49 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -80,6 +80,7 @@ void Yaz_CharsetConverter::convert_type_1(char *buf_in, int len_in,
 {
     wrbuf_rewind(m_wrbuf);
     wrbuf_iconv_write(m_wrbuf, m_ct, buf_in, len_in);
+    wrbuf_iconv_reset(m_wrbuf, m_ct);
 
     *len_out = wrbuf_len(m_wrbuf);
     if (*len_out == 0)
