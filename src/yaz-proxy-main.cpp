@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy-main.cpp,v 1.21 2007-10-08 11:47:21 adam Exp $
+/* $Id: yaz-proxy-main.cpp,v 1.22 2008-02-21 09:33:23 adam Exp $
    Copyright (c) 1998-2006, Index Data.
 
 This file is part of the yazproxy.
@@ -29,14 +29,8 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #if HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
-#if HAVE_SYS_WAIT_H
-#include <sys/wait.h>
-#endif
 #if HAVE_SYS_RESOURCE_H
 #include <sys/resource.h>
-#endif
-#if HAVE_PWD_H
-#include <pwd.h>
 #endif
 
 #include <stdarg.h>
@@ -44,6 +38,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 
 #include <yaz/log.h>
 #include <yaz/options.h>
+#include <yaz/daemon.h>
 
 #include <yazpp/socket-manager.h>
 #include <yazpp/pdu-assoc.h>
@@ -64,7 +59,7 @@ using namespace yazpp_1;
 
 void usage(char *prog)
 {
-    fprintf (stderr, "%s: [-a log] [-c config]\n"
+    fprintf (stderr, "%s: [-a log] [-c config] [-D]\n"
              " [-i sec] [-l log] [-m num] [-n num] [-p pidfile]"
              " [-t target] [-T sec] [-u uid]\n"
              " [-v level] [-X] @:port\n", prog);
@@ -74,7 +69,7 @@ void usage(char *prog)
 static char *pid_fname = 0;
 static char *uid = 0;
 static char *log_file = 0;
-static int debug = 0;
+static unsigned int daemon_flags = YAZ_DAEMON_KEEPALIVE;
 static int no_limit_files = 0;
 
 int args(Yaz_Proxy *proxy, int argc, char **argv)
@@ -84,7 +79,7 @@ int args(Yaz_Proxy *proxy, int argc, char **argv)
     char *prog = argv[0];
     int ret;
 
-    while ((ret = options("o:a:t:v:c:u:i:m:l:T:p:n:X",
+    while ((ret = options("o:a:Dt:v:c:u:i:m:l:T:p:n:X",
                           argv, argc, &arg)) != -2)
     {
         int err;
@@ -113,6 +108,9 @@ int args(Yaz_Proxy *proxy, int argc, char **argv)
                 fprintf(stderr, "Bad or missing file %s\n", arg);
                 exit(1);
             }
+            break;
+        case 'D':
+            daemon_flags |= YAZ_DAEMON_FORK;
             break;
         case 'i':
             proxy->set_client_idletime(atoi(arg));
@@ -149,7 +147,7 @@ int args(Yaz_Proxy *proxy, int argc, char **argv)
             break;
         case 'X':
             proxy->set_debug_mode(1);
-            debug = 1;
+            daemon_flags = YAZ_DAEMON_DEBUG;
             break;
         default:
             usage(prog);
@@ -202,8 +200,9 @@ static void proxy_xml_error_handler(void *ctx, const char *fmt, ...)
 }
 #endif
 
-static void child_run(SocketManager *m, int run)
+static void child_run(void *data)
 {
+    SocketManager *m = (SocketManager *) data;
 #ifdef WIN32
 #else
     signal(SIGHUP, sighup_handler);
@@ -219,7 +218,7 @@ static void child_run(SocketManager *m, int run)
 #endif
 #ifdef WIN32
 #else
-    yaz_log(YLOG_LOG, "0 proxy run=%d pid=%ld", run, (long) getpid());
+    yaz_log(YLOG_LOG, "0 proxy pid=%ld", (long) getpid());
 #endif
     if (no_limit_files)
     {
@@ -236,42 +235,6 @@ static void child_run(SocketManager *m, int run)
         yaz_log(YLOG_WARN, "setrlimit unavablable. Option -n ignored");
 #endif
     }
-#ifdef WIN32
-#else
-    if (pid_fname)
-    {
-        FILE *f = fopen(pid_fname, "w");
-        if (!f)
-        {
-            yaz_log(YLOG_ERRNO|YLOG_FATAL, "Couldn't create %s", pid_fname);
-            exit(0);
-        }
-        fprintf(f, "%ld", (long) getpid());
-        fclose(f);
-        xfree(pid_fname);
-    }
-    if (uid)
-    {
-        struct passwd *pw;
-
-        if (!(pw = getpwnam(uid)))
-        {
-            yaz_log(YLOG_FATAL, "%s: Unknown user", uid);
-            exit(3);
-        }
-        if (log_file)
-        {
-            chown(log_file, pw->pw_uid,  pw->pw_gid);
-            xfree(log_file);
-        }
-        if (setuid(pw->pw_uid) < 0)
-        {
-            yaz_log(YLOG_FATAL|YLOG_ERRNO, "setuid");
-            exit(4);
-        }
-        xfree(uid);
-    }
-#endif
 #if HAVE_GETRLIMIT
     struct rlimit limit_data;
     getrlimit(RLIMIT_NOFILE, &limit_data);
@@ -292,8 +255,6 @@ int main(int argc, char **argv)
     
     LIBXML_TEST_VERSION
 #endif
-    int cont = 1;
-    int run = 1;
     SocketManager mySocketManager;
     Yaz_Proxy proxy(new PDU_Assoc(&mySocketManager), &mySocketManager);
 
@@ -301,79 +262,8 @@ int main(int argc, char **argv)
 
     args(&proxy, argc, argv);
 
-#ifdef WIN32
-    child_run(&mySocketManager, run);
-#else
-    if (debug)
-    {
-        child_run(&mySocketManager, run);
-        exit(0);
-    }
-    while (cont)
-    {
-        pid_t p = fork();
-        if (p == (pid_t) -1)
-        {
-            yaz_log(YLOG_FATAL|YLOG_ERRNO, "fork");
-            exit(1);
-        }
-        else if (p == 0)
-        {
-            child_run(&mySocketManager, run);
-        }
-        pid_t p1;
-        int status;
-        p1 = wait(&status);
-
-        yaz_log_reopen();
-
-        if (p1 != p)
-        {
-            yaz_log(YLOG_FATAL, "p1=%d != p=%d", p1, p);
-            exit(1);
-        }
-        if (WIFSIGNALED(status))
-        {
-            switch(WTERMSIG(status)) {
-            case SIGILL:
-                yaz_log(YLOG_WARN, "Received SIGILL from child %ld", (long) p);
-                cont = 1;
-                break;
-            case SIGABRT:
-                yaz_log(YLOG_WARN, "Received SIGABRT from child %ld", (long) p);
-                cont = 1;
-                break ;
-            case SIGSEGV:
-                yaz_log(YLOG_WARN, "Received SIGSEGV from child %ld", (long) p);
-                cont = 1;
-                break;
-            case SIGBUS:        
-                yaz_log(YLOG_WARN, "Received SIGBUS from child %ld", (long) p);
-                cont = 1;
-                break;
-            case SIGTERM:
-                yaz_log(YLOG_LOG, "Received SIGTERM from child %ld",
-                        (long) p);
-                cont = 0;
-                break;
-            default:
-                yaz_log(YLOG_WARN, "Received SIG %d from child %ld",
-                        WTERMSIG(status), (long) p);
-                cont = 0;
-            }
-        }
-        else if (status == 0)
-            cont = 0;
-        else
-        {
-            yaz_log(YLOG_LOG, "Exit %d from child %ld", status, (long) p);
-            cont = 1;
-        }
-        if (cont)
-            sleep(1 + run/5);
-        run++;
-    }
-#endif
+    yaz_daemon("yazproxy", daemon_flags,
+               child_run, &mySocketManager, pid_fname, uid);
     exit (0);
     return 0;
 }

@@ -1,6 +1,6 @@
 dnl yazproxy, Index Data 1994-2007
 dnl See the file LICENSE for details.
-dnl $Id: configure.ac,v 1.18 2008-01-24 21:51:40 adam Exp $
+dnl $Id: configure.ac,v 1.19 2008-02-21 09:33:22 adam Exp $
 AC_PREREQ(2.60)
 AC_INIT([yazproxy],[1.3.1],[adam@indexdata.dk])
 AC_CONFIG_SRCDIR(configure.ac)
@@ -21,7 +21,7 @@ YAZ_DOC
 USEMARCON_INIT
 
 AC_CHECK_FUNCS(setrlimit getrlimit gettimeofday)
-AC_CHECK_HEADERS(pwd.h sys/resource.h sys/stat.h sys/time.h sys/types.h sys/wait.h unistd.h)
+AC_CHECK_HEADERS(sys/resource.h sys/stat.h sys/time.h sys/types.h unistd.h)
 AC_CHECK_LIB(dl,dlopen)
 dnl
 AC_SUBST(YAZPROXY_SRC_ROOT)

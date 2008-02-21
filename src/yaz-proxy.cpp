@@ -1,4 +1,4 @@
-/* $Id: yaz-proxy.cpp,v 1.77 2007-05-08 12:05:09 adam Exp $
+/* $Id: yaz-proxy.cpp,v 1.78 2008-02-21 09:33:23 adam Exp $
    Copyright (c) 1998-2007, Index Data.
 
 This file is part of the yazproxy.
@@ -399,7 +399,6 @@ Yaz_ProxyConfig *Yaz_Proxy::check_reconfigure()
     if (m_reconfig_flag)
     {
         yaz_log(YLOG_LOG, "reconfigure");
-        yaz_log_reopen();
         if (m_config_fname && cfg)
         {
             yaz_log(YLOG_LOG, "reconfigure config %s", m_config_fname);

@@ -11,6 +11,7 @@
   <command>yazproxy</command>
   <arg choice="opt">-a <replaceable>filename</replaceable></arg>
   <arg choice="opt">-c <replaceable>config</replaceable></arg>
+  <arg choice="opt">-D</arg>
   <arg choice="opt">-i <replaceable>seconds</replaceable></arg>
   <arg choice="opt">-l <replaceable>filename</replaceable></arg>
   <arg choice="opt">-m <replaceable>num</replaceable></arg>
@@ -64,6 +65,13 @@
      Specifies config filename. Configuration is in XML
      and is only supported if the YAZ proxy is compiled with
      libxml2.
+    </para></listitem>
+  </varlistentry>
+  <varlistentry><term>-X</term>
+   <listitem><para>
+     Puts YAZ proxy in the background after startup. This is
+     similar to using shell's &amp; operator but often better since
+     it allows the start / stop script to capture startup errors.
     </para></listitem>
   </varlistentry>
   <varlistentry><term>-i <replaceable>seconds</replaceable></term>
