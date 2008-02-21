@@ -1,6 +1,6 @@
 # Copyright (C) 1999-2006, Index Data ApS
 # All rights reserved.
-# $Id: makefile,v 1.13 2007-06-14 08:28:13 adam Exp $
+# $Id: makefile,v 1.14 2008-02-21 10:16:51 adam Exp $
 
 ###########################################################
 ############### Parameters 
@@ -74,10 +74,10 @@ proxy: $(YAZPROXY)
 
 !if $(DEBUG)
 YAZD=yaz3d
-YAZPPD=yazpp2d
+YAZPPD=yazpp3d
 !else
 YAZD=yaz3
-YAZPPD=yazpp2
+YAZPPD=yazpp3
 !endif
 
 # YAZ includes & libs
