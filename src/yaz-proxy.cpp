@@ -3539,6 +3539,7 @@ void Yaz_Proxy::pre_init()
     const char *zurl_in_use[MAX_ZURL_PLEX];
     int limit_bw, limit_pdu, limit_req, limit_search;
     int target_idletime, client_idletime;
+    int max_sockets;
     int max_clients;
     int keepalive_limit_bw, keepalive_limit_pdu;
     int pre_init;
@@ -3560,6 +3561,7 @@ void Yaz_Proxy::pre_init()
                                           &limit_bw, &limit_pdu, &limit_req,
                                           &limit_search,
                                           &target_idletime, &client_idletime,
+                                          &max_sockets,
                                           &max_clients,
                                           &keepalive_limit_bw,
                                           &keepalive_limit_pdu,
@@ -3603,7 +3605,8 @@ void Yaz_Proxy::pre_init()
                         "sparew=%d preinit=%d",m_session_str,
                         name, zurl_in_use[j], in_use, other,
                         spare, spare_waiting, pre_init);
-                if (spare + spare_waiting < pre_init)
+                if (spare + spare_waiting < pre_init
+                    && in_use + spare + spare_waiting + other < max_sockets)
                 {
                     c = new Yaz_ProxyClient(m_PDU_Observable->clone(), this);
                     c->m_next = m_clientPool;

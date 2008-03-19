@@ -93,6 +93,7 @@ public:
                       int *limit_search,
                       int *target_idletime,
                       int *client_idletime,
+                      int *max_sockets,
                       int *max_clients,
                       int *keepalive_limit_bw,
                       int *keepalive_limit_pdu,
