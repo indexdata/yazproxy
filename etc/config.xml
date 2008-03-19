@@ -10,6 +10,7 @@
     <url>localhost:9999</url>
     <target-timeout>60</target-timeout>
     <client-timeout>20</client-timeout>
+    <max-sockets>8</max-sockets>
     <!-- <target-authentication type="open">a/b</target-authentication> -->
     <keepalive>
       <bandwidth>100000</bandwidth>
@@ -42,7 +43,7 @@
     </syntax>
     
     <syntax type="*" error="238"/>
-    <preinit>2</preinit>
+    <preinit>0</preinit>
     <xi:include href="explain.xml"/>
     <target-charset>iso-8859-1</target-charset>
     <cql2rpn>pqf.properties</cql2rpn>

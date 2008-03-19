@@ -1,5 +1,5 @@
 /* $Id: yaz-proxy.cpp,v 1.78 2008-02-21 09:33:23 adam Exp $
-   Copyright (c) 1998-2007, Index Data.
+   Copyright (c) 1998-2008, Index Data.
 
 This file is part of the yazproxy.
 
@@ -220,6 +220,7 @@ Yaz_Proxy::Yaz_Proxy(IPDU_Observable *the_PDU_Observable,
     m_seed = time(0);
     m_client_idletime = 600;
     m_target_idletime = 600;
+    m_max_sockets = 1024;
     m_optimize = xstrdup ("1");
     strcpy(m_session_str, "0 ");
     m_session_no = 0;
@@ -546,8 +547,27 @@ const char *Yaz_Proxy::load_balance(const char **url)
     return ret_min;
 }
 
+int Yaz_Proxy::get_number_of_connections()
+{
+    int no_connections = 0;
+    Yaz_ProxyClient *c;
+
+    for (c = m_parent->m_clientPool; c; c = c->m_next)
+    {
+        assert(c->m_prev);
+        assert(*c->m_prev == c);
+        if (!strcmp(m_proxyTarget, c->get_hostname()))
+        {
+            no_connections++;
+        }
+    }
+    yaz_log (YLOG_LOG, "%sExisting %s connections: %d", m_session_str, m_proxyTarget,
+        no_connections);
+    return no_connections;
+}
+
 Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
-                                       const char *proxy_host)
+                                       const char *proxy_host, int *http_code)
 {
     assert (m_parent);
     Yaz_Proxy *parent = m_parent;
@@ -584,6 +604,7 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
                                  &m_pdu_max, &m_max_record_retrieve,
                                  &m_search_max,
                                  &m_target_idletime, &client_idletime,
+                                 &m_max_sockets,
                                  &parent->m_max_clients,
                                  &m_keepalive_limit_bw,
                                  &m_keepalive_limit_pdu,
@@ -679,7 +700,7 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
         {
             assert(c->m_prev);
             assert(*c->m_prev == c);
-            if (c->m_server == 0 && c->m_cookie == 0 &&  c->m_waiting == 0 
+            if (c->m_server == 0 && c->m_cookie == 0 && c->m_waiting == 0 
                 && c->compare_idAuthentication(apdu)
                 && c->compare_charset(apdu)
                 && !strcmp(m_proxyTarget, c->get_hostname()))
@@ -710,6 +731,16 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
         if (apdu->which != Z_APDU_initRequest)
         {
             yaz_log (YLOG_LOG, "%sno init request as first PDU", m_session_str);
+            *http_code = 500;
+            return 0;
+        }
+
+        int no_in_use = get_number_of_connections();
+        if (no_in_use >= m_max_sockets)
+        {
+            yaz_log (YLOG_LOG, "%smax sockets reached %d", m_session_str,
+                m_max_sockets);
+            *http_code = 500;
             return 0;
         }
         // go through list of clients - and find the lowest/oldest one.
@@ -769,6 +800,7 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
         }
         else
         {
+
             yaz_log (YLOG_LOG, "%sNEW %d %s",
                      m_session_str, parent->m_seqno, m_proxyTarget);
             c = new Yaz_ProxyClient(m_PDU_Observable->clone(), parent);
@@ -2798,8 +2830,6 @@ void Yaz_Proxy::handle_incoming_HTTP(Z_HTTP_Request *hreq)
             else
             {
                 // Use _client_ IP as shown in the log entries...!
-                yaz_log(YLOG_LOG, "No authorization_str present: use client IP: %s\n", m_peername);
-                
                 auth = (Z_IdAuthentication *) odr_malloc(m_s2z_odr_init, sizeof(Z_IdAuthentication));
 	            auth->which = Z_IdAuthentication_idPass;
 	            auth->u.idPass = (Z_IdPass *) odr_malloc(m_s2z_odr_init, sizeof(Z_IdPass));
@@ -3249,12 +3279,13 @@ void Yaz_Proxy::handle_incoming_Z_PDU(Z_APDU *apdu)
     // Determine our client.
     Z_OtherInformation **oi;
     get_otherInfoAPDU(apdu, &oi);
-    m_client = get_client(apdu, get_cookie(oi), get_proxy(oi));
+    int http_code = 404;
+    m_client = get_client(apdu, get_cookie(oi), get_proxy(oi), &http_code);
     if (!m_client)
     {
         if (m_http_version)
         {   // HTTP. Send not found
-            send_http_response(404);
+            send_http_response(http_code);
             return;
         }
         else

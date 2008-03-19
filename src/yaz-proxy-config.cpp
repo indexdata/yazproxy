@@ -42,6 +42,7 @@ class Yaz_ProxyConfigP {
                             int *limit_bw, int *limit_pdu, int *limit_req,
                             int *limit_search,
                             int *target_idletime, int *client_idletime,
+                            int *max_sockets,
                             int *keepalive_limit_bw, int *keepalive_limit_pdu,
                             int *pre_init, const char **cql2rpn,
                             const char **negotiation_charset,
@@ -231,6 +232,7 @@ void Yaz_ProxyConfigP::return_target_info(xmlNodePtr ptr,
                                           int *limit_search,
                                           int *target_idletime,
                                           int *client_idletime,
+                                          int *max_sockets,
                                           int *keepalive_limit_bw,
                                           int *keepalive_limit_pdu,
                                           int *pre_init,
@@ -294,6 +296,15 @@ void Yaz_ProxyConfigP::return_target_info(xmlNodePtr ptr,
                 *client_idletime = atoi(t);
                 if (*client_idletime < 0)
                     *client_idletime = 0;
+            }
+        }
+        if (ptr->type == XML_ELEMENT_NODE
+            && !strcmp((const char *) ptr->name, "max-sockets"))
+        {
+            const char *t = get_text(ptr);
+            if (t && max_sockets)
+            {
+                *max_sockets = atoi(t);
             }
         }
         if (ptr->type == XML_ELEMENT_NODE
@@ -1018,6 +1029,7 @@ int Yaz_ProxyConfig::get_target_no(int no,
                     limit_bw, limit_pdu, limit_req,
                     limit_search,
                     target_idletime, client_idletime,
+                    0,
                     keepalive_limit_bw, keepalive_limit_pdu,
                     pre_init, cql2rpn,
                     negotiation_charset, negotiation_lang, target_charset,
@@ -1297,6 +1309,7 @@ void Yaz_ProxyConfig::get_target_info(const char *name,
                                       int *limit_search,
                                       int *target_idletime,
                                       int *client_idletime,
+                                      int *max_sockets,
                                       int *max_clients,
                                       int *keepalive_limit_bw,
                                       int *keepalive_limit_pdu,
@@ -1341,6 +1354,7 @@ void Yaz_ProxyConfig::get_target_info(const char *name,
         m_cp->return_target_info(ptr, url, limit_bw, limit_pdu, limit_req,
                                  limit_search,
                                  target_idletime, client_idletime,
+                                 max_sockets,
                                  keepalive_limit_bw, keepalive_limit_pdu,
                                  pre_init, cql2rpn,
                                  negotiation_charset, negotiation_lang,

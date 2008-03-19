@@ -213,7 +213,7 @@
     <para>
      The proxy config file must have a root element called
      <literal>proxy</literal> and scoped within namespace
-     <literal> xmlns="http://indexdata.dk/yazproxy/schema/0.9/</literal>.
+     <literal> xmlns="http://indexdata.dk/yazproxy/schema/0.9/"</literal>.
      All information except an optional XML header must be stored
      within the <literal>proxy</literal> element.
     </para>
@@ -237,16 +237,17 @@
      equivalent to command line option <literal>-t</literal>.
     </para>
     <para>
-     <screen>
-     &lt;?xml version="1.0"?>
-     &lt;proxy xmlns="http://indexdata.dk/yazproxy/schema/0.9/">
-      &lt;target name="server1" default="1">
-       &lt;!-- description of server1 .. -->
-      &lt;/target>
-      &lt;target name="server2">
-       &lt;!-- description of server2 .. -->
-      &lt;/target>
-     &lt;/proxy>
+      <screen><![CDATA[
+     <?xml version="1.0"?>
+     <proxy xmlns="http://indexdata.dk/yazproxy/schema/0.9/">
+      <target name="server1" default="1">
+       <!-- description of server1 .. -->
+      </target>
+      <target name="server2">
+       <!-- description of server2 .. -->
+      </target>
+     </proxy>
+      ]]>
      </screen>
     </para>
    </section>
@@ -288,6 +289,16 @@
     <para>
      This can also be specified on the command line by using option
      <literal>-i</literal>.  Refer to OPTIONS in <xref linkend="proxy-usage"/>.
+    </para>
+   </section>
+
+   <section id="proxy-config-max-sockets">
+    <title>client-timeout</title>
+    <para>
+     The element <literal>max-sockets</literal> is the child of element
+     <literal>target</literal> and specifies the maximum number of sockets
+     to use for the target for all sessions using it. In other words: maximum
+     number of Z39.50 session to the target.
     </para>
    </section>
 
@@ -859,6 +870,7 @@
      <xs:element ref="url" minOccurs="0" maxOccurs="unbounded"/>
      <xs:element ref="target-timeout" minOccurs="0"/>
      <xs:element ref="client-timeout" minOccurs="0"/>
+     <xs:element ref="max-sockets" minOccurs="0"/>
      <xs:element ref="keepalive" minOccurs="0"/>
      <xs:element ref="limit" minOccurs="0"/>
      <xs:element ref="attribute" minOccurs="0" maxOccurs="unbounded"/>
@@ -880,6 +892,7 @@
  <xs:element name="url" type="xs:string"/>
  <xs:element name="target-timeout" type="xs:integer"/>
  <xs:element name="client-timeout" type="xs:integer"/>
+ <xs:element name="max-sockets" type="xs:integer"/>
  <xs:element name="bandwidth" type="xs:integer"/>
  <xs:element name="pdu" type="xs:integer"/>
  <xs:element name="retrieve" type="xs:integer"/>

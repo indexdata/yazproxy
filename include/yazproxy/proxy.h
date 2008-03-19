@@ -69,8 +69,9 @@ class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Z_Assoc {
     void HTTP_Forwarded(Z_GDU *z_gdu);
     void connect_stat(bool &block, int &reduce);
     Yaz_ProxyClient *get_client(Z_APDU *apdu, const char *cookie,
-                                const char *proxy_host);
+                                const char *proxy_host, int *http_code);
     void srw_get_client(const char *db, const char **backend_db);
+    int get_number_of_connections();
     Z_APDU *result_set_optimize(Z_APDU *apdu);
     void releaseClient();
     Yaz_ProxyClient *m_client;
@@ -85,6 +86,7 @@ class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Z_Assoc {
     int m_keepalive_limit_pdu;
     int m_client_idletime;
     int m_target_idletime;
+    int m_max_sockets;
     int m_debug_mode;
     char *m_proxyTarget;
     char *m_default_target;
