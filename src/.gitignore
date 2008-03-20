@@ -1,6 +1,7 @@
 yazproxy
 .libs
 .deps
+*.o
 *.lo
 *.la
 Makefile
