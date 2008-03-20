@@ -293,7 +293,7 @@
    </section>
 
    <section id="proxy-config-max-sockets">
-    <title>client-timeout</title>
+    <title>max-sockets</title>
     <para>
      The element <literal>max-sockets</literal> is the child of element
      <literal>target</literal> and specifies the maximum number of sockets
