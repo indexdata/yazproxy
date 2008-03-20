@@ -1,3 +1,11 @@
+--- 1.3.3 2008/03/20
+
+Added support for limiting the number of sockets (connections) to
+a particular backend. The new setting is called 'max-sockets' and
+must be defined in the target section.
+
+API verson 3 of USEMARCON is used. Patch by Ere Maijala.
+
 --- 1.3.2 2008/02/29
 
 Added option -D for yazproxy which puts yazproxy in background after
