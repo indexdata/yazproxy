@@ -19,6 +19,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 02111-1307, USA.
  */
 
+#include <yaz/log.h>
 #include "proxyp.h"
 
 Yaz_usemarcon::Yaz_usemarcon()
@@ -48,11 +49,11 @@ int Yaz_usemarcon::convert(const char *stage1, const char *stage2,
         int convlen;
         if (!m_stage1)
         {
-            m_stage1 = new CDetails();
+            m_stage1 = new Usemarcon();
         }
         m_stage1->SetIniFileName(stage1);
         m_stage1->SetMarcRecord((char*) input, input_len);
-        int res = m_stage1->Start();
+        int res = m_stage1->Convert();
         if (res == 0)
         {
             m_stage1->GetMarcRecord(converted, convlen);
@@ -60,22 +61,29 @@ int Yaz_usemarcon::convert(const char *stage1, const char *stage2,
             {
                 if (!m_stage2)
                 {
-                    m_stage2 = new CDetails();
+                    m_stage2 = new Usemarcon();
                 }
                 m_stage2->SetIniFileName(stage2);
                 m_stage2->SetMarcRecord(converted, convlen);
-                res = m_stage2->Start();
+                res = m_stage2->Convert();
                 if (res == 0)
                 {
                     free(converted);
                     m_stage2->GetMarcRecord(converted, convlen);
                 }
                 else
+                {
+                    yaz_log(YLOG_LOG, "USEMARCON stage 2 error %d", res);
                     return 0;
+                }
             }
             *output = converted;
             *output_len = convlen;
             return 1;
+        }
+        else
+        {
+            yaz_log(YLOG_LOG, "USEMARCON stage 1 error %d", res);
         }
     }
 #endif

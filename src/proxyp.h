@@ -28,7 +28,7 @@ Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #endif
 
 #if HAVE_USEMARCON
-#include <objectlist.h>
+#include <usemarconlib.h>
 #endif
 
 #include <yazpp/record-cache.h>
@@ -46,8 +46,8 @@ class Yaz_usemarcon {
                 const char *input, int input_len,
                 char **output, int *output_len);
 #if HAVE_USEMARCON
-    CDetails *m_stage1;
-    CDetails *m_stage2;
+    Usemarcon *m_stage1;
+    Usemarcon *m_stage2;
 #else
     int dummy;
 #endif

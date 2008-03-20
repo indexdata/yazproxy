@@ -961,53 +961,30 @@ void Yaz_Proxy::convert_to_frontend_type(Z_NamePlusRecordList *p)
                 Z_External *r = npr->u.databaseRecord;
                 if (r->which == Z_External_octet)
                 {
-#if HAVE_USEMARCON
+#if !HAVE_USEMARCON
                     if (m_usemarcon_ini_stage1 && *m_usemarcon_ini_stage1)
+                        yaz_log (YLOG_LOG, "%sError: USEMARCON requested but not available",
+                            m_session_str);
+#endif
+#if HAVE_USEMARCON
+                    yaz_log (YLOG_DEBUG, "%sUSEMARCON stage1=%s stage2=%s",
+                        m_session_str,
+                        m_usemarcon_ini_stage1 ? m_usemarcon_ini_stage1 : "(none)",
+                        m_usemarcon_ini_stage2 ? m_usemarcon_ini_stage2 : "(none)");
+                    char *converted;
+                    int convlen;
+                    if (m_usemarcon->convert(m_usemarcon_ini_stage1, m_usemarcon_ini_stage2,
+                        (char*) r->u.octet_aligned->buf, r->u.octet_aligned->len,
+                        &converted, &convlen))
                     {
-                        if (!m_usemarcon->m_stage1)
-                        {
-                            m_usemarcon->m_stage1 = new CDetails();
-                        }
-                        m_usemarcon->m_stage1->SetIniFileName(m_usemarcon_ini_stage1);
-                        m_usemarcon->m_stage1->SetMarcRecord((char*) r->u.octet_aligned->buf, r->u.octet_aligned->len);
-                        int res = m_usemarcon->m_stage1->Start();
-                        if (res == 0)
-                        {
-                            char *converted;
-                            int convlen;
-                            m_usemarcon->m_stage1->GetMarcRecord(converted, convlen);
-                            if (m_usemarcon_ini_stage2 && *m_usemarcon_ini_stage2)
-                            {
-                                if (!m_usemarcon->m_stage2)
-                                {
-                                    m_usemarcon->m_stage2 = new CDetails();
-                                }
-                                m_usemarcon->m_stage2->SetIniFileName(m_usemarcon_ini_stage2);
-                                m_usemarcon->m_stage2->SetMarcRecord(converted, convlen);
-                                res = m_usemarcon->m_stage2->Start();
-                                if (res == 0)
-                                {
-                                    free(converted);
-                                    m_usemarcon->m_stage2->GetMarcRecord(converted, convlen);
-                                }
-                                else
-                                {
-                                    yaz_log(YLOG_LOG, "%sUSEMARCON stage 2 error %d", m_session_str, res);
-                                }
-                            }
-                            npr->u.databaseRecord =
-                                z_ext_record_oid(odr_encode(),
-                                                 m_frontend_type,
-                                                 converted,
-                                                 strlen(converted));
-                            free(converted);
-                        }
-                        else
-                        {
-                            yaz_log(YLOG_LOG, "%sUSEMARCON stage 1 error %d", m_session_str, res);
-                        }
-                        continue;
+                        npr->u.databaseRecord =
+                            z_ext_record_oid(odr_encode(),
+                                             m_frontend_type,
+                                             converted,
+                                             strlen(converted));
+                        free(converted);
                     }
+                    else
 #endif
 /* HAVE_USEMARCON */
                     npr->u.databaseRecord =
