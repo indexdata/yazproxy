@@ -1,4 +1,3 @@
-<!-- $Id: introduction.xml,v 1.9 2006-06-14 10:12:26 adam Exp $ -->
  <chapter id="introduction"><title>Introduction</title>
   <para>
    The <ulink url="&url.yazproxy;">YAZ Proxy</ulink> is

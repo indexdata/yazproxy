@@ -1,5 +1,3 @@
-## $Id: Makefile.am,v 1.17 2007-10-29 11:14:57 adam Exp $
-
 AM_CXXFLAGS = -I$(srcdir)/../include $(YAZPPINC) $(USEMARCONINC)
 
 lib_LTLIBRARIES = libyazproxy.la

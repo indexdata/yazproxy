@@ -1,4 +1,3 @@
-# $Id: Makefile.am,v 1.8 2007-10-08 11:47:20 adam Exp $
 
 proxydatadir=$(datadir)/yazproxy
 proxydata_DATA = \

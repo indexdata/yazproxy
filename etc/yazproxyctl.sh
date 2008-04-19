@@ -1,5 +1,4 @@
 #!/bin/sh
-# $Id: yazproxyctl.sh,v 1.3 2006-04-04 20:52:04 adam Exp $
 # YAZ proxy start/stop init.d script.
 #
 PATH=/usr/local/bin:/bin:/usr/bin

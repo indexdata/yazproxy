@@ -1,5 +1,4 @@
 <chapter id="installation">
-  <!-- $Id: installation.xml,v 1.12 2006-06-14 10:12:26 adam Exp $ -->
   <title>Installation</title>
   <para>
    You need a C++ compiler to compile and use YAZ proxy.

@@ -1,5 +1,4 @@
 #!/bin/sh
-# $Id: helka.sh,v 1.1 2004-10-12 19:20:04 adam Exp $
 # YAZ proxy start/stop init.d script.
 
 # Config/DB

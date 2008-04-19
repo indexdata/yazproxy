@@ -1,5 +1,4 @@
 <?xml version="1.0"?>
-<!-- $Id: helka.xml,v 1.2 2004-10-12 19:19:42 adam Exp $ -->
 <proxy xmlns="http://indexdata.dk/yazproxy/schema/0.8/"
  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
  xsi:schemaLocation="http://indexdata.dk/yazproxy/schema/0.8/ yazproxy.xsd"

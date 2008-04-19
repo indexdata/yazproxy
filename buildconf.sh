@@ -1,5 +1,4 @@
 #!/bin/sh
-# $Id: buildconf.sh,v 1.12 2006-05-26 19:57:35 adam Exp $
 
 test -d config || mkdir config
 if test -d m4/.git -a -d doc/common/.git; then

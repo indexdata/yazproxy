@@ -1,5 +1,4 @@
 <?xml version="1.0"?>
-<!-- $Id: config.xml,v 1.21 2007-10-08 11:47:20 adam Exp $ -->
 <proxy xmlns="http://indexdata.dk/yazproxy/schema/0.9/"
  xmlns:xi="http://www.w3.org/2001/XInclude"
  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"

@@ -3,7 +3,6 @@
 [
      <!ENTITY yaz-proxy-ref SYSTEM "yaz-proxy-ref.xml">
 ]>
-<!-- $Id: yaz-proxy-man.xml,v 1.2 2006-05-26 19:57:35 adam Exp $ -->
 <refentry id="yazproxy">
   &yaz-proxy-ref;
  <refsect1><title>SEE ALSO</title>

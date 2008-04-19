@@ -186,7 +186,6 @@
    </para>
     <screen><![CDATA[
 <?xml version="1.0"?>
-<!-- $Id: using.xml,v 1.7 2006-06-14 10:12:26 adam Exp $ -->
 <proxy xmlns="http://indexdata.dk/yazproxy/schema/0.9/">
   <target name="bagel">
     <url>indexdata.dk</url>

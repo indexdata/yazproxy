@@ -1,6 +1,5 @@
-# Copyright (C) 1999-2006, Index Data ApS
+# Copyright (C) 1998-2008 Index Data
 # All rights reserved.
-# $Id: makefile,v 1.14 2008-02-21 10:16:51 adam Exp $
 
 ###########################################################
 ############### Parameters 

@@ -1,5 +1,4 @@
 <?xml version="1.0"?>
-<!-- $Id: config-mafi2ma.xml,v 1.2 2004-12-06 08:00:28 adam Exp $ -->
 <proxy xmlns="http://indexdata.dk/yazproxy/schema/0.8/"
  xmlns:xi="http://www.w3.org/2001/XInclude"
  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"

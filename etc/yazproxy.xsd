@@ -1,7 +1,5 @@
 <?xml version="1.0"?>
-<!-- XML Schema for YAZ proxy config file.
-    $Id: yazproxy.xsd,v 1.10 2006-03-30 10:35:14 adam Exp $
--->
+<!-- XML Schema for YAZ proxy config file.  -->
 <xs:schema
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
   xmlns:exp="http://explain.z3950.org/dtd/2.0/"

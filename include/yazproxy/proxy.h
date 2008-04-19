@@ -1,7 +1,5 @@
-/* $Id: proxy.h,v 1.39 2007-05-08 12:05:08 adam Exp $
-   Copyright (c) 1998-2007, Index Data.
-
-This file is part of the yazproxy.
+/* This file is part of YAZ proxy
+   Copyright (C) 1998-2008 Index Data
 
 YAZ proxy is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free
@@ -14,10 +12,9 @@ FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 for more details.
 
 You should have received a copy of the GNU General Public License
-along with YAZ proxy; see the file LICENSE.  If not, write to the
-Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
-02111-1307, USA.
- */
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
 
 #ifndef YAZ_PROXY_H_INCLUDED
 #define YAZ_PROXY_H_INCLUDED
