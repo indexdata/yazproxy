@@ -2801,16 +2801,6 @@ void Yaz_Proxy::handle_incoming_HTTP(Z_HTTP_Request *hreq)
                 }
                 auth->u.idPass->userId = odr_strdup(m_s2z_odr_init, authorization_str);
             }
-            else
-            {
-                // Use _client_ IP as shown in the log entries...!
-                auth = (Z_IdAuthentication *) odr_malloc(m_s2z_odr_init, sizeof(Z_IdAuthentication));
-	            auth->which = Z_IdAuthentication_idPass;
-	            auth->u.idPass = (Z_IdPass *) odr_malloc(m_s2z_odr_init, sizeof(Z_IdPass));
-	            auth->u.idPass->groupId  = NULL;
-	            auth->u.idPass->password = NULL;
-	            auth->u.idPass->userId   = odr_strdup(m_s2z_odr_init, m_peername);
-            }
         }		
         
         if (srw_pdu->which == Z_SRW_searchRetrieve_request)
