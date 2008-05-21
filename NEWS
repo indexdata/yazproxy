@@ -1,3 +1,7 @@
+--- 1.3.3.1 2008/05/21
+
+Z39.50 authentication user is no longer set to client-IP for SRU.
+
 --- 1.3.3 2008/03/20
 
 Added support for limiting the number of sockets (connections) to

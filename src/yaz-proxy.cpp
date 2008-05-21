@@ -1173,7 +1173,7 @@ int Yaz_Proxy::send_srw_response(Z_SRW_PDU *srw_pdu, int http_code /* = 200 */)
 
     static Z_SOAP_Handler soap_handlers[2] = {
 #if YAZ_HAVE_XSLT
-        {"http://www.loc.gov/zing/srw/", 0,
+        { (char*) "http://www.loc.gov/zing/srw/", 0,
          (Z_SOAP_fun) yaz_srw_codec},
 #endif
         {0, 0, 0}
@@ -1231,6 +1231,35 @@ int Yaz_Proxy::z_to_srw_diag(ODR o, Z_SRW_searchRetrieveResponse *srw_res,
     return 0;
 }
 
+static void yazproxy_encode_sru_surrogate(ODR o, Z_SRW_record *record, int pos,
+                                          int code, const char *details)
+{
+    const char *message = yaz_diag_srw_str(code);
+    int len = 200;
+    if (message)
+        len += strlen(message);
+    if (details)
+        len += strlen(details);
+    
+    record->recordData_buf = (char *) odr_malloc(o, len);
+    
+    sprintf(record->recordData_buf, "<diagnostic "
+            "xmlns=\"http://www.loc.gov/zing/srw/diagnostic/\">\n"
+            " <uri>info:srw/diagnostic/1/%d</uri>\n", code);
+    if (details)
+        sprintf(record->recordData_buf + strlen(record->recordData_buf),
+                " <details>%s</details>\n", details);
+    if (message)
+        sprintf(record->recordData_buf + strlen(record->recordData_buf),
+                " <message>%s</message>\n", message);
+    sprintf(record->recordData_buf + strlen(record->recordData_buf),
+            "</diagnostic>\n");
+    record->recordData_len = strlen(record->recordData_buf);
+    record->recordPosition = odr_intdup(o, pos);
+    record->recordSchema = odr_strdup(o, "info:srw/schema/1/diagnostics-v1.1");
+}
+
+
 int Yaz_Proxy::send_to_srw_client_ok(int hits, Z_Records *records, int start)
 {
     ODR o = odr_encode();
@@ -1250,11 +1279,10 @@ int Yaz_Proxy::send_to_srw_client_ok(int hits, Z_Records *records, int start)
             Z_NamePlusRecord *npr = records->u.databaseOrSurDiagnostics->records[i];
             if (npr->which != Z_NamePlusRecord_databaseRecord)
             {
-                srw_res->records[i].recordSchema = "diagnostic";
-                srw_res->records[i].recordPacking = m_s2z_packing;
-                srw_res->records[i].recordData_buf = "67";
-                srw_res->records[i].recordData_len = 2;
-                srw_res->records[i].recordPosition = odr_intdup(o, i+start);
+                yaz_log(YLOG_LOG, "Point 1");
+                yazproxy_encode_sru_surrogate(
+                    o, srw_res->records + i, i+start,  
+                    YAZ_SRW_RECORD_NOT_AVAILABLE_IN_THIS_SCHEMA, 0);
                 continue;
             }
             Z_External *r = npr->u.databaseRecord;
@@ -1271,11 +1299,10 @@ int Yaz_Proxy::send_to_srw_client_ok(int hits, Z_Records *records, int start)
             }
             else
             {
-                srw_res->records[i].recordSchema = "diagnostic";
-                srw_res->records[i].recordPacking = m_s2z_packing;
-                srw_res->records[i].recordData_buf = "67";
-                srw_res->records[i].recordData_len = 2;
-                srw_res->records[i].recordPosition = odr_intdup(o, i+start);
+                yaz_log(YLOG_LOG, "Point 2");
+                yazproxy_encode_sru_surrogate(
+                    o, srw_res->records + i, i+start,  
+                    YAZ_SRW_RECORD_NOT_AVAILABLE_IN_THIS_SCHEMA, 0);
             }
         }
     }
@@ -1320,7 +1347,8 @@ int Yaz_Proxy::send_srw_explain_response(Z_SRW_diagnostic *diagnostics,
             er->record.recordData_buf = b;
             er->record.recordData_len = len;
             er->record.recordPacking = m_s2z_packing;
-            er->record.recordSchema = "http://explain.z3950.org/dtd/2.0/";
+            er->record.recordSchema = odr_strdup(odr_encode(),
+                                                 "http://explain.z3950.org/dtd/2.0/");
 
             er->diagnostics = diagnostics;
             er->num_diagnostics = num_diagnostics;

@@ -151,7 +151,7 @@ int my_authenticate(void *user_handle,
     // 192.168.0.100
     // 192.168.0.1-192.168.0.200
     int status = YAZPROXY_RET_PERM;
-    if (ip_file && peer_IP)
+    if (*ip_file && peer_IP)
     {
         yaz_log(YLOG_DEBUG, "Authentication: checking ip address");
 

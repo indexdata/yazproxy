@@ -21,8 +21,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 struct Yaz_ProxyModule_entry {
     int int_version;
-    char *module_name;
-    char *module_description;
+    const char *module_name;
+    const char *module_description;
     void *fl;
 };
 
