@@ -1333,12 +1333,13 @@ int Yaz_Proxy::send_srw_search_response(Z_SRW_diagnostic *diagnostics,
 int Yaz_Proxy::send_srw_explain_response(Z_SRW_diagnostic *diagnostics,
                                         int num_diagnostics)
 {
+    int http_status = 404;
     Yaz_ProxyConfig *cfg = check_reconfigure();
     if (cfg)
     {
         int len;
         char *b = cfg->get_explain_doc(odr_encode(), 0 /* target */,
-                                       m_s2z_database, &len);
+                                       m_s2z_database, &len, &http_status);
         if (b)
         {
             Z_SRW_PDU *res = yaz_srw_get(odr_encode(), Z_SRW_explain_response);
@@ -1355,7 +1356,7 @@ int Yaz_Proxy::send_srw_explain_response(Z_SRW_diagnostic *diagnostics,
             return send_srw_response(res);
         }
     }
-    return send_http_response(404);
+    return send_http_response(http_status);
 }
 
 int Yaz_Proxy::send_PDU_convert(Z_APDU *apdu)

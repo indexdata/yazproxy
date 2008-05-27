@@ -51,8 +51,7 @@ class Yaz_ProxyConfigP {
                       int *limit_search);
     int check_type_1(ODR odr, xmlNodePtr ptr, Z_RPNQuery *query,
                      char **addinfo);
-    xmlNodePtr find_target_node(const char *name, const char *db);
-    xmlNodePtr find_target_db(xmlNodePtr ptr, const char *db);
+    xmlNodePtr find_target_node(const char *name);
     const char *get_text(xmlNodePtr ptr);
     void get_period(xmlNodePtr ptr, int *period);
     int check_type_1_attributes(ODR odr, xmlNodePtr ptr,
@@ -60,7 +59,7 @@ class Yaz_ProxyConfigP {
                                 char **addinfo);
     int check_type_1_structure(ODR odr, xmlNodePtr ptr, Z_RPNStructure *q,
                                char **addinfo);
-    int get_explain_ptr(const char *host, const char *db,
+    int get_explain_ptr(const char *db,
                         xmlNodePtr *ptr_target, xmlNodePtr *ptr_explain);
 #endif
     Yaz_ProxyConfigP();
@@ -491,7 +490,7 @@ int Yaz_ProxyConfig::check_query(ODR odr, const char *name, Z_Query *query,
 #if YAZ_HAVE_XSLT
     xmlNodePtr ptr;
 
-    ptr = m_cp->find_target_node(name, 0);
+    ptr = m_cp->find_target_node(name);
     if (ptr)
     {
         if (query->which == Z_Query_type_1 || query->which == Z_Query_type_101)
@@ -582,7 +581,7 @@ void Yaz_ProxyConfig::target_authentication(const char *name,
                                             ODR odr, Z_InitRequest *req)
 {
 #if YAZ_HAVE_XSLT
-    xmlNodePtr ptr = m_cp->find_target_node(name, 0);
+    xmlNodePtr ptr = m_cp->find_target_node(name);
     if (!ptr)
         return ;
 
@@ -656,7 +655,7 @@ int Yaz_ProxyConfig::client_authentication(const char *name,
     int ret = YAZPROXY_RET_NOT_ME;
 #if YAZ_HAVE_XSLT
     xmlNodePtr ptr;
-    ptr = m_cp->find_target_node(name, 0);
+    ptr = m_cp->find_target_node(name);
     if (!ptr)
         return 1;
     for (ptr = ptr->children; ptr; ptr = ptr->next)
@@ -767,7 +766,7 @@ int Yaz_ProxyConfig::check_syntax(ODR odr, const char *name,
     int syntax_has_matched = 0;
     xmlNodePtr ptr;
 
-    ptr = m_cp->find_target_node(name, 0);
+    ptr = m_cp->find_target_node(name);
     if (!ptr)
         return 0;
     for(ptr = ptr->children; ptr; ptr = ptr->next)
@@ -902,36 +901,12 @@ int Yaz_ProxyConfig::check_syntax(ODR odr, const char *name,
     return 0;
 }
 
-#if YAZ_HAVE_XSLT
-xmlNodePtr Yaz_ProxyConfigP::find_target_db(xmlNodePtr ptr, const char *db)
-{
-    xmlNodePtr dptr;
-    if (!db)
-        return ptr;
-    if (!ptr)
-        return 0;
-    for (dptr = ptr->children; dptr; dptr = dptr->next)
-        if (dptr->type == XML_ELEMENT_NODE &&
-            !strcmp((const char *) dptr->name, "database"))
-        {
-            struct _xmlAttr *attr;
-            for (attr = dptr->properties; attr; attr = attr->next)
-                if (!strcmp((const char *) attr->name, "name"))
-                {
-                    if (attr->children
-                        && attr->children->type==XML_TEXT_NODE
-                        && attr->children->content
-                        && (!strcmp((const char *) attr->children->content, db)
-                            || !strcmp((const char *) attr->children->content,
-                                       "*")))
-                        return dptr;
-                }
-        }
-    return ptr;
-}
 
-xmlNodePtr Yaz_ProxyConfigP::find_target_node(const char *name, const char *db)
+#if YAZ_HAVE_XSLT
+
+xmlNodePtr Yaz_ProxyConfigP::find_target_node(const char *name)
 {
+    /* db seems always to be passed as NULL */
     xmlNodePtr ptr;
     if (!m_proxyPtr)
         return 0;
@@ -951,9 +926,7 @@ xmlNodePtr Yaz_ProxyConfigP::find_target_node(const char *name, const char *db)
                     {
                         xmlChar *t = attr->children->content;
                         if (!t || *t == '1')
-                        {
-                            return find_target_db(ptr, db);
-                        }
+                            return ptr;
                     }
             }
             else
@@ -971,7 +944,7 @@ xmlNodePtr Yaz_ProxyConfigP::find_target_node(const char *name, const char *db)
                                 || !strcmp((const char *) attr->children->content,
                                            "*")))
                         {
-                            return find_target_db(ptr, db);
+                            return ptr;
                         }
                     }
             }
@@ -1182,7 +1155,7 @@ void Yaz_ProxyConfig::get_generic_info(int *log_mask,
 }
 
 #if YAZ_HAVE_XSLT
-int Yaz_ProxyConfigP::get_explain_ptr(const char *host, const char *db,
+int Yaz_ProxyConfigP::get_explain_ptr(const char *db,
                                       xmlNodePtr *ptr_target,
                                       xmlNodePtr *ptr_explain)
 {
@@ -1196,6 +1169,19 @@ int Yaz_ProxyConfigP::get_explain_ptr(const char *host, const char *db,
         if (ptr->type == XML_ELEMENT_NODE &&
             !strcmp((const char *) ptr->name, "target"))
         {
+            int db_match_on_name = 0;
+            struct _xmlAttr *attr;
+
+            for (attr = ptr->properties; attr; attr = attr->next)
+                if (!strcmp((const char *) attr->name, "name"))
+                {
+                    if (attr->children
+                        && attr->children->type==XML_TEXT_NODE
+                        && attr->children->content
+                        && (!strcmp((const char *) attr->children->content,
+                                    db)))
+                        db_match_on_name = 1;
+                }
             *ptr_target = ptr;
             xmlNodePtr ptr = (*ptr_target)->children;
             for (; ptr; ptr = ptr->next)
@@ -1229,6 +1215,8 @@ int Yaz_ProxyConfigP::get_explain_ptr(const char *host, const char *db,
                     return 1;
                 }
             }
+            if (db_match_on_name)
+                return 1;
         }
     }
     return 0;
@@ -1240,7 +1228,7 @@ const char *Yaz_ProxyConfig::get_explain_name(const char *db,
 {
 #if YAZ_HAVE_XSLT
     xmlNodePtr ptr_target, ptr_explain;
-    if (m_cp->get_explain_ptr(0, db, &ptr_target, &ptr_explain)
+    if (m_cp->get_explain_ptr(db, &ptr_target, &ptr_explain)
         && ptr_target)
     {
         struct _xmlAttr *attr;
@@ -1274,28 +1262,38 @@ const char *Yaz_ProxyConfig::get_explain_name(const char *db,
 }
 
 char *Yaz_ProxyConfig::get_explain_doc(ODR odr, const char *name,
-                                       const char *db, int *len)
+                                       const char *db, int *len,
+                                       int *http_status)
 {
 #if YAZ_HAVE_XSLT
     xmlNodePtr ptr_target, ptr_explain;
-    if (m_cp->get_explain_ptr(0 /* host */, db, &ptr_target, &ptr_explain))
+    if (m_cp->get_explain_ptr(db, &ptr_target, &ptr_explain))
     {
-        xmlNodePtr ptr2 = xmlCopyNode(ptr_explain, 1);
+        if (!ptr_explain)
+        {
+            *http_status = 500;
+            return 0;
+        }
+        else
+        {
+            xmlNodePtr ptr2 = xmlCopyNode(ptr_explain, 1);
+            
+            xmlDocPtr doc = xmlNewDoc((const xmlChar *) "1.0");
+            
+            xmlDocSetRootElement(doc, ptr2);
+            
+            xmlChar *buf_out;
+            xmlDocDumpMemory(doc, &buf_out, len);
+            char *content = (char*) odr_malloc(odr, *len);
+            memcpy(content, buf_out, *len);
 
-        xmlDocPtr doc = xmlNewDoc((const xmlChar *) "1.0");
-
-        xmlDocSetRootElement(doc, ptr2);
-
-        xmlChar *buf_out;
-        xmlDocDumpMemory(doc, &buf_out, len);
-        char *content = (char*) odr_malloc(odr, *len);
-        memcpy(content, buf_out, *len);
-
-        xmlFree(buf_out);
-        xmlFreeDoc(doc);
-        return content;
+            xmlFree(buf_out);
+            xmlFreeDoc(doc);
+            return content;
+        }
     }
 #endif
+    *http_status = 404;
     return 0;
 }
 
@@ -1341,7 +1339,7 @@ void Yaz_ProxyConfig::get_target_info(const char *name,
             }
         }
     }
-    ptr = m_cp->find_target_node(name, 0);
+    ptr = m_cp->find_target_node(name);
     if (ptr)
     {
         if (name)

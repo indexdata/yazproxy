@@ -143,7 +143,7 @@ public:
                                      const char *password,
                                      const char *peer_IP);
     char *get_explain_doc(ODR odr, const char *name, const char *db,
-                          int *len);
+                          int *len, int *http_status);
     const char *get_explain_name(const char *db, const char **backend_db);
  private:
     void operator=(const Yaz_ProxyConfig &conf);
