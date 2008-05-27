@@ -59,7 +59,7 @@ void usage(char *prog)
     fprintf (stderr, "%s: [-a log] [-c config] [-D]\n"
              " [-i sec] [-l log] [-m num] [-n num] [-p pidfile]"
              " [-t target] [-T sec] [-u uid]\n"
-             " [-v level] [-X] @:port\n", prog);
+             " [-v level] [-X] [-V] @:port\n", prog);
     exit (1);
 }
 
