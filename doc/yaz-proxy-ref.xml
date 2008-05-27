@@ -22,6 +22,7 @@
   <arg choice="opt">-T <replaceable>seconds</replaceable></arg>
   <arg choice="opt">-u <replaceable>userid</replaceable></arg>
   <arg choice="opt">-v <replaceable>level</replaceable></arg>
+  <arg choice="opt">-V</arg>
   <arg choice="opt">-X</arg>
   <arg choice="req"><replaceable>host</replaceable>:<replaceable>port</replaceable></arg>
  </cmdsynopsis>
@@ -145,6 +146,12 @@
      Sets the logging level. <replaceable>level</replaceable> is
      a comma-separated list of members of the set
      {<literal>fatal</literal>,<literal>debug</literal>,<literal>warn</literal>,<literal>log</literal>,<literal>malloc</literal>,<literal>all</literal>,<literal>none</literal>}.
+    </para></listitem>
+  </varlistentry>
+  <varlistentry><term>-V</term>
+   <listitem><para>
+     Displays yazproxy version and exits with status code 0. Should
+     not be used in conjunction with other options.
     </para></listitem>
   </varlistentry>
   <varlistentry><term>-X</term>

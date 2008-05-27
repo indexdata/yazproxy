@@ -76,7 +76,7 @@ int args(Yaz_Proxy *proxy, int argc, char **argv)
     char *prog = argv[0];
     int ret;
 
-    while ((ret = options("o:a:Dt:v:c:u:i:m:l:T:p:n:X",
+    while ((ret = options("o:a:Dt:v:c:u:i:m:l:T:p:n:VX",
                           argv, argc, &arg)) != -2)
     {
         int err;
@@ -142,6 +142,15 @@ int args(Yaz_Proxy *proxy, int argc, char **argv)
         case 'v':
             yaz_log_init_level (yaz_log_mask_str(arg));
             break;
+        case 'V':
+            puts(
+#ifdef VERSION
+                VERSION
+#else
+                "unknown"
+#endif
+                );
+            exit(0);
         case 'X':
             proxy->set_debug_mode(1);
             daemon_flags = YAZ_DAEMON_DEBUG;
