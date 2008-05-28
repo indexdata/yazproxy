@@ -51,6 +51,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <yaz/oid_db.h>
 #include "msg-thread.h"
 
+#if YAZ_VERSIONL >= 0x03001D
+#define YAZ_HAS_MK_SURROGATE 1
+#else
+#define YAZ_HAS_MK_SURROGATE 0
+#endif
+
 using namespace yazpp_1;
 
 #ifdef WIN32
@@ -1231,8 +1237,10 @@ int Yaz_Proxy::z_to_srw_diag(ODR o, Z_SRW_searchRetrieveResponse *srw_res,
     return 0;
 }
 
-static void yazproxy_encode_sru_surrogate(ODR o, Z_SRW_record *record, int pos,
-                                          int code, const char *details)
+#if YAZ_HAS_MK_SURROGATE
+#else
+static void yazproxy_mk_sru_surrogate(ODR o, Z_SRW_record *record, int pos,
+                          int code, const char *details)
 {
     const char *message = yaz_diag_srw_str(code);
     int len = 200;
@@ -1258,7 +1266,7 @@ static void yazproxy_encode_sru_surrogate(ODR o, Z_SRW_record *record, int pos,
     record->recordPosition = odr_intdup(o, pos);
     record->recordSchema = odr_strdup(o, "info:srw/schema/1/diagnostics-v1.1");
 }
-
+#endif
 
 int Yaz_Proxy::send_to_srw_client_ok(int hits, Z_Records *records, int start)
 {
@@ -1279,10 +1287,15 @@ int Yaz_Proxy::send_to_srw_client_ok(int hits, Z_Records *records, int start)
             Z_NamePlusRecord *npr = records->u.databaseOrSurDiagnostics->records[i];
             if (npr->which != Z_NamePlusRecord_databaseRecord)
             {
-                yaz_log(YLOG_LOG, "Point 1");
-                yazproxy_encode_sru_surrogate(
+#if YAZ_HAS_MK_SURROGATE
+                yaz_mk_sru_surrogate(
                     o, srw_res->records + i, i+start,  
                     YAZ_SRW_RECORD_NOT_AVAILABLE_IN_THIS_SCHEMA, 0);
+#else
+                yazproxy_mk_sru_surrogate(
+                    o, srw_res->records + i, i+start,  
+                    YAZ_SRW_RECORD_NOT_AVAILABLE_IN_THIS_SCHEMA, 0);
+#endif
                 continue;
             }
             Z_External *r = npr->u.databaseRecord;
@@ -1299,10 +1312,15 @@ int Yaz_Proxy::send_to_srw_client_ok(int hits, Z_Records *records, int start)
             }
             else
             {
-                yaz_log(YLOG_LOG, "Point 2");
-                yazproxy_encode_sru_surrogate(
+#if YAZ_HAS_MK_SURROGATE
+                yaz_mk_sru_surrogate(
                     o, srw_res->records + i, i+start,  
                     YAZ_SRW_RECORD_NOT_AVAILABLE_IN_THIS_SCHEMA, 0);
+#else
+                yazproxy_mk_sru_surrogate(
+                    o, srw_res->records + i, i+start,  
+                    YAZ_SRW_RECORD_NOT_AVAILABLE_IN_THIS_SCHEMA, 0);
+#endif
             }
         }
     }
