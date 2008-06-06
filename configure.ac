@@ -1,7 +1,7 @@
 dnl This file is part of YAZ proxy
 dnl See the file LICENSE for details.
 AC_PREREQ(2.60)
-AC_INIT([yazproxy],[1.3.3.2],[adam@indexdata.dk])
+AC_INIT([yazproxy],[1.3.4],[adam@indexdata.dk])
 AC_CONFIG_SRCDIR(configure.ac)
 AC_CONFIG_AUX_DIR([config])
 AM_INIT_AUTOMAKE([1.9])
@@ -12,7 +12,7 @@ AC_PROG_CXX
 AC_HEADER_STDC
 AM_PROG_LIBTOOL
 
-YAZPP_INIT([threads],[1.1.0])
+YAZPP_INIT([threads],[1.1.1])
 if test -z "$YAZPPLIB"; then
 	AC_MSG_ERROR([YAZ++ development libraries missing])
 fi
