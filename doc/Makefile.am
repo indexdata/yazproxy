@@ -33,11 +33,7 @@ index.tkl: $(XMLFILES)
 	$(TKL_COMPILE) $(TOP)
 
 yazproxy.pdf: $(XMLFILES)
-	if test ! -f common/id.png ; then cp $(srcdir)/common/id.png common; fi
-	jade -E14 -D $(srcdir) -d common/print.dsl -t tex $(srcdir)/common/xml.dcl $(TOP)
-	pdfjadetex yazproxy.tex >pdfjadetex.log 2>&1
-	pdfjadetex yazproxy.tex >pdfjadetex.log 2>&1
-	pdfjadetex yazproxy.tex >pdfjadetex.log 2>&1
+	$(PDF_COMPILE) $(TOP)
 
 clean-data-hook:
 	rm -f [0-9]* *.bak
