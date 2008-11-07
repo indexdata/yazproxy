@@ -1,12 +1,30 @@
 #!/bin/sh
 
+automake=automake
+aclocal=aclocal
+autoconf=autoconf
+libtoolize=libtoolize
+
 test -d config || mkdir config
 if test .git; then
     git submodule init
     git submodule update
 fi
+if [ "`uname -s`" = FreeBSD ]; then
+    # FreeBSD intalls the various auto* tools with version numbers
+    echo "Using special configuration for FreeBSD ..."
+    automake=automake19
+    aclocal="aclocal19 -I /usr/local/share/aclocal"
+    autoconf=autoconf259
+    libtoolize=libtoolize15
+fi
 
-if automake --version|head -1 |grep '1\.[4-7]'; then
+if [ "`uname -s`" = Darwin ]; then
+    echo "Using special configuration for Darwin/MacOS ..."
+    libtoolize=glibtoolize
+fi
+
+if $automake --version|head -1 |grep '1\.[4-7]'; then
     echo "automake 1.4-1.7 is active. You should use automake 1.8 or later"
     if test -f /etc/debian_version; then
         echo " sudo apt-get install automake1.9"
@@ -17,10 +35,10 @@ fi
 
 set -x
 # I am tired of underquoted warnings for Tcl macros
-aclocal -I m4 2>&1 | grep -v aclocal/tcl.m4
-libtoolize --automake --force 
-automake --add-missing 
-autoconf
+$aclocal -I m4
+$libtoolize --automake --force 
+$automake --add-missing 
+$autoconf
 set -
 if [ -f config.cache ]; then
 	rm config.cache
@@ -32,13 +50,15 @@ sh_flags=""
 conf_flags=""
 case $1 in
     -d)
-	sh_flags="-g -Wall"
+	sh_cflags="-g -Wall -Wdeclaration-after-statement -Wstrict-prototypes"
+	sh_cxxflags="-g -Wall"
 	enable_configure=true
 	enable_help=false
 	shift
 	;;
     -c)
-	sh_flags=""
+	sh_cflags=""
+	sh_cxxflags=""
 	enable_configure=true
 	enable_help=false
 	shift
@@ -47,7 +67,7 @@ esac
 
 if $enable_configure; then
     if test -n "$sh_flags"; then
-	CXXFLAGS="$sh_flags" ./configure --disable-shared --enable-static $*
+	CFLAGS="$sh_cflags" CXXFLAGS="$sh_cxxflags" ./configure --disable-shared --enable-static $*
     else
 	./configure $*
     fi
@@ -72,12 +92,24 @@ Build distribution tarball with
 Verify distribution tarball with
   make distcheck
 
+EOF
+    if [ -f /etc/debian_version ]; then
+        cat <<EOF
 Or just build the Debian packages without configuring
   dpkg-buildpackage -rfakeroot
 
-When building from a CVS checkout, you need these Debian tools:
-  autoconf, automake, libtool, gcc, g++, make,
+When building from a CVS checkout, you need these Debian packages:
+  autoconf, automake, libtool, gcc, bison, any tcl,
   xsltproc, docbook, docbook-xml, docbook-xsl,
-  libxslt1-dev, libyazpp1-dev
+  libxslt1-dev, libssl-dev, libreadline5-dev, libwrap0-dev,
+  libpcap0.8-dev
 EOF
+    fi
+    if [ "`uname -s`" = FreeBSD ]; then
+        cat <<EOF
+When building from a CVS checkout, you need these FreeBSD Ports:
+  autoconf259, automake19, libtool15, bison, tcl84,
+  docbook-xsl, libxml2, libxslt, g++-4.0, make
+EOF
+    fi
 fi
