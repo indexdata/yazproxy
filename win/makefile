@@ -17,11 +17,11 @@ ICONV_DIR=\iconv-1.9.2.win32
 
 # libxslt
 HAVE_LIBXSLT=1
-LIBXSLT_DIR=\libxslt-1.1.23+.win32
+LIBXSLT_DIR=\libxslt-1.1.24.win32
 
 # libxml2 (used by libxslt)
 HAVE_LIBXML2=1
-LIBXML2_DIR=\libxml2-2.6.32+.win32
+LIBXML2_DIR=\libxml2-2.7.1.win32
 
 # zlib compression (used by libxml2)
 ZLIB_DIR=\zlib-1.2.3.win32
