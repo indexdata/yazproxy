@@ -423,7 +423,8 @@
     <title>syntax</title>
     <para>
      The <literal>syntax</literal> element specifies accept or reject
-     or a particular record syntax request from the client.
+     or a particular record syntax request from the client. It also
+     allows record conversion of XML records via XSLT.
     </para>
     <para>
      The <literal>syntax</literal> has one required attribute:
@@ -447,6 +448,15 @@
      For the special case where <literal>backendtype</literal> is
      <literal>opac</literal> the proxy will convert the OPAC
      record to OPACXML.
+    </para>
+    <para>
+      When <literal>marcxml</literal> is used, yazproxy assumes
+      that records retrieved from the backend are encoded in the
+      <ulink url="&url.marc8;">MARC-8</ulink> character set.
+      This is correct for most MARC21 based systems, but not for 
+      other MARC variants or UTF-8 based MARC21 systems.
+      The <literal>backendcharset</literal> attribute specifies
+      the character set of the MARC records to be converted.
     </para>
     <para>
      If attribute <literal>backendtype</literal> is given, that holds the
