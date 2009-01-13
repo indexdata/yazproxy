@@ -37,4 +37,5 @@ AC_OUTPUT([
 	doc/common/Makefile
 	doc/common/print.dsl
 	etc/Makefile
+	yazproxy.spec
 ])
