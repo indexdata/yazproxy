@@ -3967,6 +3967,7 @@ void Yaz_Proxy::base64_decode(const char *base64, char *buf, int buf_len)
 /*
  * Local variables:
  * c-basic-offset: 4
+ * c-file-style: "Stroustrup"
  * indent-tabs-mode: nil
  * End:
  * vim: shiftwidth=4 tabstop=8 expandtab
