@@ -2819,7 +2819,14 @@ void Yaz_Proxy::handle_incoming_HTTP(Z_HTTP_Request *hreq)
         m_s2z_stylesheet = 0;
         
         Z_IdAuthentication *auth = NULL;
-        if (srw_pdu->username && srw_pdu->password)
+        if (srw_pdu->username && !srw_pdu->password)
+        {
+            yaz_log(YLOG_LOG, "username: %s\n", srw_pdu->username);
+            auth = (Z_IdAuthentication *) odr_malloc(m_s2z_odr_init, sizeof(Z_IdAuthentication));
+            auth->which = Z_IdAuthentication_open;
+            auth->u.open = odr_strdup(m_s2z_odr_init, srw_pdu->username);
+        }
+        else if (srw_pdu->username && srw_pdu->password)
         {
             yaz_log(YLOG_LOG, "username/password: %s/%s\n",
                     srw_pdu->username, srw_pdu->password);
