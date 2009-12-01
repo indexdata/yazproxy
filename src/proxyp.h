@@ -175,7 +175,7 @@ class Yaz_ProxyClient : public yazpp_1::Z_Assoc {
     yazpp_1::Yaz_Z_Databases m_last_databases;
     char *m_last_resultSetId;
     int m_last_ok;
-    int m_last_resultCount;
+    Odr_int m_last_resultCount;
     int m_sr_transform;
     int m_seqno;
     int m_waiting;

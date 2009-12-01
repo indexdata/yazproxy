@@ -389,7 +389,7 @@ int Yaz_ProxyConfigP::check_type_1_attributes(ODR odr, xmlNodePtr ptrl,
         if (!el->attributeType)
             continue;
         int type = *el->attributeType;
-        int *value = 0;
+        Odr_int *value = 0;
 
         if (el->which == Z_AttributeValue_numeric && el->value.numeric)
             value = el->value.numeric;
@@ -429,7 +429,7 @@ int Yaz_ProxyConfigP::check_type_1_attributes(ODR odr, xmlNodePtr ptrl,
                     {
                         if (!match_list(*value, match_value))
                             continue;
-                        sprintf (addinfo_str, "%d", *value);
+                        sprintf (addinfo_str, ODR_INT_PRINTF, *value);
                     }
                     else
                         continue;

@@ -864,13 +864,13 @@ void Yaz_Proxy::display_diagrecs(Z_DiagRec **pp, int num)
         switch (r->which)
         {
         case Z_DefaultDiagFormat_v2Addinfo:
-            yaz_log(YLOG_LOG, "%sError %d %s:%s",
+            yaz_log(YLOG_LOG, "%sError " ODR_INT_PRINTF " %s:%s",
                     m_session_str,
                     *r->condition, diagbib1_str(*r->condition),
                     r->u.v2Addinfo);
             break;
         case Z_DefaultDiagFormat_v3Addinfo:
-            yaz_log(YLOG_LOG, "%sError %d %s:%s",
+            yaz_log(YLOG_LOG, "%sError " ODR_INT_PRINTF " %s:%s",
                     m_session_str,
                     *r->condition, diagbib1_str(*r->condition),
                     r->u.v3Addinfo);
@@ -1494,7 +1494,7 @@ int Yaz_Proxy::send_to_client(Z_APDU *apdu)
             }
             if (sr->resultCount)
             {
-                yaz_log(YLOG_LOG, "%s%d hits", m_session_str,
+                yaz_log(YLOG_LOG, "%s" ODR_INT_PRINTF " hits", m_session_str,
                         *sr->resultCount);
                 if (*sr->resultCount < 0)
                 {
@@ -2310,7 +2310,7 @@ Z_Records *Yaz_Proxy::create_nonSurrogateDiagnostics(ODR odr,
 {
     Z_Records *rec = (Z_Records *)
         odr_malloc (odr, sizeof(*rec));
-    int *err = (int *)
+    Odr_int *err = (Odr_int *)
         odr_malloc (odr, sizeof(*err));
     Z_DiagRec *drec = (Z_DiagRec *)
         odr_malloc (odr, sizeof(*drec));
