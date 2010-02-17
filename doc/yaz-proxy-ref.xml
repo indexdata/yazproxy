@@ -68,7 +68,7 @@
      libxml2.
     </para></listitem>
   </varlistentry>
-  <varlistentry><term>-X</term>
+  <varlistentry><term>-D</term>
    <listitem><para>
      Puts YAZ proxy in the background after startup. This is
      similar to using shell's &amp; operator but often better since
