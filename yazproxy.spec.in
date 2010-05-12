@@ -66,5 +66,4 @@ rm -fr ${RPM_BUILD_ROOT}
 %{_includedir}/yazproxy
 %{_libdir}/*.so
 %{_libdir}/*.a
-%{_libdir}/*.la
 

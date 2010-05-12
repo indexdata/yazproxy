@@ -1,4 +1,3 @@
 debian/tmp/usr/include/yazproxy/*.h
 debian/tmp/usr/lib/libyazproxy*.a
 debian/tmp/usr/lib/libyazproxy*.so
-debian/tmp/usr/lib/libyazproxy*.la
