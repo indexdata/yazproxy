@@ -18,7 +18,9 @@ cdetails_SOURCES=cdetails.cpp
 tstthreads_SOURCES=tstthreads.cpp
 t_server_SOURCES=t-server.cpp
 
-LDADD=libyazproxy.la $(YAZPPLALIB) $(USEMARCONLALIB)
+libyazproxy_la_LIBADD = $(YAZPPLALIB)
+
+LDADD=libyazproxy.la $(USEMARCONLALIB)
 
 # Modules
 mod_proxy_sample_la_SOURCES = mod_sample.cpp
