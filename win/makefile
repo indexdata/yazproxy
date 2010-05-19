@@ -17,11 +17,11 @@ ICONV_DIR=\iconv-1.9.2.win32
 
 # libxslt
 HAVE_LIBXSLT=1
-LIBXSLT_DIR=\libxslt-1.1.24.win32
+LIBXSLT_DIR=\libxslt-1.1.26.win32
 
 # libxml2 (used by libxslt)
 HAVE_LIBXML2=1
-LIBXML2_DIR=\libxml2-2.7.1.win32
+LIBXML2_DIR=\libxml2-2.7.6.win32
 
 # zlib compression (used by libxml2)
 ZLIB_DIR=\zlib-1.2.3.win32
@@ -72,11 +72,11 @@ dll: $(YAZPROXY_DLL)
 proxy: $(YAZPROXY)
 
 !if $(DEBUG)
-YAZD=yaz3d
-YAZPPD=yazpp3d
+YAZD=yaz4d
+YAZPPD=yazpp4d
 !else
-YAZD=yaz3
-YAZPPD=yazpp3
+YAZD=yaz4
+YAZPPD=yazpp4
 !endif
 
 # YAZ includes & libs
@@ -201,11 +201,7 @@ LINK=link.exe
 LINK_LIBS=kernel32.lib advapi32.lib ws2_32.lib \
            $(YAZ_LIB) $(YAZPP_LIB) $(ICONV_LIB) $(LIBXML2_LIB) $(LIBXSLT_LIB)
 
-COMMON_LNK_OPTIONS=\
-		/nologo \
-		/subsystem:windows \
-		/machine:i386 \
-		/incremental:no
+COMMON_LNK_OPTIONS= /nologo /subsystem:windows /incremental:no
 
 DEBUG_LNK_OPTIONS= /debug 
 
