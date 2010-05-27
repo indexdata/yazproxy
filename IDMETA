@@ -1,0 +1,2 @@
+DEBIAN_DIST="squeeze etch lenny"
+UBUNTU_DIST="lucid karmic jaunty intrepid hardy"
