@@ -1,6 +1,12 @@
+ <refentryinfo>
+  <productname>yazproxy</productname>
+  <info><orgname>Index Data</orgname></info>
+ </refentryinfo>
+ 
 <refmeta>
  <refentrytitle>yazproxy</refentrytitle>
  <manvolnum>8</manvolnum>
+ <refmiscinfo class="manual">System management commands</refmiscinfo>
 </refmeta>
 <refnamediv>
  <refname>yazproxy</refname>
