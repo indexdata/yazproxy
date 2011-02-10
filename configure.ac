@@ -1,7 +1,7 @@
 dnl This file is part of YAZ proxy
 dnl See the file LICENSE for details.
 AC_PREREQ(2.60)
-AC_INIT([yazproxy],[1.3.5],[adam@indexdata.dk])
+AC_INIT([yazproxy],[1.3.6],[adam@indexdata.dk])
 AC_CONFIG_SRCDIR(configure.ac)
 AC_CONFIG_AUX_DIR([config])
 AM_INIT_AUTOMAKE([1.9])
@@ -37,5 +37,4 @@ AC_OUTPUT([
 	doc/common/Makefile
 	doc/common/print.dsl
 	etc/Makefile
-	yazproxy.spec
 ])

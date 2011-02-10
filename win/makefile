@@ -1,4 +1,4 @@
-# Copyright (C) 1998-2008 Index Data
+# Copyright (C) 1998-2011 Index Data
 # All rights reserved.
 
 ###########################################################
