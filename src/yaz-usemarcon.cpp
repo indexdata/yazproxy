@@ -43,7 +43,11 @@ int Yaz_usemarcon::convert(const char *stage1, const char *stage2,
     if (stage1 && *stage1)
     {
         char *converted;
+#if RULE_VERSION >= 314
         size_t convlen;
+#else
+        int convlen;
+#endif
         if (!m_stage1)
         {
             m_stage1 = new Usemarcon();
