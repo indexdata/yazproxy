@@ -1,6 +1,7 @@
+%define idmetaversion %(. ./IDMETA; echo $VERSION|tr -d '\n')
 Summary: yazproxy
 Name: yazproxy
-Version: 1.3.6
+Version: %{idmetaversion}
 Release: 1indexdata
 License: GPL
 Group: Applications/Internet
