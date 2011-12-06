@@ -3558,7 +3558,7 @@ void Yaz_Proxy::pre_init()
     const char *zurl_in_use[MAX_ZURL_PLEX];
     int limit_bw, limit_pdu, limit_req, limit_search;
     int target_idletime, client_idletime;
-    int max_sockets;
+    int max_sockets = m_max_sockets;
     int max_clients;
     int keepalive_limit_bw, keepalive_limit_pdu;
     int pre_init;
