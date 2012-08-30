@@ -144,6 +144,20 @@ void Yaz_CharsetConverter::convert_type_1(Z_RPNQuery *q, ODR o)
         }
     }
 }
+
+void Yaz_CharsetConverter::convert_term(Z_Term *q, ODR o)
+{
+    if (m_target_query_charset && m_client_query_charset)
+    {
+        m_ct = yaz_iconv_open(m_target_query_charset,
+                              m_client_query_charset);
+        if (m_ct)
+        {
+            convert_type_1(q, o);
+            yaz_iconv_close(m_ct);
+        }
+    }
+}
 /*
  * Local variables:
  * c-basic-offset: 4

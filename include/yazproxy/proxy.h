@@ -123,6 +123,8 @@ class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Z_Assoc {
     void display_diagrecs(Z_DiagRec **pp, int num);
     Z_Records *create_nonSurrogateDiagnostics(ODR o, int error,
                                               const char *addinfo);
+    Z_ListEntries *create_nonSurrogateDiagnostics2(ODR o, int error,
+                                              const char *addinfo);
 
     Z_APDU *handle_query_validation(Z_APDU *apdu);
     Z_APDU *handle_query_transformation(Z_APDU *apdu);
@@ -167,26 +169,34 @@ class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Z_Assoc {
     int send_PDU_convert(Z_APDU *apdu);
     ODR m_s2z_odr_init;
     ODR m_s2z_odr_search;
+    ODR m_s2z_odr_scan;
     int m_s2z_hit_count;
     int m_s2z_packing;
     char *m_s2z_database;
     Z_APDU *m_s2z_init_apdu;
     Z_APDU *m_s2z_search_apdu;
     Z_APDU *m_s2z_present_apdu;
+    Z_APDU *m_s2z_scan_apdu;
     char *m_s2z_stylesheet;
     char *m_soap_ns;
     int file_access(Z_HTTP_Request *hreq);
     int send_to_srw_client_error(int error, const char *add);
     int send_to_srw_client_ok(int hits, Z_Records *records, int start);
+    int send_to_srw_client_ok(Z_ListEntries *entries);
     int send_http_response(int code);
     int send_srw_response(Z_SRW_PDU *srw_pdu, int http_code = 200);
     int send_srw_search_response(Z_SRW_diagnostic *diagnostics,
+                                 int num_diagnostics,
+                                 int http_code = 200);
+    int send_srw_scan_response(Z_SRW_diagnostic *diagnostics,
                                  int num_diagnostics,
                                  int http_code = 200);
     int send_srw_explain_response(Z_SRW_diagnostic *diagnostics,
                                   int num_diagnostics);
     int z_to_srw_diag(ODR o, Z_SRW_searchRetrieveResponse *srw_res,
                       Z_DefaultDiagFormat *ddf);
+    int z_to_srw_diag(ODR o, Z_SRW_scanResponse *srw_res,
+                      Z_DiagRec *dr);
     int m_http_keepalive;
     const char *m_http_version;
     yazpp_1::Yaz_cql2rpn m_cql2rpn;

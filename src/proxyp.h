@@ -60,6 +60,7 @@ public:
     const char *get_client_query_charset(void);
     const char *get_target_query_charset(void);
     void convert_type_1(Z_RPNQuery *q, ODR o);
+    void convert_term(Z_Term *q, ODR o);
     void set_client_charset_selected(int sel);
     int get_client_charset_selected();
 private:
