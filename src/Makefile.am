@@ -20,7 +20,7 @@ t_server_SOURCES=t-server.cpp
 
 libyazproxy_la_LIBADD = $(YAZPPLALIB)
 
-LDADD=libyazproxy.la $(USEMARCONLALIB)
+LDADD=libyazproxy.la $(USEMARCONLALIB) $(YAZPPLALIB)
 
 # Modules
 mod_proxy_sample_la_SOURCES = mod_sample.cpp
