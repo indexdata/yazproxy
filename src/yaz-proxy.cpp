@@ -3389,10 +3389,10 @@ void Yaz_Proxy::handle_init(Z_APDU *apdu)
 
         m_initRequest_preferredMessageSize = *apdu->u.initRequest->
             preferredMessageSize;
-        *apdu->u.initRequest->preferredMessageSize = 1024*1024;
+        *apdu->u.initRequest->preferredMessageSize = 64*1024*1024;
         m_initRequest_maximumRecordSize = *apdu->u.initRequest->
             maximumRecordSize;
-        *apdu->u.initRequest->maximumRecordSize = 1024*1024;
+        *apdu->u.initRequest->maximumRecordSize = 64*1024*1024;
 
         Z_CharSetandLanguageNegotiation *charSetandLangRecord =
             yaz_get_charneg_record(*oi);
