@@ -130,7 +130,7 @@ Msg_Thread::~Msg_Thread()
     m_p->m_stop_flag = true;
     pthread_cond_broadcast(&m_p->m_cond_input_data);
     pthread_mutex_unlock(&m_p->m_mutex_input_data);
-    
+
     int i;
     for (i = 0; i<m_p->m_no_threads; i++)
         pthread_join(m_p->m_thread_id[i], 0);
@@ -183,7 +183,7 @@ void Msg_Thread::run(void *p)
         IMsg_Thread *out = in->handle();
         pthread_mutex_lock(&m_p->m_mutex_output_data);
         m_p->m_output.enqueue(out);
-        
+
         write(m_p->m_fd[1], "", 1);
         pthread_mutex_unlock(&m_p->m_mutex_output_data);
     }

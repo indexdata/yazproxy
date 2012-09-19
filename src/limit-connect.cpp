@@ -24,11 +24,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 struct LimitConnect::Peer {
     friend class LimitConnect;
-    
+
     Peer(int sz, const char *peername);
     ~Peer();
     void add_connect();
-    
+
     char *m_peername;
     Yaz_bw m_bw;
     Peer *m_next;

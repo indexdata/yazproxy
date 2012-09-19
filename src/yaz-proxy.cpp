@@ -138,7 +138,7 @@ void Yaz_Proxy::result_authentication(Z_APDU *apdu, int ret)
         {
             Yaz_ProxyConfig *cfg = check_reconfigure();
             if (cfg)
-                cfg->target_authentication(m_default_target, odr_encode(), 
+                cfg->target_authentication(m_default_target, odr_encode(),
                                            apdu->u.initRequest);
         }
         handle_incoming_Z_PDU_2(apdu);
@@ -380,7 +380,7 @@ void Yaz_Proxy::set_proxy_negotiation(const char *charset, const char *lang,
                                        const char *default_charset)
 {
     yaz_log(YLOG_DEBUG, "%sSet the proxy negotiation: charset to '%s', "
-        "default charset to '%s', language to '%s'", m_session_str, 
+        "default charset to '%s', language to '%s'", m_session_str,
         charset?charset:"none",
         default_charset?default_charset:"none",
         lang?lang:"none");
@@ -491,7 +491,7 @@ char *Yaz_Proxy::get_cookie(Z_OtherInformation **otherInfo)
 {
     Z_OtherInformationUnit *oi =
         update_otherInformation(otherInfo, 0, yaz_oid_userinfo_cookie, 1, 1);
-    
+
     if (oi && oi->which == Z_OtherInfo_characterInfo)
         return oi->information.characterInfo;
     return 0;
@@ -501,7 +501,7 @@ char *Yaz_Proxy::get_proxy(Z_OtherInformation **otherInfo)
 {
     Z_OtherInformationUnit *oi =
         update_otherInformation(otherInfo, 0, yaz_oid_userinfo_proxy, 1, 1);
-    
+
     if (oi && oi->which == Z_OtherInfo_characterInfo)
         return oi->information.characterInfo;
     return 0;
@@ -626,13 +626,13 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
             timeout(m_client_idletime);
         }
 
-        // get those FILE descriptors available 
+        // get those FILE descriptors available
         m_parent->low_socket_close();
         if (cql2rpn_fname)
             m_cql2rpn.set_pqf_file(cql2rpn_fname);
         // reserve them again
         m_parent->low_socket_open();
-        
+
         if (negotiation_charset || negotiation_lang || default_client_query_charset)
         {
             set_proxy_negotiation(negotiation_charset,
@@ -705,7 +705,7 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
         {
             assert(c->m_prev);
             assert(*c->m_prev == c);
-            if (c->m_server == 0 && c->m_cookie == 0 && c->m_waiting == 0 
+            if (c->m_server == 0 && c->m_cookie == 0 && c->m_waiting == 0
                 && c->compare_idAuthentication(apdu)
                 && c->compare_charset(apdu)
                 && !strcmp(m_proxyTarget, c->get_hostname()))
@@ -713,7 +713,7 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
                 // found it in cache
                 yaz_log(YLOG_LOG, "%sREUSE %d %s",
                          m_session_str, parent->m_seqno, c->get_hostname());
-                
+
                 c->m_seqno = parent->m_seqno;
                 assert(c->m_server == 0);
                 c->m_server = this;
@@ -1143,7 +1143,7 @@ int Yaz_Proxy::send_http_response(int code)
     else
         timeout(0);
     if (code == 401)
-        z_HTTP_header_add(o, &hres->headers, "WWW-Authenticate", 
+        z_HTTP_header_add(o, &hres->headers, "WWW-Authenticate",
                           "Basic realm=\"YAZ Proxy\"");
 
 
@@ -1268,9 +1268,9 @@ static void yazproxy_mk_sru_surrogate(ODR o, Z_SRW_record *record, int pos,
         len += strlen(message);
     if (details)
         len += strlen(details);
-    
+
     record->recordData_buf = (char *) odr_malloc(o, len);
-    
+
     sprintf(record->recordData_buf, "<diagnostic "
             "xmlns=\"http://www.loc.gov/zing/srw/diagnostic/\">\n"
             " <uri>info:srw/diagnostic/1/%d</uri>\n", code);
@@ -1309,18 +1309,18 @@ int Yaz_Proxy::send_to_srw_client_ok(int hits, Z_Records *records, int start)
             {
 #if YAZ_HAS_MK_SURROGATE
                 yaz_mk_sru_surrogate(
-                    o, srw_res->records + i, i+start,  
+                    o, srw_res->records + i, i+start,
                     YAZ_SRW_RECORD_NOT_AVAILABLE_IN_THIS_SCHEMA, 0);
 #else
                 yazproxy_mk_sru_surrogate(
-                    o, srw_res->records + i, i+start,  
+                    o, srw_res->records + i, i+start,
                     YAZ_SRW_RECORD_NOT_AVAILABLE_IN_THIS_SCHEMA, 0);
 #endif
                 continue;
             }
             Z_External *r = npr->u.databaseRecord;
 
-            if (r->which == Z_External_octet 
+            if (r->which == Z_External_octet
                 && !oid_oidcmp(r->direct_reference, yaz_oid_recsyn_xml))
             {
                 srw_res->records[i].recordSchema = m_schema;
@@ -1334,11 +1334,11 @@ int Yaz_Proxy::send_to_srw_client_ok(int hits, Z_Records *records, int start)
             {
 #if YAZ_HAS_MK_SURROGATE
                 yaz_mk_sru_surrogate(
-                    o, srw_res->records + i, i+start,  
+                    o, srw_res->records + i, i+start,
                     YAZ_SRW_RECORD_NOT_AVAILABLE_IN_THIS_SCHEMA, 0);
 #else
                 yazproxy_mk_sru_surrogate(
-                    o, srw_res->records + i, i+start,  
+                    o, srw_res->records + i, i+start,
                     YAZ_SRW_RECORD_NOT_AVAILABLE_IN_THIS_SCHEMA, 0);
 #endif
             }
@@ -1386,7 +1386,7 @@ int Yaz_Proxy::send_to_srw_client_ok(Z_ListEntries *entries)
                     srw_res->terms[i].numberOfRecords = odr_intdup(o,
                         *entries->entries[i]->u.termInfo->globalOccurrences);
                 else
-                    srw_res->terms[i].numberOfRecords = NULL;    
+                    srw_res->terms[i].numberOfRecords = NULL;
                 if (entries->entries[i]->u.termInfo->displayTerm != NULL)
                     srw_res->terms[i].displayTerm = odr_strdup(o,
                         entries->entries[i]->u.termInfo->displayTerm);
@@ -1696,11 +1696,11 @@ int Yaz_Proxy::send_to_client(Z_APDU *apdu)
 void Yaz_ProxyClient::set_idAuthentication(Z_APDU *apdu)
 {
     Z_IdAuthentication *t = apdu->u.initRequest->idAuthentication;
-    
+
     odr_reset(m_idAuthentication_odr);
     z_IdAuthentication(m_idAuthentication_odr, &t, 1, 0);
     m_idAuthentication_ber_buf =
-        odr_getbuf(m_idAuthentication_odr, 
+        odr_getbuf(m_idAuthentication_odr,
                    &m_idAuthentication_ber_size, 0);
 }
 
@@ -1762,7 +1762,7 @@ Z_APDU *Yaz_Proxy::result_set_optimize(Z_APDU *apdu)
             Z_APDU *new_apdu = create_Z_PDU(Z_APDU_presentResponse);
             new_apdu->u.presentResponse->records =
                 create_nonSurrogateDiagnostics(
-                    odr_encode(), 
+                    odr_encode(),
                     YAZ_BIB1_SPECIFIED_RESULT_SET_DOES_NOT_EXIST,
                     pr->resultSetId);
             send_to_client(new_apdu);
@@ -1773,8 +1773,8 @@ Z_APDU *Yaz_Proxy::result_set_optimize(Z_APDU *apdu)
             Z_APDU *new_apdu = create_Z_PDU(Z_APDU_presentResponse);
             new_apdu->u.presentResponse->records =
                 create_nonSurrogateDiagnostics(
-                    odr_encode(), 
-                    YAZ_BIB1_PRESENT_REQUEST_OUT_OF_RANGE, 
+                    odr_encode(),
+                    YAZ_BIB1_PRESENT_REQUEST_OUT_OF_RANGE,
                     0);
             send_to_client(new_apdu);
             return 0;
@@ -1786,7 +1786,7 @@ Z_APDU *Yaz_Proxy::result_set_optimize(Z_APDU *apdu)
                 Z_APDU *new_apdu = create_Z_PDU(Z_APDU_presentResponse);
                 new_apdu->u.presentResponse->records =
                     create_nonSurrogateDiagnostics(
-                        odr_encode(), 
+                        odr_encode(),
                         YAZ_BIB1_PRESENT_REQUEST_OUT_OF_RANGE,
                         0);
                 send_to_client(new_apdu);
@@ -1843,7 +1843,7 @@ Z_APDU *Yaz_Proxy::result_set_optimize(Z_APDU *apdu)
         // Not a present request.. But can't find better diagnostic
         new_apdu->u.searchResponse->records =
             create_nonSurrogateDiagnostics(
-                odr_encode(), 
+                odr_encode(),
                 YAZ_BIB1_PRESENT_REQUEST_OUT_OF_RANGE, 0);
         send_to_client(new_apdu);
         return 0;
@@ -1869,7 +1869,7 @@ Z_APDU *Yaz_Proxy::result_set_optimize(Z_APDU *apdu)
 
             if (toget > m_client->m_last_resultCount)
                 toget = m_client->m_last_resultCount;
-            
+
             if (sr->mediumSetElementSetNames)
             {
                 comp = (Z_RecordComposition *)
@@ -2031,7 +2031,7 @@ void Yaz_Proxy::recv_GDU(Z_GDU *apdu, int len)
 
 #if 0
     // try to make a _bad_ attribute set ID .. Don't enable this in prod.
-    if (apdu->which == Z_GDU_Z3950 
+    if (apdu->which == Z_GDU_Z3950
         && apdu->u.z3950->which == Z_APDU_searchRequest)
     {
         Z_SearchRequest *req = apdu->u.z3950->u.searchRequest;
@@ -2080,7 +2080,7 @@ void Yaz_Proxy::HTTP_Forwarded(Z_GDU *z_gdu)
             xfree(m_peername);
             m_peername = (char*) xmalloc(strlen(x_forwarded_for)+5);
             sprintf(m_peername, "tcp:%s", x_forwarded_for);
-            
+
             yaz_log(YLOG_LOG, "%sHTTP Forwarded from %s", m_session_str,
                     m_peername);
             if (m_log_mask & PROXY_LOG_IP_CLIENT)
@@ -2108,11 +2108,11 @@ void Yaz_Proxy::connect_stat(bool &block, int &reduce)
                 m_session_str, connect_total, max_connect);
         block = true;
     }
-    else 
+    else
         block = false;
     yaz_log(YLOG_LOG, "%sconnect accepted total=%d", m_session_str,
             connect_total);
-    
+
     int limit_connect = m_parent->m_limit_connect;
     if (limit_connect)
         reduce = connect_total / limit_connect;
@@ -2125,11 +2125,11 @@ void Yaz_Proxy::recv_GDU_reduce(GDU *gdu)
     HTTP_Forwarded(gdu->get());
 
     int reduce = 0;
-    
+
     if (m_request_no == 1)
     {
         bool block = false;
-        
+
         connect_stat(block, reduce);
 
         if (block)
@@ -2325,10 +2325,10 @@ void Yaz_Proxy::handle_charset_lang_negotiation(Z_APDU *apdu)
         Z_InitResponse *initResponse = apdu->u.initResponse;
         Z_OtherInformation **otherInfo;
         get_otherInfoAPDU(apdu, &otherInfo);
-        
+
         Z_CharSetandLanguageNegotiation *charneg = 0;
 
-        if (otherInfo && *otherInfo && 
+        if (otherInfo && *otherInfo &&
             ODR_MASK_GET(initResponse->options, Z_Options_negotiationModel)
             && (charneg = yaz_get_charneg_record(*otherInfo)))
         {
@@ -2383,8 +2383,8 @@ void Yaz_Proxy::handle_charset_lang_negotiation(Z_APDU *apdu)
                     if (m_initRequest_options)
                         ODR_MASK_SET(m_initRequest_options,
                                      Z_Options_negotiationModel);
-                    
-                    oi->which = Z_OtherInfo_externallyDefinedInfo;    
+
+                    oi->which = Z_OtherInfo_externallyDefinedInfo;
                     oi->information.externallyDefinedInfo =
                         yaz_set_response_charneg(
                             odr_encode(),
@@ -2747,7 +2747,7 @@ Z_APDU *Yaz_Proxy::handle_syntax_validation(Z_APDU *apdu)
             sr->preferredRecordSyntax =
                 yaz_string_to_oid_odr(
                     yaz_oid_std(), CLASS_RECSYN,
-                    m_backend_type ? m_backend_type : "usmarc", 
+                    m_backend_type ? m_backend_type : "usmarc",
                     odr_encode());
         }
         else if (err)
@@ -2766,7 +2766,7 @@ Z_APDU *Yaz_Proxy::handle_syntax_validation(Z_APDU *apdu)
         else if (m_backend_type)
         {
             sr->preferredRecordSyntax =
-                yaz_string_to_oid_odr(yaz_oid_std(), CLASS_RECSYN, 
+                yaz_string_to_oid_odr(yaz_oid_std(), CLASS_RECSYN,
                                       m_backend_type, odr_encode());
         }
     }
@@ -2815,7 +2815,7 @@ Z_APDU *Yaz_Proxy::handle_syntax_validation(Z_APDU *apdu)
             pr->preferredRecordSyntax =
                 yaz_string_to_oid_odr(
                     yaz_oid_std(), CLASS_RECSYN,
-                    m_backend_type ? m_backend_type : "usmarc", 
+                    m_backend_type ? m_backend_type : "usmarc",
                     odr_encode());
         }
         else if (err)
@@ -2836,7 +2836,7 @@ Z_APDU *Yaz_Proxy::handle_syntax_validation(Z_APDU *apdu)
         {
             pr->preferredRecordSyntax =
                 yaz_string_to_oid_odr(yaz_oid_std(),
-                                      CLASS_RECSYN, m_backend_type, 
+                                      CLASS_RECSYN, m_backend_type,
                                       odr_encode());
         }
     }
@@ -3020,7 +3020,7 @@ void Yaz_Proxy::handle_incoming_HTTP(Z_HTTP_Request *hreq)
         m_s2z_scan_apdu = 0;
 
         m_s2z_stylesheet = 0;
-        
+
         Z_IdAuthentication *auth = NULL;
         if (srw_pdu->username && !srw_pdu->password)
         {
@@ -3058,8 +3058,8 @@ void Yaz_Proxy::handle_incoming_HTTP(Z_HTTP_Request *hreq)
                 }
                 auth->u.idPass->userId = odr_strdup(m_s2z_odr_init, authorization_str);
             }
-        }		
-        
+        }
+
         if (srw_pdu->which == Z_SRW_searchRetrieve_request)
         {
 
@@ -3278,7 +3278,7 @@ void Yaz_Proxy::handle_incoming_HTTP(Z_HTTP_Request *hreq)
 
                 ODR_MASK_SET(m_s2z_init_apdu->u.initRequest->options, Z_Options_scan);
                 m_s2z_init_apdu->u.initRequest->idAuthentication = auth;
-                
+
                 // prevent m_initRequest_apdu memory from being grabbed
                 // in Yaz_Proxy::handle_incoming_Z_PDU
                 m_initRequest_apdu = m_s2z_init_apdu;
@@ -3291,7 +3291,7 @@ void Yaz_Proxy::handle_incoming_HTTP(Z_HTTP_Request *hreq)
         else if (srw_pdu->which == Z_SRW_scan_request)
         {
             Z_SRW_scanRequest *srw_req = srw_pdu->u.scan_request;
- 
+
             const char *backend_db = srw_req->database;
             srw_get_client(srw_req->database, &backend_db);
 
@@ -3465,7 +3465,7 @@ void Yaz_Proxy::handle_init(Z_APDU *apdu)
             Z_APDU *apdu2 = m_client->m_initResponse;
             apdu2->u.initResponse->otherInfo = 0;
             if (m_client->m_cookie && *m_client->m_cookie)
-                set_otherInformationString(apdu2, yaz_oid_userinfo_cookie, 
+                set_otherInformationString(apdu2, yaz_oid_userinfo_cookie,
                                            1, m_client->m_cookie);
             apdu2->u.initResponse->referenceId =
                 apdu->u.initRequest->referenceId;
@@ -3492,7 +3492,7 @@ void Yaz_Proxy::handle_init(Z_APDU *apdu)
         m->m_apdu_buf = (char*) nmem_malloc(m->m_nmem, m->m_apdu_len);
         memcpy(m->m_apdu_buf, apdu_buf, m->m_apdu_len);
         odr_reset(odr_encode());
-        
+
         inc_ref();
         m_my_thread->put(m);
     }
@@ -3724,7 +3724,7 @@ void Yaz_Proxy::send_response_fail_client(const char *addr)
     {
         Z_SRW_diagnostic *diagnostic = 0;
         int num_diagnostic = 0;
-        
+
         yaz_add_srw_diagnostic(odr_encode(),
                                &diagnostic, &num_diagnostic,
                                YAZ_SRW_SYSTEM_TEMPORARILY_UNAVAILABLE, addr);
@@ -3734,7 +3734,7 @@ void Yaz_Proxy::send_response_fail_client(const char *addr)
             send_srw_scan_response(diagnostic, num_diagnostic);
         else
             send_srw_explain_response(diagnostic, num_diagnostic);
-    }            
+    }
 }
 
 void Yaz_ProxyClient::failNotify()
@@ -4064,7 +4064,7 @@ void Yaz_ProxyClient::recv_Z_PDU(Z_APDU *apdu, int len)
             *apdu->u.initResponse->maximumRecordSize;
 
         Z_InitResponse *ir = apdu->u.initResponse;
-       
+
         // apply YAZ Proxy version
         char *imv0 = ir->implementationVersion;
         char *imv1 = (char*)
@@ -4076,7 +4076,7 @@ void Yaz_ProxyClient::recv_Z_PDU(Z_APDU *apdu, int len)
         strcat(imv1, "/" VERSION);
 #endif
         ir->implementationVersion = imv1;
-        
+
         // apply YAZ Proxy implementation name
         char *im0 = ir->implementationName;
         char *im1 = (char*)

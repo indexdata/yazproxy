@@ -232,7 +232,7 @@ static void child_run(void *data)
         struct rlimit limit_data;
         limit_data.rlim_cur = no_limit_files;
         limit_data.rlim_max = no_limit_files;
-        
+
         yaz_log(YLOG_LOG, "0 setrlimit NOFILE cur=%ld max=%ld",
                 (long) limit_data.rlim_cur, (long) limit_data.rlim_max);
         if (setrlimit(RLIMIT_NOFILE, &limit_data))
@@ -247,7 +247,7 @@ static void child_run(void *data)
     yaz_log(YLOG_LOG, "0 getrlimit NOFILE cur=%ld max=%ld",
             (long) limit_data.rlim_cur, (long) limit_data.rlim_max);
 #endif
-    
+
     while (m->processEvent() > 0)
         ;
 
@@ -258,7 +258,7 @@ int main(int argc, char **argv)
 {
 #if YAZ_HAVE_XSLT
     xmlInitMemory();
-    
+
     LIBXML_TEST_VERSION
 #endif
     SocketManager mySocketManager;

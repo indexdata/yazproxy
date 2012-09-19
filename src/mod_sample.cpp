@@ -51,7 +51,7 @@ int my_authenticate(void *user_handle,
 #if YAZ_HAVE_XSLT
     xmlNodePtr ptr = (xmlNodePtr) element_ptr;
     struct _xmlAttr *attr;
-    
+
     for (attr = ptr->properties; attr; attr = attr->next)
     {
         if (!strcmp((const char *) attr->name, "args") &&
@@ -64,7 +64,7 @@ int my_authenticate(void *user_handle,
     sleep(2);
     fprintf(stderr, "my_authenticate: target=%s user=%s group=%s args=%s IP=%s"
             "\n",
-            target_name ? target_name : "none", 
+            target_name ? target_name : "none",
             user ? user : "none", group ? group : "none",
             args ? args : "none",
             peer_IP);

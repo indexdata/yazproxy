@@ -33,7 +33,7 @@ public:
 private:
     struct Peer;
 
-    int m_period; 
+    int m_period;
     Peer *m_peers;
     Peer **lookup(const char *peername);
 };

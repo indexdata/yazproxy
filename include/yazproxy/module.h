@@ -36,9 +36,9 @@ struct Yaz_ProxyModule_int0 {
     void (*destroy)(       // Destroy handler
         void *handle       // module-specific handle as returned by init
         );
-    
+
     int (*authenticate)(   // Authenticate handler. Returns YAZPROXY_RET_..
-        void *handle,      // module-specific handle as returned by init 
+        void *handle,      // module-specific handle as returned by init
         const char *name,  // target name (or NULL if default target)
         void *element_ptr, // xmlnodePtr thing to XML config this
         const char *user,  // User ID (or NULL if no suppliied User ID)

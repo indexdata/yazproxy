@@ -61,7 +61,7 @@ Auth_Msg::~Auth_Msg()
     delete m_output;
     delete m_gdu;
 }
-    
+
 IMsg_Thread *Auth_Msg::handle()
 {
     ODR odr = odr_createmem(ODR_ENCODE);
@@ -171,7 +171,7 @@ void MyServer::recv_GDU(Z_GDU *apdu, int len)
     GDU *gdu = new GDU(apdu);
     Auth_Msg *m = new Auth_Msg(gdu, this);
     m_no_requests++;
-    m_my_thread->put(m);    
+    m_my_thread->put(m);
 }
 
 void MyServer::failNotify()
@@ -179,7 +179,7 @@ void MyServer::failNotify()
     m_delete_flag = 1;
     if (m_no_requests == 0)
         delete this;
-    
+
 }
 
 void MyServer::timeoutNotify()
@@ -238,7 +238,7 @@ int main(int argc, char **argv)
     SocketManager mySocketManager;
 
     PDU_Assoc *my_PDU_Assoc = 0;
-    
+
     MyServer *z = 0;
 
     Msg_Thread *my_thread = new Msg_Thread(&mySocketManager, no_threads);
@@ -251,7 +251,7 @@ int main(int argc, char **argv)
 #else
     my_PDU_Assoc = new PDU_Assoc(&mySocketManager);
 #endif
-    
+
     z = new MyServer(my_PDU_Assoc, my_thread);
     z->server(addr);
     if (apdu_log)
@@ -264,7 +264,7 @@ int main(int argc, char **argv)
         ;
     delete z;
     delete my_thread;
-    return 0;    
+    return 0;
 }
 /*
  * Local variables:

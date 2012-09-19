@@ -66,7 +66,7 @@ public:
 };
 
 My_Timer_Thread::My_Timer_Thread(ISocketObservable *obs,
-                                 Msg_Thread *t) : m_obs(obs) 
+                                 Msg_Thread *t) : m_obs(obs)
 {
     pipe(m_fd);
     m_t = t;

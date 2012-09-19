@@ -208,7 +208,7 @@ void Yaz_ProxyConfigP::return_limit(xmlNodePtr ptr,
             if (t)
                 *limit_pdu = atoi(t);
         }
-        if (ptr->type == XML_ELEMENT_NODE 
+        if (ptr->type == XML_ELEMENT_NODE
             && !strcmp((const char *) ptr->name, "search"))
         {
             const char *t = get_text(ptr);
@@ -268,11 +268,11 @@ void Yaz_ProxyConfigP::return_target_info(xmlNodePtr ptr,
             return_limit(ptr, keepalive_limit_bw, keepalive_limit_pdu,
                          &dummy, &dummy);
         }
-        if (ptr->type == XML_ELEMENT_NODE 
+        if (ptr->type == XML_ELEMENT_NODE
             && !strcmp((const char *) ptr->name, "limit"))
             return_limit(ptr, limit_bw, limit_pdu, limit_req,
                          limit_search);
-        if (ptr->type == XML_ELEMENT_NODE 
+        if (ptr->type == XML_ELEMENT_NODE
             && !strcmp((const char *) ptr->name, "target-timeout"))
         {
             const char *t = get_text(ptr);
@@ -830,7 +830,7 @@ int Yaz_ProxyConfig::check_syntax(ODR odr, const char *name,
                 }
                 else if (syntax)
                 {
-                    Odr_oid *match_oid 
+                    Odr_oid *match_oid
                         = yaz_string_to_oid_odr(yaz_oid_std(),
                                                 CLASS_RECSYN, match_type,
                                                 odr);
@@ -1277,11 +1277,11 @@ char *Yaz_ProxyConfig::get_explain_doc(ODR odr, const char *name,
         else
         {
             xmlNodePtr ptr2 = xmlCopyNode(ptr_explain, 1);
-            
+
             xmlDocPtr doc = xmlNewDoc((const xmlChar *) "1.0");
-            
+
             xmlDocSetRootElement(doc, ptr2);
-            
+
             xmlChar *buf_out;
             xmlDocDumpMemory(doc, &buf_out, len);
             char *content = (char*) odr_malloc(odr, *len);
