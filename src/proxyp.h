@@ -131,7 +131,8 @@ public:
                      Odr_oid *syntax, Z_RecordComposition *comp,
                      char **addinfo, char **stylesheet, char **schema,
                      char **backend_type, char **backend_charset,
-                     char **usemarcon_ini_stage1, char **usemarcon_ini_stage2);
+                     char **usemarcon_ini_stage1, char **usemarcon_ini_stage2,
+                     char **backend_elementset);
 
     void target_authentication(const char *name,
                                ODR odr,

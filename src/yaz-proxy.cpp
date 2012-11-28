@@ -293,6 +293,7 @@ Yaz_Proxy::Yaz_Proxy(IPDU_Observable *the_PDU_Observable,
     m_usemarcon = new Yaz_usemarcon();
     if (!m_parent)
         low_socket_open();
+    m_backend_elementset = 0;
     m_my_thread = 0;
     m_ref_count = 1;
     m_main_ptr_dec = false;
@@ -333,6 +334,7 @@ Yaz_Proxy::~Yaz_Proxy()
     xfree(m_backend_charset);
     xfree(m_usemarcon_ini_stage1);
     xfree(m_usemarcon_ini_stage2);
+    xfree(m_backend_elementset);
     delete m_usemarcon;
     if (m_s2z_odr_init)
         odr_destroy(m_s2z_odr_init);
@@ -2723,7 +2725,8 @@ Z_APDU *Yaz_Proxy::handle_syntax_validation(Z_APDU *apdu)
                                     &addinfo, &stylesheet_name, &m_schema,
                                     &m_backend_type, &m_backend_charset,
                                     &m_usemarcon_ini_stage1,
-                                    &m_usemarcon_ini_stage2);
+                                    &m_usemarcon_ini_stage2,
+                                    &m_backend_elementset);
         if (stylesheet_name)
         {
             m_parent->low_socket_close();
@@ -2769,6 +2772,13 @@ Z_APDU *Yaz_Proxy::handle_syntax_validation(Z_APDU *apdu)
                 yaz_string_to_oid_odr(yaz_oid_std(), CLASS_RECSYN,
                                       m_backend_type, odr_encode());
         }
+        if (m_backend_elementset)
+        {
+            Z_ElementSetNames *esn = mk_esn_from_schema(odr_encode(),
+                                                        m_backend_elementset);
+            sr->smallSetElementSetNames = esn;
+            sr->mediumSetElementSetNames = esn;
+        }
     }
     else if (apdu->which == Z_APDU_presentRequest)
     {
@@ -2790,8 +2800,8 @@ Z_APDU *Yaz_Proxy::handle_syntax_validation(Z_APDU *apdu)
                                     &addinfo, &stylesheet_name, &m_schema,
                                     &m_backend_type, &m_backend_charset,
                                     &m_usemarcon_ini_stage1,
-                                    &m_usemarcon_ini_stage2
-                                    );
+                                    &m_usemarcon_ini_stage2,
+                                    &m_backend_elementset);
         if (stylesheet_name)
         {
             m_parent->low_socket_close();
@@ -2838,6 +2848,16 @@ Z_APDU *Yaz_Proxy::handle_syntax_validation(Z_APDU *apdu)
                 yaz_string_to_oid_odr(yaz_oid_std(),
                                       CLASS_RECSYN, m_backend_type,
                                       odr_encode());
+        }
+        if (m_backend_elementset)
+        {
+            Z_ElementSetNames *esn = mk_esn_from_schema(odr_encode(),
+                                                        m_backend_elementset);
+            Z_RecordComposition *comp = (Z_RecordComposition *)
+                odr_malloc(odr_encode(), sizeof(Z_RecordComposition));
+            comp->which = Z_RecordComp_simple;
+            comp->u.simple = esn;
+            pr->recordComposition = comp;
         }
     }
     return apdu;

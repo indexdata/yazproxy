@@ -212,6 +212,7 @@ class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Z_Assoc {
     void low_socket_close();
     char *m_usemarcon_ini_stage1;
     char *m_usemarcon_ini_stage2;
+    char *m_backend_elementset;
     Yaz_usemarcon *m_usemarcon;
     Yaz_CharsetConverter *m_charset_converter;
     yazpp_1::GDUQueue m_in_queue;

@@ -729,7 +729,8 @@ int Yaz_ProxyConfig::check_syntax(ODR odr, const char *name,
                                   char **backend_type,
                                   char **backend_charset,
                                   char **usemarcon_ini_stage1,
-                                  char **usemarcon_ini_stage2
+                                  char **usemarcon_ini_stage2,
+                                  char **backend_elementset
                                   )
 {
     if (stylesheet)
@@ -762,6 +763,8 @@ int Yaz_ProxyConfig::check_syntax(ODR odr, const char *name,
         xfree (*usemarcon_ini_stage2);
         *usemarcon_ini_stage2 = 0;
     }
+    xfree(*backend_elementset);
+    *backend_elementset = 0;
 #if YAZ_HAVE_XSLT
     int syntax_has_matched = 0;
     xmlNodePtr ptr;
@@ -784,6 +787,7 @@ int Yaz_ProxyConfig::check_syntax(ODR odr, const char *name,
             const char *match_backend_charset = 0;
             const char *match_usemarcon_ini_stage1 = 0;
             const char *match_usemarcon_ini_stage2 = 0;
+            const char *match_elementset = 0;
             struct _xmlAttr *attr;
             for (attr = ptr->properties; attr; attr = attr->next)
             {
@@ -818,6 +822,9 @@ int Yaz_ProxyConfig::check_syntax(ODR odr, const char *name,
                     attr->children && attr->children->type == XML_TEXT_NODE)
                     match_usemarcon_ini_stage2 = (const char *)
                         attr->children->content;
+                if (!strcmp((const char *) attr->name, "backendelementset") &&
+                    attr->children && attr->children->type == XML_TEXT_NODE)
+                    match_elementset = (const char *) attr->children->content;
             }
             if (match_type)
             {
@@ -866,6 +873,11 @@ int Yaz_ProxyConfig::check_syntax(ODR odr, const char *name,
                 {
                     xfree(*backend_charset);
                     *backend_charset = xstrdup(match_backend_charset);
+                }
+                if (match_elementset)
+                {
+                    xfree(*backend_elementset);
+                    *backend_elementset = xstrdup(match_elementset);
                 }
                 if (usemarcon_ini_stage1 && match_usemarcon_ini_stage1)
                 {
