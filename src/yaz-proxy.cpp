@@ -340,6 +340,8 @@ Yaz_Proxy::~Yaz_Proxy()
         odr_destroy(m_s2z_odr_init);
     if (m_s2z_odr_search)
         odr_destroy(m_s2z_odr_search);
+    if (m_s2z_odr_scan)
+        odr_destroy(m_s2z_odr_scan);
     if (!m_parent)
         low_socket_close();
     if (!m_parent)
