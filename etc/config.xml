@@ -36,7 +36,7 @@
       <title>Dublin Core</title>
       <name>dc</name>
     </syntax>
-    <syntax type="xml" marcxml="1" stylesheet="exslttest.xsl">
+    <syntax type="xml" marcxml="1" stylesheet="exslttest.xsl" backendelementset="F">
       <title>EXSLT Test</title>
       <name>exslt</name>
     </syntax>
