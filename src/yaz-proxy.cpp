@@ -533,10 +533,8 @@ const char *Yaz_Proxy::load_balance(const char **url)
             }
     }
     int min_use = 100000;
-    int spare_for_min = 0;
     int max_spare = 0;
     const char *ret_min = 0;
-    const char *ret_spare = 0;
     for (i = 0; url[i]; i++)
     {
         yaz_log(YLOG_DEBUG, "%szurl=%s use=%d spare=%d",
@@ -545,11 +543,9 @@ const char *Yaz_Proxy::load_balance(const char **url)
         {
             ret_min = url[i];
             min_use = zurl_in_use[i];
-            spare_for_min = zurl_in_spare[i];
         }
         if (max_spare < zurl_in_spare[i])
         {
-            ret_spare = url[i];
             max_spare = zurl_in_spare[i];
         }
     }
@@ -2593,13 +2589,13 @@ Z_APDU *Yaz_Proxy::handle_query_validation(Z_APDU *apdu)
         int err = 0;
         char *addinfo = 0;
 
+#if 0
         Yaz_ProxyConfig *cfg = check_reconfigure();
 // Something like this needs to be implemented later:
-/*
         if (cfg)
             err = cfg->check_type_1_attributes(odr_encode(), m_default_target,
                                    sr->termListAndStartPoint->attributes, &addinfo);
-*/
+#endif
         if (err)
         {
             Z_APDU *new_apdu = create_Z_PDU(Z_APDU_scanResponse);
