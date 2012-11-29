@@ -464,12 +464,14 @@
     </para>
     <para>
      If attribute <literal>backendelementset</literal> is given, that holds
-     elementset to be transmitted to backend. If
-     <literal>backendelementset</literal> is omitted, the element
+     elementset to be transmitted to backend. An empty value of
+     <literal>backendelementset</literal> has the effect of omitting
+     any Comp-Spec (and elementset) sent to backend.
+    </para>
+    <para>If <literal>backendelementset</literal> is omitted, the element
      set from client is used, except if <literal>marcxml</literal> is used.
-     If no <literal>backendelementset</literal> is given and
-     <literal>marcxml</literal> is used, the elementset is omitted in
-     request to backend.
+     In that case (using <literal>marcxml</literal>), no Comp-Spec and no
+     elementset is sent to backend.
     </para>
     <para>
      If attribute <literal>stylesheet</literal> is given, the proxy
