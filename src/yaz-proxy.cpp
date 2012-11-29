@@ -2776,8 +2776,10 @@ Z_APDU *Yaz_Proxy::handle_syntax_validation(Z_APDU *apdu)
         }
         if (m_backend_elementset)
         {
-            Z_ElementSetNames *esn = mk_esn_from_schema(odr_encode(),
-                                                        m_backend_elementset);
+            Z_ElementSetNames *esn =
+                mk_esn_from_schema(
+                    odr_encode(),
+                    *m_backend_elementset ? m_backend_elementset : 0);
             sr->smallSetElementSetNames = esn;
             sr->mediumSetElementSetNames = esn;
         }
@@ -2853,8 +2855,10 @@ Z_APDU *Yaz_Proxy::handle_syntax_validation(Z_APDU *apdu)
         }
         if (m_backend_elementset)
         {
-            Z_ElementSetNames *esn = mk_esn_from_schema(odr_encode(),
-                                                        m_backend_elementset);
+            Z_ElementSetNames *esn =
+                mk_esn_from_schema(
+                    odr_encode(),
+                    *m_backend_elementset ? m_backend_elementset : 0);
             Z_RecordComposition *comp = (Z_RecordComposition *)
                 odr_malloc(odr_encode(), sizeof(Z_RecordComposition));
             comp->which = Z_RecordComp_simple;
