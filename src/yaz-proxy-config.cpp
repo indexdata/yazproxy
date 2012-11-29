@@ -794,37 +794,42 @@ int Yaz_ProxyConfig::check_syntax(ODR odr, const char *name,
                 if (!strcmp((const char *) attr->name, "type") &&
                     attr->children && attr->children->type == XML_TEXT_NODE)
                     match_type = (const char *) attr->children->content;
-                if (!strcmp((const char *) attr->name, "error") &&
+                else if (!strcmp((const char *) attr->name, "error") &&
                     attr->children && attr->children->type == XML_TEXT_NODE)
                     match_error = (const char *) attr->children->content;
-                if (!strcmp((const char *) attr->name, "marcxml") &&
+                else if (!strcmp((const char *) attr->name, "marcxml") &&
                     attr->children && attr->children->type == XML_TEXT_NODE)
                     match_marcxml = (const char *) attr->children->content;
-                if (!strcmp((const char *) attr->name, "stylesheet") &&
+                else if (!strcmp((const char *) attr->name, "stylesheet") &&
                     attr->children && attr->children->type == XML_TEXT_NODE)
                     match_stylesheet = (const char *) attr->children->content;
-                if (!strcmp((const char *) attr->name, "identifier") &&
+                else if (!strcmp((const char *) attr->name, "identifier") &&
                     attr->children && attr->children->type == XML_TEXT_NODE)
                     match_identifier = (const char *) attr->children->content;
-                if (!strcmp((const char *) attr->name, "backendtype") &&
+                else if (!strcmp((const char *) attr->name, "backendtype") &&
                     attr->children && attr->children->type == XML_TEXT_NODE)
                     match_backend_type = (const char *)
                         attr->children->content;
-                if (!strcmp((const char *) attr->name, "backendcharset") &&
+                else if (!strcmp((const char *) attr->name, "backendcharset") &&
                     attr->children && attr->children->type == XML_TEXT_NODE)
                     match_backend_charset = (const char *)
                         attr->children->content;
-                if (!strcmp((const char *) attr->name, "usemarconstage1") &&
+                else if (!strcmp((const char *) attr->name, "usemarconstage1") &&
                     attr->children && attr->children->type == XML_TEXT_NODE)
                     match_usemarcon_ini_stage1 = (const char *)
                         attr->children->content;
-                if (!strcmp((const char *) attr->name, "usemarconstage2") &&
+                else if (!strcmp((const char *) attr->name, "usemarconstage2") &&
                     attr->children && attr->children->type == XML_TEXT_NODE)
                     match_usemarcon_ini_stage2 = (const char *)
                         attr->children->content;
-                if (!strcmp((const char *) attr->name, "backendelementset") &&
+                else if (!strcmp((const char *) attr->name, "backendelementset") &&
                     attr->children && attr->children->type == XML_TEXT_NODE)
                     match_elementset = (const char *) attr->children->content;
+                else
+                {
+                    yaz_log(YLOG_WARN, "0 Unknown attribute %s in <syntax>",
+                            (const char *) attr->name);
+                }
             }
             if (match_type)
             {
