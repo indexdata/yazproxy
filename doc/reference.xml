@@ -463,6 +463,15 @@
      record syntax to be transmitted to backend.
     </para>
     <para>
+     If attribute <literal>backendelementset</literal> is given, that holds
+     elementset to be transmitted to backend. If
+     <literal>backendelementset</literal> is omitted, the element
+     set from client is used, except if <literal>marcxml</literal> is used.
+     If no <literal>backendelementset</literal> is given and
+     <literal>marcxml</literal> is used, the elementset is omitted in
+     request to backend.
+    </para>
+    <para>
      If attribute <literal>stylesheet</literal> is given, the proxy
      will convert XML record from server via XSLT. It is important
      that the content from server is XML. If used in conjunction with
@@ -972,6 +981,7 @@
    <xs:attribute name="backendcharset" type="xs:string" />
    <xs:attribute name="usemarconstage1" type="xs:string" />
    <xs:attribute name="usemarconstage2" type="xs:string" />
+   <xs:attribute name="backendelementset" type="xs:string" />
   </xs:complexType>
  </xs:element>
 
