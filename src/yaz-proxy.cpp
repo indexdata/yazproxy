@@ -3570,7 +3570,8 @@ void Yaz_Proxy::handle_incoming_Z_PDU(Z_APDU *apdu)
 #if YAZ_VERSIONL < 0x50000
         m_referenceId->size = m_referenceId->len;
         m_referenceId->buf = (unsigned char *)
-            nmem_strdupn(m_referenceId_mem, (*refid)->buf, (*refid)->len);
+            nmem_strdupn(m_referenceId_mem, (const char *)
+                                    (*refid)->buf, (*refid)->len);
 #else
         m_referenceId->buf =
             nmem_strdupn(m_referenceId_mem, (*refid)->buf, (*refid)->len);
