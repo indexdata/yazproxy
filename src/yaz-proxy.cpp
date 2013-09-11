@@ -3147,7 +3147,13 @@ void Yaz_Proxy::handle_incoming_HTTP(Z_HTTP_Request *hreq)
                 odr_malloc(m_s2z_odr_search, sizeof(Z_Query));
             z_searchRequest->query = query;
 
-            if (srw_req->query_type == Z_SRW_query_type_cql)
+            if (
+#ifdef Z_SRW_query_type_cql
+                srw_req->query_type == Z_SRW_query_type_cql
+#else
+                !srw_req->queryType || !strcmp(srw_req->queryType, "cql")
+#endif
+                )
             {
                 Z_External *ext = (Z_External *)
                     odr_malloc(m_s2z_odr_search, sizeof(*ext));
@@ -3156,12 +3162,22 @@ void Yaz_Proxy::handle_incoming_HTTP(Z_HTTP_Request *hreq)
                 ext->indirect_reference = 0;
                 ext->descriptor = 0;
                 ext->which = Z_External_CQL;
+#ifdef Z_SRW_query_type_cql
                 ext->u.cql = srw_req->query.cql;
+#else
+                ext->u.cql = srw_req->query;
+#endif
 
                 query->which = Z_Query_type_104;
                 query->u.type_104 =  ext;
             }
-            else if (srw_req->query_type == Z_SRW_query_type_pqf)
+            else if (
+#ifdef Z_SRW_query_type_pqf
+                srw_req->query_type == Z_SRW_query_type_pqf
+#else
+                srw_req->queryType && !strcmp(srw_req->queryType, "pqf")
+#endif
+                )
             {
                 Z_RPNQuery *RPNquery;
                 YAZ_PQF_Parser pqf_parser;
@@ -3169,7 +3185,12 @@ void Yaz_Proxy::handle_incoming_HTTP(Z_HTTP_Request *hreq)
                 pqf_parser = yaz_pqf_create ();
 
                 RPNquery = yaz_pqf_parse (pqf_parser, m_s2z_odr_search,
-                                          srw_req->query.pqf);
+#ifdef Z_SRW_query_type_pqf
+                                          srw_req->query.pqf
+#else
+                                          srw_req->query
+#endif
+                    );
                 if (!RPNquery)
                 {
                     const char *pqf_msg;
@@ -3337,7 +3358,13 @@ void Yaz_Proxy::handle_incoming_HTTP(Z_HTTP_Request *hreq)
                                                            backend_db);
 
              // query transformation
-            if (srw_req->query_type == Z_SRW_query_type_cql)
+            if (
+#ifdef Z_SRW_query_type_cql
+                srw_req->query_type == Z_SRW_query_type_cql
+#else
+                !srw_req->queryType || !strcmp(srw_req->queryType, "cql")
+#endif
+                )
             {
                 z_scanRequest->termListAndStartPoint =
                     (Z_AttributesPlusTerm *)odr_malloc(m_s2z_odr_scan, sizeof(Z_AttributesPlusTerm));
@@ -3347,7 +3374,13 @@ void Yaz_Proxy::handle_incoming_HTTP(Z_HTTP_Request *hreq)
                 z_scanRequest->termListAndStartPoint->term->which =
                   Z_Term_characterString;
                 z_scanRequest->termListAndStartPoint->term->u.characterString =
-                  odr_strdup(m_s2z_odr_scan, srw_req->scanClause.cql);
+                  odr_strdup(m_s2z_odr_scan,
+#ifdef Z_SRW_query_type_cql
+                             srw_req->scanClause.cql
+#else
+                             srw_req->scanClause
+#endif
+                      );
             }
 
             if (srw_req->responsePosition)
@@ -3533,10 +3566,15 @@ void Yaz_Proxy::handle_incoming_Z_PDU(Z_APDU *apdu)
     {
         m_referenceId = (Z_ReferenceId *)
             nmem_malloc(m_referenceId_mem, sizeof(*m_referenceId));
-        m_referenceId->len = m_referenceId->size = (*refid)->len;
+        m_referenceId->len = (*refid)->len;
+#if YAZ_VERSIONL < 0x50000
+        m_referenceId->size = m_referenceId->len;
         m_referenceId->buf = (unsigned char *)
-            nmem_malloc(m_referenceId_mem, (*refid)->len);
-        memcpy(m_referenceId->buf, (*refid)->buf, (*refid)->len);
+            nmem_strdupn(m_referenceId_mem, (*refid)->buf, (*refid)->len);
+#else
+        m_referenceId->buf =
+            nmem_strdupn(m_referenceId_mem, (*refid)->buf, (*refid)->len);
+#endif
     }
     else
         m_referenceId = 0;
