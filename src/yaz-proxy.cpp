@@ -803,18 +803,14 @@ Yaz_ProxyClient *Yaz_Proxy::get_client(Z_APDU *apdu, const char *cookie,
                 return c;
             }
         }
-        else
-        {
-
-            yaz_log(YLOG_LOG, "%sNEW %d %s",
-                     m_session_str, parent->m_seqno, m_proxyTarget);
-            c = new Yaz_ProxyClient(m_PDU_Observable->clone(), parent);
-            c->m_next = parent->m_clientPool;
-            if (c->m_next)
-                c->m_next->m_prev = &c->m_next;
-            parent->m_clientPool = c;
-            c->m_prev = &parent->m_clientPool;
-        }
+        yaz_log(YLOG_LOG, "%sNEW %d %s",
+                m_session_str, parent->m_seqno, m_proxyTarget);
+        c = new Yaz_ProxyClient(m_PDU_Observable->clone(), parent);
+        c->m_next = parent->m_clientPool;
+        if (c->m_next)
+            c->m_next->m_prev = &c->m_next;
+        parent->m_clientPool = c;
+        c->m_prev = &parent->m_clientPool;
 
         xfree(c->m_cookie);
         c->m_cookie = 0;
