@@ -72,11 +72,11 @@ dll: $(YAZPROXY_DLL)
 proxy: $(YAZPROXY)
 
 !if $(DEBUG)
-YAZD=yaz4d
-YAZPPD=yazpp4d
+YAZD=yaz5d
+YAZPPD=yazpp6d
 !else
-YAZD=yaz4
-YAZPPD=yazpp4
+YAZD=yaz5
+YAZPPD=yazpp6
 !endif
 
 # YAZ includes & libs
