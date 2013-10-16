@@ -1,5 +1,11 @@
 --- 1.3.9 2013/10/16
 
+Use yaz++ 1.5.0 and YAZ 5 for packages.
+
+Minor fixes to source so that it compiles with both YAZ 4 and YAZ 5.
+
+Fix SEGV that could occur when max-clients was reached. YPRX-20
+
 --- 1.3.8 2012/11/29
 
 Allow backendelementset to be given for syntax section of configuration.
