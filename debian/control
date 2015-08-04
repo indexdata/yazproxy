@@ -8,7 +8,7 @@ Build-Depends: debhelper (>= 4.0.0),
 Package: yazproxy
 Section: utils
 Architecture: any
-Depends: ${shlibs:Depends}, libyazproxy2 (= ${Source-Version})
+Depends: ${shlibs:Depends}, libyazproxy2 (= ${source:Version})
 Description: YAZ Proxy application
  YAZ Proxy is a daemon that accepts Z39.50/SRW/SRU incoming requests and
  converts them to Z39.50 client requests. The proxy has several facilities
@@ -32,7 +32,7 @@ Description: YAZ Proxy libraries
 Package: libyazproxy2-dev
 Section: devel
 Architecture: any
-Depends: libyazproxy2 (= ${Source-Version}),
+Depends: libyazproxy2 (= ${source:Version}),
 	libyazpp6-dev
 Conflicts: libyazproxy-dev
 Provides: libyazproxy-dev
