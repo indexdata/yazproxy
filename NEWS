@@ -1,3 +1,7 @@
+--- 1.3.10 2015/12/17
+
+Build for CentOS 7 and newer Ubuntu distros.
+
 --- 1.3.9 2013/10/16
 
 Use yaz++ 1.5.0 and YAZ 5 for packages.
