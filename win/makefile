@@ -12,22 +12,16 @@ YAZ_DIR=..\..\yaz
 YAZPP_DIR=..\..\yazpp
 
 # iconv charcter conversion utility
-HAVE_ICONV=1
+HAVE_ICONV=0
 ICONV_DIR=\iconv-1.9.2.win32
 
 # libxslt
 HAVE_LIBXSLT=1
-LIBXSLT_DIR=\libxslt-1.1.26.win32
+LIBXSLT_DIR=\libxslt-1.1.28.win32
 
 # libxml2 (used by libxslt)
 HAVE_LIBXML2=1
-LIBXML2_DIR=\libxml2-2.7.6.win32
-
-# zlib compression (used by libxml2)
-ZLIB_DIR=\zlib-1.2.3.win32
-
-# get WIN32 binaries for libxslt, libxml, iconv, zlib from here:
-# http://www.zlatkovic.com/libxml.en.html
+LIBXML2_DIR=\libxml2-2.9.2.win32
 
 default: all
 
@@ -118,14 +112,10 @@ iconv:
 !if $(HAVE_LIBXML2)
 LIBXML2_LIB="$(LIBXML2_DIR)\lib\libxml2.lib"
 LIBXML2_DEF=/D HAVE_XML2=1 /I"$(LIBXML2_DIR)\include"
-libxml2: $(BINDIR)\libxml2.dll $(BINDIR)\zlib1.dll
+libxml2: $(BINDIR)\libxml2.dll
 
 $(BINDIR)\libxml2.dll:
   copy "$(LIBXML2_DIR)\bin\libxml2.dll" $(BINDIR)
-
-$(BINDIR)\zlib1.dll:
-  copy "$(ZLIB_DIR)\bin\zlib1.dll" $(BINDIR)
-
 !else
 LIBXML2_LIB=
 LIBXML2_DEF=/D HAVE_XML2=0
@@ -136,7 +126,7 @@ libxml2:
 !if $(HAVE_LIBXSLT)
 LIBXSLT_LIB="$(LIBXSLT_DIR)\lib\libxslt.lib"
 LIBXSLT_DEF=/D YAZ_HAVE_XSLT=1 /I"$(LIBXSLT_DIR)\include"
-libxslt: $(BINDIR)\libxslt.dll $(BINDIR)\zlib1.dll
+libxslt: $(BINDIR)\libxslt.dll
 
 $(BINDIR)\libxslt.dll:
   copy "$(LIBXSLT_DIR)\bin\libxslt.dll" $(BINDIR)
