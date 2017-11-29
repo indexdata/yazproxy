@@ -173,8 +173,8 @@ int Yaz_ProxyModules::add_module(const char *fname)
         {
             yaz_log(YLOG_WARN, "Failed loading module %s - missing symbols",
                     fname);
-            return -1;
             dlclose(dl_handle);
+            return -1;
         }
     }
     else
