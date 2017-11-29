@@ -1,4 +1,4 @@
-DEBIAN_DIST="jessie wheezy"
-UBUNTU_DIST="wily vivid trusty precise"
-CENTOS_DIST="centos5 centos6 centos7"
+DEBIAN_DIST="stretch jessie wheezy"
+UBUNTU_DIST="yakkety xenial trusty precise"
+CENTOS_DIST="centos6 centos7"
 VERSION=1.3.10
