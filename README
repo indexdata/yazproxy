@@ -67,10 +67,10 @@ Example:
 
   The client is started and it specifies the actual target itself.
 
-     $ ./yaz-client -p localhost:9000 bagel.indexdata.dk/gils
+     $ ./yaz-client -p localhost:9000 z3950.indexdata.dk/gils
 
   For ZAP the equivalent would be
      proxy=localhost:9000
-     target=bagel.indexdata.dk/gils
+     target=z3950.indexdata.dk/gils
   Simple, huh!
 
