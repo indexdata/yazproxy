@@ -199,6 +199,7 @@ class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Z_Assoc {
                       Z_DiagRec *dr);
     int m_http_keepalive;
     const char *m_http_version;
+    const char *m_sru_version;
     yazpp_1::Yaz_cql2rpn m_cql2rpn;
     void *m_time_tv;
     void logtime();

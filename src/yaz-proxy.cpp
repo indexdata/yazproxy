@@ -278,6 +278,7 @@ Yaz_Proxy::Yaz_Proxy(IPDU_Observable *the_PDU_Observable,
     m_s2z_scan_apdu = 0;
     m_http_keepalive = 0;
     m_http_version = 0;
+    m_sru_version = 0;
     m_soap_ns = 0;
     m_s2z_packing = Z_SRW_recordPacking_string;
 #if HAVE_GETTIMEOFDAY
@@ -1287,7 +1288,8 @@ static void yazproxy_mk_sru_surrogate(ODR o, Z_SRW_record *record, int pos,
 int Yaz_Proxy::send_to_srw_client_ok(int hits, Z_Records *records, int start)
 {
     ODR o = odr_encode();
-    Z_SRW_PDU *srw_pdu = yaz_srw_get(o, Z_SRW_searchRetrieve_response);
+    Z_SRW_PDU *srw_pdu = yaz_srw_get_pdu(o, Z_SRW_searchRetrieve_response,
+                                         m_sru_version);
     Z_SRW_searchRetrieveResponse *srw_res = srw_pdu->u.response;
 
     srw_res->numberOfRecords = odr_intdup (o, hits);
@@ -1355,7 +1357,7 @@ int Yaz_Proxy::send_to_srw_client_ok(int hits, Z_Records *records, int start)
 int Yaz_Proxy::send_to_srw_client_ok(Z_ListEntries *entries)
 {
     ODR o = odr_encode();
-    Z_SRW_PDU *srw_pdu = yaz_srw_get(o, Z_SRW_scan_response);
+    Z_SRW_PDU *srw_pdu = yaz_srw_get_pdu(o, Z_SRW_scan_response, m_sru_version);
     Z_SRW_scanResponse *srw_res = srw_pdu->u.scan_response;
 
     if (entries && entries->num_entries > 0)
@@ -1408,7 +1410,8 @@ int Yaz_Proxy::send_srw_search_response(Z_SRW_diagnostic *diagnostics,
                                         int num_diagnostics, int http_code /* = 200 */)
 {
     ODR o = odr_encode();
-    Z_SRW_PDU *srw_pdu = yaz_srw_get(o, Z_SRW_searchRetrieve_response);
+    Z_SRW_PDU *srw_pdu = yaz_srw_get_pdu(o, Z_SRW_searchRetrieve_response,
+                                         m_sru_version);
     Z_SRW_searchRetrieveResponse *srw_res = srw_pdu->u.response;
 
     srw_res->num_diagnostics = num_diagnostics;
@@ -1420,7 +1423,7 @@ int Yaz_Proxy::send_srw_scan_response(Z_SRW_diagnostic *diagnostics,
                                         int num_diagnostics, int http_code /* = 200 */)
 {
     ODR o = odr_encode();
-    Z_SRW_PDU *srw_pdu = yaz_srw_get(o, Z_SRW_scan_response);
+    Z_SRW_PDU *srw_pdu = yaz_srw_get_pdu(o, Z_SRW_scan_response, m_sru_version);
     Z_SRW_scanResponse *srw_res = srw_pdu->u.scan_response;
 
     srw_res->num_diagnostics = num_diagnostics;
@@ -1440,7 +1443,9 @@ int Yaz_Proxy::send_srw_explain_response(Z_SRW_diagnostic *diagnostics,
                                        m_s2z_database, &len, &http_status);
         if (b)
         {
-            Z_SRW_PDU *res = yaz_srw_get(odr_encode(), Z_SRW_explain_response);
+            Z_SRW_PDU *res = yaz_srw_get_pdu(odr_encode(),
+                                             Z_SRW_explain_response,
+                                             m_sru_version);
             Z_SRW_explainResponse *er = res->u.explain_response;
 
             er->record.recordData_buf = b;
@@ -2909,6 +2914,8 @@ int Yaz_Proxy::file_access(Z_HTTP_Request *hreq)
     }
 
     Yaz_ProxyConfig *cfg = check_reconfigure();
+    if (!cfg)
+        return 0;
 
     if (!cfg->get_file_access_info(hreq->path+1))
         return 0;
@@ -3038,6 +3045,7 @@ void Yaz_Proxy::handle_incoming_HTTP(Z_HTTP_Request *hreq)
         m_s2z_search_apdu = 0;
         m_s2z_present_apdu = 0;
         m_s2z_scan_apdu = 0;
+        m_sru_version = srw_pdu->srw_version;
 
         m_s2z_stylesheet = 0;
 
@@ -3118,8 +3126,9 @@ void Yaz_Proxy::handle_incoming_HTTP(Z_HTTP_Request *hreq)
             if (num_diagnostic)
             {
                 Z_SRW_PDU *srw_pdu =
-                    yaz_srw_get(odr_encode(),
-                                Z_SRW_searchRetrieve_response);
+                    yaz_srw_get_pdu(odr_encode(),
+                                    Z_SRW_searchRetrieve_response,
+                                    m_sru_version);
                 Z_SRW_searchRetrieveResponse *srw_res = srw_pdu->u.response;
 
                 srw_res->diagnostics = diagnostic;
