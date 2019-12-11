@@ -219,7 +219,7 @@
        
        <para>
 	Windows versions of libXSLT, libxml2, zlib and iconv can be found
-	<ulink url="&url.libxml2.download.win32;">
+	<ulink url="&url.libxml2.download.windows;">
 	 here</ulink>.
        </para>
       </listitem>
