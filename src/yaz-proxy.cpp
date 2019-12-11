@@ -2544,10 +2544,12 @@ Z_APDU *Yaz_Proxy::handle_target_charset_conversion(Z_APDU *apdu)
         apdu->u.scanRequest->termListAndStartPoint)
     {
         if (apdu->u.scanRequest->termListAndStartPoint->term)
+        {
             if (m_http_version)
                 m_charset_converter->set_client_query_charset("UTF-8");
             Z_Term *term = apdu->u.scanRequest->termListAndStartPoint->term;
             m_charset_converter->convert_term(term, odr_encode());
+        }
     }
     return apdu;
 }
