@@ -1,8 +1,14 @@
 FROM quay.io/natlibfi/usemarcon:3
-ENTRYPOINT ["bin/yazproxy", "-c", "/conf/conf.xml", "@:8080"]
+ENTRYPOINT ["/yaz/entrypoint.sh"]
+
+ENV PORT 10210
+ENV CONF /conf/conf.xml
 
 USER root
+
 COPY . /build/yazproxy
+COPY docker-entrypoint.sh /yaz/entrypoint.sh
+
 WORKDIR /build
 
 RUN apk -U --no-cache add libxslt libxml2 libgcrypt libgpg-error icu gnutls \
@@ -10,7 +16,7 @@ RUN apk -U --no-cache add libxslt libxml2 libgcrypt libgpg-error icu gnutls \
     autoconf libtool bison tcl-dev icu-dev gnutls-dev libxslt-dev libxml2-dev \
     libgpg-error-dev libgcrypt-dev \
   && addgroup -S yaz && adduser -S -h /yaz yaz yaz \
-  && chown -R yaz:yaz /build \
+  && chown -R yaz:yaz /build /yaz \
   && sudo -u yaz sh -c 'cd /build \
     && git clone https://github.com/indexdata/yaz && cd yaz \
     && ./buildconf.sh && ./configure --prefix=/yaz' \
