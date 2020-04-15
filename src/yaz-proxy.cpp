@@ -2695,6 +2695,34 @@ int Yaz_Proxy::handle_global_authentication(Z_APDU *apdu)
     return ret;
 }
 
+Z_APDU *Yaz_Proxy::handle_database_validation(Z_APDU *apdu)
+{
+    Yaz_ProxyConfig *cfg = check_reconfigure();
+
+    if (cfg && apdu->which == Z_APDU_searchRequest)
+    {        
+        Z_SearchRequest *sr = apdu->u.searchRequest;
+
+        for (int i = 0; i < sr->num_databaseNames; i++) {
+            // This works only with the default target
+            if (!cfg->check_is_defined_database(m_default_target, (const char *)sr->databaseNames[i])) {
+                Z_APDU *new_apdu = create_Z_PDU(Z_APDU_searchResponse);
+
+                new_apdu->u.searchResponse->referenceId = sr->referenceId;
+                new_apdu->u.searchResponse->records =
+                    create_nonSurrogateDiagnostics(odr_encode(), YAZ_BIB1_ACCESS_TO_SPECIFIED_DATABASE_DENIED, NULL);
+                *new_apdu->u.searchResponse->searchStatus = 0;
+
+                send_to_client(new_apdu);
+
+                return 0;
+            }
+        }            
+    }
+
+    return apdu;
+}
+
 Z_APDU *Yaz_Proxy::handle_syntax_validation(Z_APDU *apdu)
 {
     m_marcxml_mode = none;
@@ -3646,6 +3674,9 @@ void Yaz_Proxy::handle_incoming_Z_PDU(Z_APDU *apdu)
 void Yaz_Proxy::handle_incoming_Z_PDU_2(Z_APDU *apdu)
 {
     handle_max_record_retrieve(apdu);
+
+    if (apdu)
+        apdu = handle_database_validation(apdu);
 
     if (apdu)
         apdu = handle_syntax_validation(apdu);
