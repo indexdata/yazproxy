@@ -1,29 +1,45 @@
-FROM quay.io/natlibfi/usemarcon:3
-ENTRYPOINT ["bin/yazproxy", "-c", "/conf/conf.xml", "@:8080"]
+FROM alpine:3 as builder-dep
 
-USER root
-COPY . /build/yazproxy
+ARG YAZ_REF=master
+ARG YAZPP_REF=master
+ARG USEMARCON_REF=master
+
 WORKDIR /build
 
+RUN apk -U --no-cache add sudo git build-base automake autoconf libtool bison tcl-dev icu-dev gnutls-dev libxslt-dev libxml2-dev libgpg-error-dev libgcrypt-dev file \
+  && git clone https://github.com/indexdata/yaz && cd yaz && git checkout $YAZ_REF \
+  && ./buildconf.sh && ./configure --prefix=/yaz && make install-exec \
+  && cd .. \
+  && git clone https://github.com/indexdata/yazpp && cd yazpp && git checkout $YAZPP_REF \
+  && ./buildconf.sh && ./configure --prefix=/yaz && make install-exec \
+  && cd .. \
+  && git clone https://github.com/indexdata/usemarcon && cd usemarcon && git checkout $USEMARCON_REF \
+  && cd pcre && chmod +x CleanTxt config.guess config.sub configure depcomp Detrail install-sh perltest.pl PrepareRelease RunGrepTest RunTest 132html \
+  && ./configure --enable-utf8 --enable-unicode-properties --disable-shared --disable-cpp && make \
+  && cd .. \
+  && ./buildconf.sh && ./configure --prefix=/yaz && make install-exec
+
+FROM builder-dep as builder
+
+COPY . /build/yazproxy
+
+WORKDIR /build/yazproxy
+
+RUN ./buildconf.sh && ./configure --prefix=/yaz --with-usemarcon=/yaz && make install-exec
+
+FROM alpine:3
+ENTRYPOINT ["/yaz/entrypoint.sh"]
+
+ENV PORT 10210
+ENV CONF /conf/conf.xml
+
+COPY --from=builder /yaz /yaz
+COPY docker-entrypoint.sh /yaz/entrypoint.sh
+
 RUN apk -U --no-cache add libxslt libxml2 libgcrypt libgpg-error icu gnutls \
-  && apk -U --no-cache add --virtual .build-deps g++ sudo git make automake \
-    autoconf libtool bison tcl-dev icu-dev gnutls-dev libxslt-dev libxml2-dev \
-    libgpg-error-dev libgcrypt-dev \
-  && addgroup -S yaz && adduser -S -h /yaz yaz yaz \
-  && chown -R yaz:yaz /build \
-  && sudo -u yaz sh -c 'cd /build \
-    && git clone https://github.com/indexdata/yaz && cd yaz \
-    && ./buildconf.sh && ./configure --prefix=/yaz' \
-  && sh -c 'cd yaz && make install-exec' \
-  && sudo -u yaz sh -c 'cd /build \
-    && git clone https://github.com/indexdata/yazpp && cd yazpp \
-    && ./buildconf.sh && ./configure --prefix=/yaz' \
-  && sh -c 'cd yazpp && make install-exec' \
-  && sudo -u yaz sh -c 'cd /build/yazproxy && ./buildconf.sh \
-    && ./configure --prefix=/yaz --with-usemarcon=/usemarcon' \
-  && sh -c 'cd yazproxy && make install-exec && chown -R yaz:yaz /yaz' \
-  && apk del .build-deps \
-  && rm -rf /build tmp/* /var/cache/apk/*
+  && addgroup -S yaz \
+  && adduser -S -h /yaz yaz yaz \
+  && chown -R yaz:yaz /yaz
 
 WORKDIR /yaz
 USER yaz
