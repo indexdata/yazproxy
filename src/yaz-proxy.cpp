@@ -2704,8 +2704,7 @@ Z_APDU *Yaz_Proxy::handle_database_validation(Z_APDU *apdu)
         Z_SearchRequest *sr = apdu->u.searchRequest;
 
         for (int i = 0; i < sr->num_databaseNames; i++) {
-            // Why not found with url?
-            //cfg->check_is_defined_database(url[0]);
+            // This works only with the default target
             if (!cfg->check_is_defined_database(m_default_target, (const char *)sr->databaseNames[i])) {
                 yaz_log(YLOG_LOG, "Undefined database %s", sr->databaseNames[i]);
 
