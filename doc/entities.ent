@@ -4,4 +4,4 @@
 <!ENTITY chap-reference SYSTEM "reference.xml">
 <!ENTITY yaz-proxy-ref SYSTEM "yaz-proxy-ref.xml">
 <!ENTITY app-license SYSTEM "license.xml">
-<!ENTITY copyright-year "1998-2019">
+<!ENTITY copyright-year "1998-2022">
