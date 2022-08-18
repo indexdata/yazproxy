@@ -1,3 +1,7 @@
+--- 1.3.12 2022/08/18
+
+Update RPM/Deb package for yazpp 1.7 which provides libyazpp7.
+
 --- 1.3.11 2019/12/11
 
 SRU version nogotiation - SRU package returned matches what the client
