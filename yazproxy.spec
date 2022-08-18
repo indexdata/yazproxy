@@ -8,7 +8,7 @@ Group: Applications/Internet
 Vendor: Index Data ApS <info@indexdata.dk>
 Source: yazproxy-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
-BuildRequires: libyazpp6-devel
+BuildRequires: libyazpp7-devel
 Packager: Adam Dickmeiss <adam@indexdata.dk>
 URL: http://www.indexdata.com/yazproxy
 
@@ -18,7 +18,7 @@ YAZ Proxy application
 %package -n libyazproxy2
 Summary: YAZ Proxy libraries
 Group: Libraries
-Requires: libyazpp6
+Requires: libyazpp7
 
 %description -n libyazproxy2
 YAZ Proxy libraries
@@ -26,7 +26,7 @@ YAZ Proxy libraries
 %package -n libyazproxy2-devel
 Summary: YAZ Proxy development libraries
 Group: Development/Libraries
-Requires: libyazproxy2 = %{version}, libyazpp6-devel
+Requires: libyazproxy2 = %{version}, libyazpp7-devel
 
 %description -n libyazproxy2-devel
 Development libraries and include files for the YAZ proxy.

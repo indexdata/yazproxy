@@ -3,7 +3,7 @@ Priority: optional
 Maintainer: Adam Dickmeiss <adam@indexdata.dk>
 Standards-Version: 3.6.0
 Build-Depends: debhelper (>= 4.0.0),
-	libyazpp6-dev(>= 1.4.0)
+	libyazpp7-dev(>= 1.7.0)
 
 Package: yazproxy
 Section: utils
@@ -33,7 +33,7 @@ Package: libyazproxy2-dev
 Section: devel
 Architecture: any
 Depends: libyazproxy2 (= ${source:Version}),
-	libyazpp6-dev
+	libyazpp7-dev
 Conflicts: libyazproxy-dev
 Provides: libyazproxy-dev
 Replaces: libyazproxy-dev
