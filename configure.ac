@@ -1,9 +1,7 @@
 dnl This file is part of YAZ proxy
 dnl See the file LICENSE for details.
-AC_PREREQ(2.60)
-AC_INIT([yazproxy],
-m4_esyscmd([. ./IDMETA; echo $VERSION|tr -d '\n']),
-[yaz-help@indexdata.dk])
+AC_PREREQ([2.69])
+AC_INIT([yazproxy],[m4_esyscmd([. ./IDMETA; printf $VERSION])],[info@indexdata.com])
 AC_CONFIG_SRCDIR(configure.ac)
 AC_CONFIG_AUX_DIR([config])
 AM_INIT_AUTOMAKE([1.9])
@@ -11,8 +9,8 @@ AM_INIT_AUTOMAKE([1.9])
 AC_PROG_CC
 AC_PROG_CPP
 AC_PROG_CXX
-AC_HEADER_STDC
-AM_PROG_LIBTOOL
+
+LT_INIT
 
 YAZPP_INIT([threads],[1.1.4])
 if test -z "$YAZPPLIB"; then
@@ -21,15 +19,11 @@ fi
 YAZ_DOC
 USEMARCON_INIT
 
-AC_CHECK_FUNCS(setrlimit getrlimit gettimeofday)
-AC_CHECK_HEADERS(sys/resource.h sys/stat.h sys/time.h sys/types.h unistd.h)
-AC_CHECK_LIB(dl,dlopen)
+AC_CHECK_FUNCS([setrlimit getrlimit gettimeofday])
+AC_CHECK_HEADERS([sys/resource.h sys/stat.h sys/time.h sys/types.h unistd.h])
+AC_CHECK_LIB([dl],[dlopen])
 dnl
-AC_SUBST(YAZPROXY_SRC_ROOT)
-AC_SUBST(YAZPROXY_BUILD_ROOT)
-YAZPROXY_SRC_ROOT=`cd ${srcdir}; pwd`
-YAZPROXY_BUILD_ROOT=`pwd`
-AC_OUTPUT([
+AC_CONFIG_FILES([
 	Makefile
 	src/Makefile
 	include/Makefile
@@ -40,3 +34,4 @@ AC_OUTPUT([
 	doc/common/print.dsl
 	etc/Makefile
 ])
+AC_OUTPUT
