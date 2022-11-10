@@ -44,6 +44,6 @@ jobs:
      run: ./buildconf.sh
    - name: Run configure for yazproxy
      run: >
-      ./configure --with-yazpp=../yazpp --disable-shared --enable-static
+      ./configure --with-yazpp=yazpp --disable-shared --enable-static
    - name: Run make check for yazproxy
      run: make -j4 check
