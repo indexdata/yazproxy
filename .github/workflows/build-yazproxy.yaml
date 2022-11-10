@@ -40,6 +40,8 @@ jobs:
       --disable-shared --enable-static
    - name: Run make for YAZ++
      run: cd yazpp && make -j4
+   - name: Run buildconf for yazproxy
+     run: ./buildconf.sh
    - name: Run configure for yazproxy
      run: >
       ./configure --with-yazpp=../yazpp --disable-shared --enable-static
