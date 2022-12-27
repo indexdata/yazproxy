@@ -131,6 +131,7 @@ class YAZ_EXPORT Yaz_Proxy : public yazpp_1::Z_Assoc {
     Z_APDU *handle_target_charset_conversion(Z_APDU *apdu);
 
     Z_APDU *handle_syntax_validation(Z_APDU *apdu);
+    Z_APDU *handle_database_validation(Z_APDU *apdu);
 
     void handle_charset_lang_negotiation(Z_APDU *apdu);
 
