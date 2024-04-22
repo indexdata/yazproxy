@@ -148,6 +148,7 @@ public:
     char *get_explain_doc(ODR odr, const char *name, const char *db,
                           int *len, int *http_status);
     const char *get_explain_name(const char *db, const char **backend_db);
+    int check_is_defined_database(const char *name, const char *db);
  private:
     void operator=(const Yaz_ProxyConfig &conf);
     class Yaz_ProxyConfigP *m_cp;

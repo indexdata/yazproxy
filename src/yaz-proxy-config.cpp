@@ -484,6 +484,30 @@ int Yaz_ProxyConfigP::check_type_1(ODR odr, xmlNodePtr ptr, Z_RPNQuery *query,
 }
 #endif
 
+int Yaz_ProxyConfig::check_is_defined_database(const char *name, const char *db) {
+#if YAZ_HAVE_XSLT
+    xmlNodePtr ptr;
+    struct _xmlAttr *attr;
+    
+    ptr = m_cp->find_target_node(name);
+        
+    if (ptr)
+    {    
+        for (attr = ptr->properties; attr; attr = attr->next)
+        {
+            if (attr->children && attr->children->type == XML_TEXT_NODE) {
+                if (!strcmp((const char *)attr->name, "database")
+                    && !strcmp((const char *)attr->children->content, db))
+                {
+                    return 1;
+                }
+            }                        
+        }
+    }
+#endif
+    return 0;
+}
+
 int Yaz_ProxyConfig::check_query(ODR odr, const char *name, Z_Query *query,
                                  char **addinfo)
 {
