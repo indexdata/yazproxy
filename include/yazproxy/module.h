@@ -17,7 +17,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #ifndef YAZ_PROXY_MODULE_H
-#define YAZ_PROXY_MODULE_H_INCLUDED
+#define YAZ_PROXY_MODULE_H
 
 struct Yaz_ProxyModule_entry {
     int int_version;
