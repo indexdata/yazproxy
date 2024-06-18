@@ -1,3 +1,8 @@
+--- 1.3.13 2024/06/18
+
+Build: fix implicit atoi/stdlib include (libxml2 >2.12)
+see: https://trac.macports.org/ticket/70063
+
 --- 1.3.12 2022/08/18
 
 Update RPM/Deb package for yazpp 1.7 which provides libyazpp7.
